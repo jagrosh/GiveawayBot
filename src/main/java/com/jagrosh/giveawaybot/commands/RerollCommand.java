@@ -33,9 +33,8 @@ public class RerollCommand extends Command {
         name = "reroll";
         help = "re-rolls the specified or latest giveaway in the current channel";
         arguments = "[messageId]";
-        category = new Category("Giveaway");
+        category = GiveawayBot.GIVEAWAY;
         guildOnly = true;
-        userPermissions = new Permission[]{Permission.MANAGE_SERVER};
         botPermissions = new Permission[]{Permission.MESSAGE_HISTORY};
     }
 

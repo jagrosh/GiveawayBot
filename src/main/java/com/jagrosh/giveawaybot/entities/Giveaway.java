@@ -65,21 +65,33 @@ public class Giveaway {
         this.status = Status.STARTED;
         bot.addGiveaway(this);
         bot.getThreadpool().submit(() -> {
-            while(OffsetDateTime.now().plusMinutes(5).isBefore(end)) {
-                updateMessage();
-                try{Thread.sleep(1000*60);}catch(InterruptedException e){}
+            try{
+                while(OffsetDateTime.now().plusMinutes(5).isBefore(end)) {
+                    updateMessage();
+                    Thread.sleep(1000*60);
+                }
+                while(OffsetDateTime.now().plusSeconds(5).isBefore(end)) {
+                    updateMessage();
+                    Thread.sleep(5000);
+                }
+                while(OffsetDateTime.now().plusSeconds(1).isBefore(end)) {
+                    updateMessage();
+                    Thread.sleep(1000);
+                }
+                long millis = OffsetDateTime.now().until(end, ChronoUnit.MILLIS);
+                if(millis>0)
+                    Thread.sleep(millis);
+                end();
+            } catch(Exception e) {
+                err();
             }
-            while(OffsetDateTime.now().plusSeconds(5).isBefore(end)) {
-                updateMessage();
-                try{Thread.sleep(5000);}catch(InterruptedException e){}
-            }
-            while(OffsetDateTime.now().plusSeconds(1).isBefore(end)) {
-                updateMessage();
-                try{Thread.sleep(1000);}catch(InterruptedException e){}
-            }
-            try{Thread.sleep(OffsetDateTime.now().until(end, ChronoUnit.MILLIS));}catch(InterruptedException e){}
-            end();
         });
+    }
+    
+    private void err()
+    {
+        status = Status.ERRORED;
+        bot.removeGiveaway(this);
     }
     
     private void end()

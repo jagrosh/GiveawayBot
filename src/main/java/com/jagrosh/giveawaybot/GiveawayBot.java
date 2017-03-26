@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.security.auth.login.LoginException;
+import me.jagrosh.jdautilities.commandclient.Command.Category;
 import me.jagrosh.jdautilities.commandclient.CommandClient;
 import me.jagrosh.jdautilities.commandclient.CommandClientBuilder;
 import me.jagrosh.jdautilities.commandclient.examples.PingCommand;
@@ -36,8 +37,10 @@ import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.OnlineStatus;
+import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
+import net.dv8tion.jda.core.utils.PermissionUtil;
 
 /**
  *
@@ -61,6 +64,14 @@ public class GiveawayBot {
     
     // all current giveaways
     private final Set<Giveaway> current;
+    
+    public static Category GIVEAWAY = new Category("Giveaway", event -> {
+        if(PermissionUtil.checkPermission(event.getGuild(), event.getMember(), Permission.MANAGE_SERVER) 
+                || event.getMember().getRoles().stream().anyMatch(r -> r.getName().equalsIgnoreCase("giveaways")))
+            return true;
+        event.reply(event.getClient().getError()+" You must have the Manage Server permission, or a role called \"Giveaways\", to use this command!");
+        return false;
+    });
     
     public GiveawayBot() {
         shards = new LinkedList<>();

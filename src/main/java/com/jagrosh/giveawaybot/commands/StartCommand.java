@@ -34,9 +34,8 @@ public class StartCommand extends Command {
         name = "start";
         help = "starts a giveaway; time can be in seconds (Ex: __40__ or __40s__) or minutes (Ex: __3m__)";
         arguments = "<time> [prize]";
-        category = new Category("Giveaway");
+        category = GiveawayBot.GIVEAWAY;
         guildOnly = true;
-        userPermissions = new Permission[]{Permission.MANAGE_SERVER};
         botPermissions = new Permission[]{Permission.MESSAGE_HISTORY,Permission.MESSAGE_ADD_REACTION,Permission.MESSAGE_EMBED_LINKS};
     }
     
