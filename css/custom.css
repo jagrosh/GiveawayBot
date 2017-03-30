@@ -257,7 +257,7 @@ header .header-content .header-content-inner b {
 
     .navbar-default .navbar-header .navbar-brand {
         color: rgba(255,255,255,.7);
-        letter-spacing: 0.5em;
+        letter-spacing: 0.4em;
     }
 
     .navbar-default .navbar-header .navbar-brand:hover,
@@ -267,12 +267,13 @@ header .header-content .header-content-inner b {
 
     .navbar-default .nav > li>a,
     .navbar-default .nav>li>a:focus {
-        color: rgba(255,255,255,.7);
+        color: rgba(255,255,255,.95);
     }
 
     .navbar-default .nav > li>a:hover,
     .navbar-default .nav>li>a:focus:hover {
         color: #fff;
+        letter-spacing: .2em;
     }
 
     .navbar-default.affix {
@@ -288,7 +289,7 @@ header .header-content .header-content-inner b {
 
     .navbar-default.affix .navbar-header .navbar-brand:hover,
     .navbar-default.affix .navbar-header .navbar-brand:focus {
-        color: #eb3812;
+        color: #000;
     }
 
     .navbar-default.affix .nav > li>a,
