@@ -67,6 +67,11 @@ public class GiveawayBot {
     private final Set<Giveaway> current;
     
     public static Category GIVEAWAY = new Category("Giveaway", event -> {
+        if(event.getGuild()==null)
+        {
+            event.replyError("This command cannot be used in Direct Messages!");
+            return false;
+        }
         if(PermissionUtil.checkPermission(event.getGuild(), event.getMember(), Permission.MANAGE_SERVER) 
                 || event.getMember().getRoles().stream().anyMatch(r -> r.getName().equalsIgnoreCase("giveaways")))
             return true;
