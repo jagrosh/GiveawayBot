@@ -16,6 +16,7 @@
 package com.jagrosh.giveawaybot;
 
 import com.jagrosh.giveawaybot.commands.*;
+import com.jagrosh.giveawaybot.entities.DataPersistence;
 import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import java.awt.Color;
@@ -29,10 +30,10 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.security.auth.login.LoginException;
-import me.jagrosh.jdautilities.commandclient.Command.Category;
-import me.jagrosh.jdautilities.commandclient.CommandClient;
-import me.jagrosh.jdautilities.commandclient.CommandClientBuilder;
-import me.jagrosh.jdautilities.commandclient.examples.PingCommand;
+import com.jagrosh.jdautilities.commandclient.Command.Category;
+import com.jagrosh.jdautilities.commandclient.CommandClient;
+import com.jagrosh.jdautilities.commandclient.CommandClientBuilder;
+import com.jagrosh.jdautilities.commandclient.examples.PingCommand;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
@@ -87,6 +88,10 @@ public class GiveawayBot {
         return threadpool;
     }
     
+    public void shutdown() {
+        threadpool.shutdown();
+    }
+    
     public void addGiveaway(Giveaway giveaway) {
         current.add(giveaway);
     }
@@ -110,6 +115,8 @@ public class GiveawayBot {
         // instantiate a bot
         GiveawayBot bot = new GiveawayBot();
         
+        DataPersistence data = new DataPersistence(bot);
+        
         // build the client to deal with commands
         CommandClient client = new CommandClientBuilder()
                 .setPrefix("!g")
@@ -124,7 +131,8 @@ public class GiveawayBot {
                         new PingCommand(),
                         new StartCommand(bot),
                         new RerollCommand(),
-                        new EvalCommand(bot)
+                        new EvalCommand(bot),
+                        new ShutdownCommand()
                 ).build();
         
         for(int i=0; i<shards; i++)
@@ -134,7 +142,8 @@ public class GiveawayBot {
                     .setAudioEnabled(false)
                     .setGame(Game.of("loading..."))
                     .setStatus(OnlineStatus.DO_NOT_DISTURB)
-                    .addListener(client);
+                    .addListener(client)
+                    .addListener(data);
             if(shards>1)
                 builder.useSharding(i, shards);
             bot.addShard(builder.buildAsync());

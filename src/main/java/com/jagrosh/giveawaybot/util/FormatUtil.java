@@ -17,9 +17,9 @@ package com.jagrosh.giveawaybot.util;
 
 import com.jagrosh.giveawaybot.GiveawayBot;
 import java.util.Objects;
-import me.jagrosh.jdautilities.commandclient.Command;
-import me.jagrosh.jdautilities.commandclient.Command.Category;
-import me.jagrosh.jdautilities.commandclient.CommandEvent;
+import com.jagrosh.jdautilities.commandclient.Command;
+import com.jagrosh.jdautilities.commandclient.Command.Category;
+import com.jagrosh.jdautilities.commandclient.CommandEvent;
 import net.dv8tion.jda.core.entities.User;
 
 /**

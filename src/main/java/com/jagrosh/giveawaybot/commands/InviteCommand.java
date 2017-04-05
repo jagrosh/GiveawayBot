@@ -16,8 +16,8 @@
 package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.GiveawayBot;
-import me.jagrosh.jdautilities.commandclient.Command;
-import me.jagrosh.jdautilities.commandclient.CommandEvent;
+import com.jagrosh.jdautilities.commandclient.Command;
+import com.jagrosh.jdautilities.commandclient.CommandEvent;
 
 /**
  *

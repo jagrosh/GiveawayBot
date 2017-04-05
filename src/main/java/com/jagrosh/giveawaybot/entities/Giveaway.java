@@ -60,31 +60,39 @@ public class Giveaway {
         return end;
     }
     
+    public Message getMessage() {
+        return message;
+    }
+    
+    public String getPrize() {
+        return prize;
+    }
+    
     public void start()
     {
         this.status = Status.STARTED;
         bot.addGiveaway(this);
         bot.getThreadpool().submit(() -> {
-            try{
                 while(OffsetDateTime.now().plusMinutes(5).isBefore(end)) {
-                    updateMessage();
-                    Thread.sleep(1000*60);
+                    try{updateMessage();
+                    Thread.sleep(1000*60);}catch(Exception e){}
                 }
                 while(OffsetDateTime.now().plusSeconds(5).isBefore(end)) {
-                    updateMessage();
-                    Thread.sleep(5000);
+                    try{updateMessage();
+                    Thread.sleep(5000);}catch(Exception e){}
                 }
                 while(OffsetDateTime.now().plusSeconds(1).isBefore(end)) {
-                    updateMessage();
-                    Thread.sleep(1000);
+                    try{updateMessage();
+                    Thread.sleep(1000);}catch(Exception e){}
                 }
                 long millis = OffsetDateTime.now().until(end, ChronoUnit.MILLIS);
                 if(millis>0)
-                    Thread.sleep(millis);
-                end();
-            } catch(Exception e) {
-                err();
-            }
+                    try{Thread.sleep(millis);}catch(Exception e){};
+                try {
+                    end();
+                } catch(Exception e) {
+                    err();
+                }
         });
     }
     

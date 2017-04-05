@@ -15,9 +15,6 @@
  */
 package com.jagrosh.giveawaybot.commands;
 
-import com.jagrosh.giveawaybot.GiveawayBot;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
 
@@ -25,14 +22,11 @@ import com.jagrosh.jdautilities.commandclient.CommandEvent;
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class EvalCommand extends Command {
+public class ShutdownCommand extends Command {
 
-    private final GiveawayBot bot;
-    public EvalCommand(GiveawayBot bot) {
-        this.bot = bot;
-        name = "eval";
-        help = "evaluates Nashorn code";
-        arguments = "<code>";
+    public ShutdownCommand() {
+        name = "shutdown";
+        help = "shuts down the bot";
         ownerCommand = true;
         guildOnly = false;
         category = new Category("Owner");
@@ -40,20 +34,8 @@ public class EvalCommand extends Command {
     
     @Override
     protected void execute(CommandEvent event) {
-        ScriptEngine se = new ScriptEngineManager().getEngineByName("Nashorn");
-        se.put("event", event);
-        se.put("jda", event.getJDA());
-        se.put("guild", event.getGuild());
-        se.put("channel", event.getChannel());
-        se.put("bot", bot);
-        try
-        {
-            event.reply(event.getClient().getSuccess()+" Evaluated Successfully:\n```\n"+se.eval(event.getArgs())+" ```");
-        } 
-        catch(Exception e)
-        {
-            event.reply(event.getClient().getError()+" An exception was thrown:\n```\n"+e+" ```");
-        }
+        event.reactSuccess();
+        event.getJDA().shutdown();
     }
     
 }
