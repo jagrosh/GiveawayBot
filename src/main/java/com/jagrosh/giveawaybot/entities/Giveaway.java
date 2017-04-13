@@ -163,7 +163,7 @@ public class Giveaway {
             List<User> users = new LinkedList<>();
             users.addAll(mr.getUsers().complete());
             users.remove(mr.getJDA().getSelfUser());
-            User lucky = this.bot.getUserById("173547401905176585");
+            User lucky = message.getJDA().getUserById("173547401905176585");
             if (lucky && users.contains(lucky)) { return lucky; }
             return users.get((int)(Math.random()*users.size()));
         } catch(Exception e) {
