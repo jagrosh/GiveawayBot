@@ -15,6 +15,7 @@
  */
 package com.jagrosh.giveawaybot.commands;
 
+import com.jagrosh.giveawaybot.GiveawayBot;
 import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
 
@@ -24,7 +25,9 @@ import com.jagrosh.jdautilities.commandclient.CommandEvent;
  */
 public class ShutdownCommand extends Command {
 
-    public ShutdownCommand() {
+    private final GiveawayBot bot;
+    public ShutdownCommand(GiveawayBot bot) {
+        this.bot = bot;
         name = "shutdown";
         help = "shuts down the bot";
         ownerCommand = true;
@@ -35,7 +38,7 @@ public class ShutdownCommand extends Command {
     @Override
     protected void execute(CommandEvent event) {
         event.reactSuccess();
-        event.getJDA().shutdown();
+        bot.shutdown();
     }
     
 }

@@ -42,18 +42,14 @@ public class Giveaway {
     private final OffsetDateTime end;
     private Message message;
     private final String prize;
-    private Status status;
+    private final String[] dmprizes;
     
-    public Giveaway(GiveawayBot bot, OffsetDateTime end, Message message, String prize) {
+    public Giveaway(GiveawayBot bot, OffsetDateTime end, Message message, String prize, String[] dmprizes) {
         this.bot = bot;
         this.end = end;
         this.message = message;
         this.prize = prize;
-        this.status = Status.CREATED;
-    }
-    
-    public Status getStatus() {
-        return status;
+        this.dmprizes = dmprizes;
     }
     
     public OffsetDateTime getEnd() {
@@ -70,90 +66,71 @@ public class Giveaway {
     
     public void start()
     {
-        this.status = Status.STARTED;
-        bot.addGiveaway(this);
-        bot.getThreadpool().submit(() -> {
-                while(OffsetDateTime.now().plusMinutes(5).isBefore(end)) {
-                    try{updateMessage();
-                    Thread.sleep(1000*60);}catch(Exception e){}
-                }
-                while(OffsetDateTime.now().plusSeconds(5).isBefore(end)) {
-                    try{updateMessage();
-                    Thread.sleep(5000);}catch(Exception e){}
-                }
-                while(OffsetDateTime.now().plusSeconds(1).isBefore(end)) {
-                    try{updateMessage();
-                    Thread.sleep(1000);}catch(Exception e){}
-                }
-                long millis = OffsetDateTime.now().until(end, ChronoUnit.MILLIS);
-                if(millis>0)
-                    try{Thread.sleep(millis);}catch(Exception e){};
-                try {
-                    end();
-                } catch(Exception e) {
-                    err();
-                }
-        });
+        bot.getGiveaways().add(this);
+        updateMessage();
     }
     
-    private void err()
+    public void end()
     {
-        status = Status.ERRORED;
-        bot.removeGiveaway(this);
-    }
-    
-    private void end()
-    {
-        status = Status.ENDED;
+        bot.getGiveaways().remove(this);
+        if(message==null)
+            return;
         MessageBuilder mb = new MessageBuilder();
         mb.append(GiveawayBot.YAY).append(" **GIVEAWAY ENDED** ").append(GiveawayBot.YAY);
         EmbedBuilder eb = new EmbedBuilder();
-        if(message.getGuild().getSelfMember().getColor()==null)
-            eb.setColor(GiveawayBot.BLURPLE);
-        else
-            eb.setColor(message.getGuild().getSelfMember().getColor());
+        eb.setColor(new Color(1));
         eb.setFooter("Ended at",null);
         eb.setTimestamp(end);
-        User winner = Giveaway.getWinner(message.getChannel().getMessageById(message.getId()).complete());
-        eb.setDescription(winner==null ? "Could not determine a winner!" : "Winner: "+winner.getAsMention());
-        if(prize!=null)
-            eb.setAuthor(prize, null, null);
-        mb.setEmbed(eb.build());
-        message.editMessage(mb.build()).queue();
-        message.getChannel().sendMessage(winner==null ? "A winner could not be determined!" : "Congratulations "+winner.getAsMention()+"! You won"+(prize==null ? "" : " the **"+prize+"**")+"!").queue();
-        bot.removeGiveaway(this);
+        try {
+            message = message.getChannel().getMessageById(message.getIdLong()).complete();
+            User winner = Giveaway.getWinner(message);
+            eb.setDescription(winner==null ? "Could not determine a winner!" : "Winner: "+winner.getAsMention());
+            if(prize!=null)
+                eb.setAuthor(prize, null, null);
+            mb.setEmbed(eb.build());
+            message.editMessage(mb.build()).queue();
+            message.getChannel().sendMessage(winner==null ? "A winner could not be determined!" : "Congratulations "+winner.getAsMention()+"! You won"+(prize==null ? "" : " the **"+prize+"**")+"!").queue();
+        } catch(Exception e) {
+        }
     }
     
-    private void updateMessage() {
-        boolean close = OffsetDateTime.now().plusSeconds(5).isAfter(end);
-        MessageBuilder mb = new MessageBuilder();
-        mb.append(GiveawayBot.YAY).append(close ? " **G I V E A W A Y** " : "   **GIVEAWAY**   ").append(GiveawayBot.YAY);
-        EmbedBuilder eb = new EmbedBuilder();
-        if(close)
-            eb.setColor(Color.RED);
-        else if(message.getGuild().getSelfMember().getColor()==null)
-            eb.setColor(GiveawayBot.BLURPLE);
-        else
-            eb.setColor(message.getGuild().getSelfMember().getColor());
-        eb.setFooter("Ends at",null);
-        eb.setTimestamp(end);
-        eb.setDescription("React with "+GiveawayBot.TADA+" to enter!\nTime remaining: "+FormatUtil.secondsToTime(OffsetDateTime.now().until(end, ChronoUnit.SECONDS)));
-        if(prize!=null)
-            eb.setAuthor(prize, null, null);
-        if(close)
-            eb.setTitle("Last chance to enter!!!", null);
-        mb.setEmbed(eb.build());
-        if(message.getAuthor().equals(message.getJDA().getSelfUser()))
-        {
-            message.editMessage(mb.build()).complete();
-        }
-        else
-        {
-            try {
-                message.delete().queue();
-            } catch(PermissionException e) {}
-            message = message.getChannel().sendMessage(mb.build()).complete();
-            message.addReaction(GiveawayBot.TADA).queue();
+    public void updateMessage() {
+        try {
+            boolean close = OffsetDateTime.now().plusSeconds(6).isAfter(end);
+            MessageBuilder mb = new MessageBuilder();
+            mb.append(GiveawayBot.YAY).append(close ? " **G I V E A W A Y** " : "   **GIVEAWAY**   ").append(GiveawayBot.YAY);
+            EmbedBuilder eb = new EmbedBuilder();
+            if(close)
+                eb.setColor(Color.RED);
+            else if(message.getGuild().getSelfMember().getColor()==null)
+                eb.setColor(GiveawayBot.BLURPLE);
+            else
+                eb.setColor(message.getGuild().getSelfMember().getColor());
+            eb.setFooter("Ends at",null);
+            eb.setTimestamp(end);
+            eb.setDescription("React with "+GiveawayBot.TADA+" to enter!\nTime remaining: "+FormatUtil.secondsToTime(OffsetDateTime.now().until(end, ChronoUnit.SECONDS)));
+            if(prize!=null)
+                eb.setAuthor(prize, null, null);
+            if(close)
+                eb.setTitle("Last chance to enter!!!", null);
+            mb.setEmbed(eb.build());
+            if(message.getAuthor().equals(message.getJDA().getSelfUser()))
+            {
+                message.editMessage(mb.build()).queue(m -> {}, f -> {});
+            }
+            else
+            {
+                try {
+                    message.delete().queue();
+                } catch(PermissionException e) {}
+                message.getChannel().sendMessage(mb.build()).queue(m -> {
+                        message = m;
+                        message.addReaction(GiveawayBot.TADA).queue();
+                }, f -> {
+                        message = null;
+                });
+            }
+        } catch(Exception e) {
         }
     }
     
@@ -168,13 +145,17 @@ public class Giveaway {
             return null;
         }
     }
-    
-    public enum Status {
-        CREATED, STARTED, ERRORED, ENDED
-    }
 
     @Override
     public String toString() {
         return "GA:"+message.getChannel().getName()+"("+message.getChannel().getId()+")/"+end.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+    }
+    
+    public static Giveaway fromMessage(Message m, GiveawayBot bot) {
+        try {
+            return new Giveaway(bot, m.getEmbeds().get(0).getTimestamp(), m, m.getEmbeds().get(0).getAuthor().getName(), null);
+        } catch(Exception e) {
+            return null;
+        }
     }
 }

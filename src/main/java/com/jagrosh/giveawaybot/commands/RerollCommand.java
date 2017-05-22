@@ -45,28 +45,24 @@ public class RerollCommand extends Command {
                 Message m = messages.stream().filter(msg -> msg.getAuthor().equals(event.getSelfUser()) && !msg.getEmbeds().isEmpty() 
                         && msg.getReactions().stream().anyMatch(mr -> mr.getEmote().getName().equals(GiveawayBot.TADA)&&mr.getCount()>0)).findFirst().orElse(null);
                 if(m==null)
-                    event.reply(event.getClient().getWarning()+" I couldn't find any recent giveaways in this channel.");
+                    event.replyWarning("I couldn't find any recent giveaways in this channel.");
                 else
-                {
-                    User winner = Giveaway.getWinner(m);
-                    if(winner==null)
-                        event.reply(event.getClient().getWarning()+" I couldn't determine a winner for that message.");
-                    else
-                        event.reply(event.getClient().getSuccess()+" The new winner is "+winner.getAsMention()+"! Congratulations!");
-                }
-            }, v -> event.reply(event.getClient().getError()+" I failed to retrieve message history"));
+                    determineWinner(m,event);
+            }, v -> event.replyError("I failed to retrieve message history"));
         }
-        else if(event.getArgs().matches("\\d{17,22}")) {
-            event.getChannel().getMessageById(event.getArgs()).queue(m -> {
-                User winner = Giveaway.getWinner(m);
-                if(winner==null)
-                    event.reply(event.getClient().getWarning()+" I couldn't determine a winner for that message.");
-                else
-                    event.reply(event.getClient().getSuccess()+" The new winner is "+winner.getAsMention()+"! Congratulations!");
-            }, v -> event.reply(event.getClient().getError()+" I couldn't find a message with that ID in this channel."));
+        else if(event.getArgs().matches("\\d{17,20}")) {
+            event.getChannel().getMessageById(event.getArgs()).queue(m -> determineWinner(m,event), 
+                    v -> event.replyError("I couldn't find a message with that ID in this channel."));
         }
         else
-            event.reply(event.getClient().getError()+" That is not a valid message ID! Try running without an ID to use the most recent giveaway in a channel.");
+            event.replyError("That is not a valid message ID! Try running without an ID to use the most recent giveaway in a channel.");
     }
     
+    private void determineWinner(Message m, CommandEvent event) {
+        User winner = Giveaway.getWinner(m);
+        if(winner==null)
+            event.replyWarning("I couldn't determine a winner for that giveaway.");
+        else
+            event.replySuccess("The new winner is "+winner.getAsMention()+"! Congratulations!");
+    }
 }

@@ -35,7 +35,7 @@ public class InviteCommand extends Command {
     protected void execute(CommandEvent event) {
         event.reply(GiveawayBot.YAY+" Hello! I'm **GiveawayBot**! I help to make giveaways quick and easy!\n"
                 + "You can add me to your server with this link:\n\n"
-                + "\uD83D\uDD17 **<https://discordapp.com/oauth2/authorize?permissions=347200&scope=bot&client_id=294882584201003009>**\n\n"
+                + "\uD83D\uDD17 **<"+GiveawayBot.INVITE+">**\n\n"
                 + "Check out my commands by typing `!ghelp`");
     }
     
