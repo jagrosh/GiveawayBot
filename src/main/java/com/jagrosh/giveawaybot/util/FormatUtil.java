@@ -46,7 +46,7 @@ public class FormatUtil {
         User owner = event.getJDA().getUserById(event.getClient().getOwnerId());
         if(owner!=null){
             builder.append("\n\nDo not include <> nor [] - <> means required and [] means optional."
-                    + "\nFor additional help, contact **").append(owner.getName()).append("**#").append(owner.getDiscriminator());
+                    + "\nFor additional help, contact **").append(owner.getName()).append("**#").append(owner.getDiscriminator()).append(" or check out <http://giveawaybot.party>");
                     //.append(" or join ").append(event.getClient().getServerInvite());
         }
         return builder.toString();

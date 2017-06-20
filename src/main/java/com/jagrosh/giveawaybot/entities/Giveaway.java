@@ -23,6 +23,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.Message;
@@ -42,14 +43,14 @@ public class Giveaway {
     private final OffsetDateTime end;
     private Message message;
     private final String prize;
-    private final String[] dmprizes;
+    private final int winners;
     
-    public Giveaway(GiveawayBot bot, OffsetDateTime end, Message message, String prize, String[] dmprizes) {
+    public Giveaway(GiveawayBot bot, OffsetDateTime end, Message message, String prize, int winners) {
         this.bot = bot;
         this.end = end;
         this.message = message;
         this.prize = prize;
-        this.dmprizes = dmprizes;
+        this.winners = winners;
     }
     
     public OffsetDateTime getEnd() {
@@ -62,6 +63,10 @@ public class Giveaway {
     
     public String getPrize() {
         return prize;
+    }
+    
+    public int getWinners() {
+        return winners;
     }
     
     public void start()
@@ -79,17 +84,35 @@ public class Giveaway {
         mb.append(GiveawayBot.YAY).append(" **GIVEAWAY ENDED** ").append(GiveawayBot.YAY);
         EmbedBuilder eb = new EmbedBuilder();
         eb.setColor(new Color(1));
-        eb.setFooter("Ended at",null);
+        eb.setFooter((winners==1 ? "" : winners+" Winners | ")+"Ended at",null);
         eb.setTimestamp(end);
+        if(prize!=null)
+            eb.setAuthor(prize, null, null);
         try {
-            message = message.getChannel().getMessageById(message.getIdLong()).complete();
-            User winner = Giveaway.getWinner(message);
-            eb.setDescription(winner==null ? "Could not determine a winner!" : "Winner: "+winner.getAsMention());
-            if(prize!=null)
-                eb.setAuthor(prize, null, null);
-            mb.setEmbed(eb.build());
-            message.editMessage(mb.build()).queue();
-            message.getChannel().sendMessage(winner==null ? "A winner could not be determined!" : "Congratulations "+winner.getAsMention()+"! You won"+(prize==null ? "" : " the **"+prize+"**")+"!").queue();
+            message.getChannel().getMessageById(message.getIdLong()).queue(m -> {
+                Giveaway.getWinners(m, wins -> {
+                    String str = wins.get(0).getAsMention();
+                    if(wins.size()==1)
+                    {
+                        eb.setDescription("Winner: "+wins.get(0).getAsMention());
+                    }
+                    else
+                    {
+                        eb.setDescription("Winners:");
+                        wins.forEach(w -> eb.appendDescription("\n").appendDescription(w.getAsMention()));
+                        for(int i=1; i<wins.size(); i++)
+                            str+=", "+wins.get(i).getAsMention();
+                    }
+                    mb.setEmbed(eb.build());
+                    m.editMessage(mb.build()).queue();
+                    m.getChannel().sendMessage("Congratulations "+str+"! You won"+(prize==null ? "" : " the **"+prize+"**")+"!").queue();
+                }, () -> {
+                    eb.setDescription("Could not determine a winner!");
+                    mb.setEmbed(eb.build());
+                    m.editMessage(mb.build()).queue();
+                    m.getChannel().sendMessage("A winner could not be determined!").queue();
+                });
+            }, v -> {});
         } catch(Exception e) {
         }
     }
@@ -106,7 +129,7 @@ public class Giveaway {
                 eb.setColor(GiveawayBot.BLURPLE);
             else
                 eb.setColor(message.getGuild().getSelfMember().getColor());
-            eb.setFooter("Ends at",null);
+            eb.setFooter((winners==1 ? "" : winners+" Winners | ")+"Ends at",null);
             eb.setTimestamp(end);
             eb.setDescription("React with "+GiveawayBot.TADA+" to enter!\nTime remaining: "+FormatUtil.secondsToTime(OffsetDateTime.now().until(end, ChronoUnit.SECONDS)));
             if(prize!=null)
@@ -134,15 +157,34 @@ public class Giveaway {
         }
     }
     
-    public static User getWinner(Message message) {
+    public static void getWinners(Message message, Consumer<List<User>> success, Runnable failure) {
         try {
             MessageReaction mr = message.getReactions().stream().filter(r -> r.getEmote().getName().equals(GiveawayBot.TADA)).findAny().orElse(null);
-            List<User> users = new LinkedList<>();
-            users.addAll(mr.getUsers().complete());
-            users.remove(mr.getJDA().getSelfUser());
-            return users.get((int)(Math.random()*users.size()));
+            mr.getUsers(100).queue(u -> {
+                List<User> users = new LinkedList<>();
+                users.addAll(u);
+                users.remove(mr.getJDA().getSelfUser());
+                if(users.isEmpty())
+                    failure.run();
+                else
+                {
+                    int wincount;
+                    String[] split = message.getEmbeds().get(0).getFooter().getText().split(" ");
+                    try {
+                        wincount = Integer.parseInt(split[0]);
+                    }catch(NumberFormatException e){
+                        wincount = 1;
+                    }
+                    List<User> wins = new LinkedList<>();
+                    for(int i=0; i<wincount && !users.isEmpty(); i++)
+                    {
+                        wins.add(users.remove((int)(Math.random()*users.size())));
+                    }
+                    success.accept(wins);
+                }
+            }, f -> failure.run());
         } catch(Exception e) {
-            return null;
+            failure.run();
         }
     }
 
@@ -153,7 +195,14 @@ public class Giveaway {
     
     public static Giveaway fromMessage(Message m, GiveawayBot bot) {
         try {
-            return new Giveaway(bot, m.getEmbeds().get(0).getTimestamp(), m, m.getEmbeds().get(0).getAuthor().getName(), null);
+            String[] split = m.getEmbeds().get(0).getFooter().getText().split(" ");
+            int winners;
+            try {
+                winners = Integer.parseInt(split[0]);
+            }catch(NumberFormatException e){
+                winners = 1;
+            }
+            return new Giveaway(bot, m.getEmbeds().get(0).getTimestamp(), m, m.getEmbeds().get(0).getAuthor().getName(), winners);
         } catch(Exception e) {
             return null;
         }

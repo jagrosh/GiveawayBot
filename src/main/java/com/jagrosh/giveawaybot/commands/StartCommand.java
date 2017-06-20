@@ -60,7 +60,7 @@ public class StartCommand extends Command {
             }
             OffsetDateTime end = OffsetDateTime.now().plusSeconds(value);
             String item = parts.length==1 ? null : parts[1];
-            new Giveaway(bot, end, event.getMessage(), item, null).start();
+            new Giveaway(bot, end, event.getMessage(), item, 1).start();
         } catch(NumberFormatException e) {
             event.reply(event.getClient().getWarning()+" Failed to parse "+(minutes ? "minutes" : "seconds")+" from `"+parts[0]+"`.");
         }

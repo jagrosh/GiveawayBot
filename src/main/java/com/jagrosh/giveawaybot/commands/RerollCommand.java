@@ -21,7 +21,6 @@ import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.User;
 
 /**
  *
@@ -59,10 +58,7 @@ public class RerollCommand extends Command {
     }
     
     private void determineWinner(Message m, CommandEvent event) {
-        User winner = Giveaway.getWinner(m);
-        if(winner==null)
-            event.replyWarning("I couldn't determine a winner for that giveaway.");
-        else
-            event.replySuccess("The new winner is "+winner.getAsMention()+"! Congratulations!");
+        Giveaway.getWinners(m, wins -> event.replySuccess("The new winner is "+wins.get(0).getAsMention()+"! Congratulations!"), 
+                () -> event.replyWarning("I couldn't determine a winner for that giveaway."));
     }
 }
