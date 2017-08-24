@@ -16,76 +16,76 @@
 package com.jagrosh.giveawaybot.util;
 
 import com.jagrosh.giveawaybot.GiveawayBot;
-import java.util.Objects;
 import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.Command.Category;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
 import net.dv8tion.jda.core.entities.User;
 
+import java.util.Objects;
+
 /**
- *
  * This file contains utility methods to help with formatting output.
- * 
+ *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
 public class FormatUtil {
-    
+
     public static String formatHelp(CommandEvent event) {
-        StringBuilder builder = new StringBuilder(GiveawayBot.YAY+" __**"+event.getSelfUser().getName()+"** commands:__\n");
+        StringBuilder builder = new StringBuilder(GiveawayBot.YAY + " __**" + event.getSelfUser().getName() + "** commands:__\n");
         Category category = null;
-        for(Command command : event.getClient().getCommands())
-            if(!command.isOwnerCommand() || event.getAuthor().getId().equals(event.getClient().getOwnerId())){
-                if(!Objects.equals(category, command.getCategory())){
+        for (Command command : event.getClient().getCommands())
+            if (!command.isOwnerCommand() || event.getAuthor().getId().equals(event.getClient().getOwnerId())) {
+                if (!Objects.equals(category, command.getCategory())) {
                     category = command.getCategory();
-                    builder.append("\n\n  __").append(category==null ? "No Category" : category.getName()).append("__:\n");
+                    builder.append("\n\n  __").append(category == null ? "No Category" : category.getName()).append("__:\n");
                 }
                 builder.append("\n**").append(event.getClient().getPrefix()).append(command.getName())
-                        .append(command.getArguments()==null ? "**" : " "+command.getArguments()+"**")
+                        .append(command.getArguments() == null ? "**" : " " + command.getArguments() + "**")
                         .append(" - ").append(command.getHelp());
             }
         User owner = event.getJDA().getUserById(event.getClient().getOwnerId());
-        if(owner!=null){
+        if (owner != null) {
             builder.append("\n\nDo not include <> nor [] - <> means required and [] means optional."
                     + "\nFor additional help, contact **").append(owner.getName()).append("**#").append(owner.getDiscriminator()).append(" or check out <http://giveawaybot.party>");
-                    //.append(" or join ").append(event.getClient().getServerInvite());
+            //.append(" or join ").append(event.getClient().getServerInvite());
         }
         return builder.toString();
     }
-    
+
     public static String secondsToTime(long timeseconds) {
         StringBuilder builder = new StringBuilder();
-        int years = (int)(timeseconds / (60*60*24*365));
-        if(years>0){
+        int years = (int) (timeseconds / (60 * 60 * 24 * 365));
+        if (years > 0) {
             builder.append("**").append(years).append("** years, ");
-            timeseconds = timeseconds % (60*60*24*365);
+            timeseconds = timeseconds % (60 * 60 * 24 * 365);
         }
-        int weeks = (int)(timeseconds / (60*60*24*365));
-        if(weeks>0){
+        int weeks = (int) (timeseconds / (60 * 60 * 24 * 365));
+        if (weeks > 0) {
             builder.append("**").append(weeks).append("** weeks, ");
-            timeseconds = timeseconds % (60*60*24*7);
+            timeseconds = timeseconds % (60 * 60 * 24 * 7);
         }
-        int days = (int)(timeseconds / (60*60*24));
-        if(days>0){
+        int days = (int) (timeseconds / (60 * 60 * 24));
+        if (days > 0) {
             builder.append("**").append(days).append("** days, ");
-            timeseconds = timeseconds % (60*60*24);
+            timeseconds = timeseconds % (60 * 60 * 24);
         }
-        int hours = (int)(timeseconds / (60*60));
-        if(hours>0){
+        int hours = (int) (timeseconds / (60 * 60));
+        if (hours > 0) {
             builder.append("**").append(hours).append("** hours, ");
-            timeseconds = timeseconds % (60*60);
+            timeseconds = timeseconds % (60 * 60);
         }
-        int minutes = (int)(timeseconds / (60));
-        if(minutes>0){
+        int minutes = (int) (timeseconds / (60));
+        if (minutes > 0) {
             builder.append("**").append(minutes).append("** minutes, ");
             timeseconds = timeseconds % (60);
         }
-        if(timeseconds>0)
+        if (timeseconds > 0)
             builder.append("**").append(timeseconds).append("** seconds");
         String str = builder.toString();
-        if(str.endsWith(", "))
-            str = str.substring(0,str.length()-2);
-        if(str.equals(""))
-            str="**No time**";
+        if (str.endsWith(", "))
+            str = str.substring(0, str.length() - 2);
+        if (str.equals(""))
+            str = "**No time**";
         return str;
     }
 }

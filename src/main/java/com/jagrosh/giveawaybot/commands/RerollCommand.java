@@ -23,7 +23,6 @@ import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
 
 /**
- *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
 public class RerollCommand extends Command {
@@ -39,26 +38,24 @@ public class RerollCommand extends Command {
 
     @Override
     protected void execute(CommandEvent event) {
-        if(event.getArgs().isEmpty()) {
+        if (event.getArgs().isEmpty()) {
             event.getChannel().getHistory().retrievePast(100).queue(messages -> {
-                Message m = messages.stream().filter(msg -> msg.getAuthor().equals(event.getSelfUser()) && !msg.getEmbeds().isEmpty() 
-                        && msg.getReactions().stream().anyMatch(mr -> mr.getEmote().getName().equals(GiveawayBot.TADA)&&mr.getCount()>0)).findFirst().orElse(null);
-                if(m==null)
+                Message m = messages.stream().filter(msg -> msg.getAuthor().equals(event.getSelfUser()) && !msg.getEmbeds().isEmpty()
+                        && msg.getReactions().stream().anyMatch(mr -> mr.getEmote().getName().equals(GiveawayBot.TADA) && mr.getCount() > 0)).findFirst().orElse(null);
+                if (m == null)
                     event.replyWarning("I couldn't find any recent giveaways in this channel.");
                 else
-                    determineWinner(m,event);
+                    determineWinner(m, event);
             }, v -> event.replyError("I failed to retrieve message history"));
-        }
-        else if(event.getArgs().matches("\\d{17,20}")) {
-            event.getChannel().getMessageById(event.getArgs()).queue(m -> determineWinner(m,event), 
+        } else if (event.getArgs().matches("\\d{17,20}")) {
+            event.getChannel().getMessageById(event.getArgs()).queue(m -> determineWinner(m, event),
                     v -> event.replyError("I couldn't find a message with that ID in this channel."));
-        }
-        else
+        } else
             event.replyError("That is not a valid message ID! Try running without an ID to use the most recent giveaway in a channel.");
     }
-    
+
     private void determineWinner(Message m, CommandEvent event) {
-        Giveaway.getWinners(m, wins -> event.replySuccess("The new winner is "+wins.get(0).getAsMention()+"! Congratulations!"), 
+        Giveaway.getWinners(m, wins -> event.replySuccess("The new winner is " + wins.get(0).getAsMention() + "! Congratulations!"),
                 () -> event.replyWarning("I couldn't determine a winner for that giveaway."));
     }
 }

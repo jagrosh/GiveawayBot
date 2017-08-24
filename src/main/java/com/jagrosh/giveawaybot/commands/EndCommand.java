@@ -23,11 +23,11 @@ import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
 
 /**
- *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
 public class EndCommand extends Command {
     private final GiveawayBot bot;
+
     public EndCommand(GiveawayBot bot) {
         this.bot = bot;
         name = "end";
@@ -40,55 +40,46 @@ public class EndCommand extends Command {
 
     @Override
     protected void execute(CommandEvent event) {
-        if(event.getArgs().isEmpty()) {
+        if (event.getArgs().isEmpty()) {
             Giveaway giveaway = null;
-            for(Giveaway g: bot.getGiveaways())
-            {
-                if(g.getMessage().getChannel().equals(event.getChannel()))
-                {
-                    if(giveaway==null || g.getMessage().getCreationTime().isAfter(giveaway.getMessage().getCreationTime()))
+            for (Giveaway g : bot.getGiveaways()) {
+                if (g.getMessage().getChannel().equals(event.getChannel())) {
+                    if (giveaway == null || g.getMessage().getCreationTime().isAfter(giveaway.getMessage().getCreationTime()))
                         giveaway = g;
                 }
             }
-            if(giveaway!=null)
-            {
+            if (giveaway != null) {
                 giveaway.end();
                 return;
             }
             event.getChannel().getHistory().retrievePast(100).queue(messages -> {
-                Message m = messages.stream().filter(msg -> msg.getAuthor().equals(event.getSelfUser()) && !msg.getEmbeds().isEmpty() && msg.getEmbeds().get(0).getColor().getRGB()!=1
-                        && msg.getReactions().stream().anyMatch(mr -> mr.getEmote().getName().equals(GiveawayBot.TADA) && mr.getCount()>0)).findFirst().orElse(null);
-                if(m==null)
+                Message m = messages.stream().filter(msg -> msg.getAuthor().equals(event.getSelfUser()) && !msg.getEmbeds().isEmpty() && msg.getEmbeds().get(0).getColor().getRGB() != 1
+                        && msg.getReactions().stream().anyMatch(mr -> mr.getEmote().getName().equals(GiveawayBot.TADA) && mr.getCount() > 0)).findFirst().orElse(null);
+                if (m == null)
                     event.replyWarning("I couldn't find any recent giveaways in this channel.");
-                else
-                {
+                else {
                     Giveaway g = Giveaway.fromMessage(m, bot);
-                    if(g==null)
+                    if (g == null)
                         event.replyWarning("I couldn't find any recent giveaways in this channel.");
                     else
                         g.end();
                 }
             }, v -> event.replyError("I failed to retrieve message history"));
-        }
-        else if(event.getArgs().matches("\\d{17,20}")) {
+        } else if (event.getArgs().matches("\\d{17,20}")) {
             Giveaway giveaway = bot.getGiveaways().stream().filter(g -> g.getMessage().getId().equals(event.getArgs())).findAny().orElse(null);
-            if(giveaway==null)
-            {
+            if (giveaway == null) {
                 event.getChannel().getMessageById(event.getArgs()).queue(m -> {
                     Giveaway g = Giveaway.fromMessage(m, bot);
-                    if(g==null)
+                    if (g == null)
                         event.replyWarning("I couldn't find any recent giveaways in this channel.");
                     else
                         g.end();
                 }, v -> event.replyError("I failed to retrieve that message."));
-            }
-            else
+            } else
                 giveaway.end();
-        }
-        else
-        {
+        } else {
             event.replyError("That is not a valid message ID! Try running without an ID to use the most recent giveaway in a channel.");
         }
     }
-    
+
 }

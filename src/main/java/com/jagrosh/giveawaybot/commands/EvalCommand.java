@@ -16,18 +16,19 @@
 package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.GiveawayBot;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+
 /**
- *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
 public class EvalCommand extends Command {
 
     private final GiveawayBot bot;
+
     public EvalCommand(GiveawayBot bot) {
         this.bot = bot;
         name = "eval";
@@ -37,7 +38,7 @@ public class EvalCommand extends Command {
         guildOnly = false;
         category = new Category("Owner");
     }
-    
+
     @Override
     protected void execute(CommandEvent event) {
         ScriptEngine se = new ScriptEngineManager().getEngineByName("Nashorn");
@@ -46,14 +47,11 @@ public class EvalCommand extends Command {
         se.put("guild", event.getGuild());
         se.put("channel", event.getChannel());
         se.put("bot", bot);
-        try
-        {
-            event.reply(event.getClient().getSuccess()+" Evaluated Successfully:\n```\n"+se.eval(event.getArgs())+" ```");
-        } 
-        catch(Exception e)
-        {
-            event.reply(event.getClient().getError()+" An exception was thrown:\n```\n"+e+" ```");
+        try {
+            event.reply(event.getClient().getSuccess() + " Evaluated Successfully:\n```\n" + se.eval(event.getArgs()) + " ```");
+        } catch (Exception e) {
+            event.reply(event.getClient().getError() + " An exception was thrown:\n```\n" + e + " ```");
         }
     }
-    
+
 }

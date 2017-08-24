@@ -20,7 +20,6 @@ import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
 
 /**
- *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
 public class InviteCommand extends Command {
@@ -30,13 +29,13 @@ public class InviteCommand extends Command {
         help = "shows how to invite the bot";
         guildOnly = false;
     }
-    
+
     @Override
     protected void execute(CommandEvent event) {
-        event.reply(GiveawayBot.YAY+" Hello! I'm **GiveawayBot**! I help to make giveaways quick and easy!\n"
+        event.reply(GiveawayBot.YAY + " Hello! I'm **GiveawayBot**! I help to make giveaways quick and easy!\n"
                 + "You can add me to your server with this link:\n\n"
-                + "\uD83D\uDD17 **<"+GiveawayBot.INVITE+">**\n\n"
+                + "\uD83D\uDD17 **<" + GiveawayBot.INVITE + ">**\n\n"
                 + "Check out my commands by typing `!ghelp`");
     }
-    
+
 }

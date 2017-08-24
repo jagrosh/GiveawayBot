@@ -20,12 +20,12 @@ import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
 
 /**
- *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
 public class ShutdownCommand extends Command {
 
     private final GiveawayBot bot;
+
     public ShutdownCommand(GiveawayBot bot) {
         this.bot = bot;
         name = "shutdown";
@@ -34,11 +34,11 @@ public class ShutdownCommand extends Command {
         guildOnly = false;
         category = new Category("Owner");
     }
-    
+
     @Override
     protected void execute(CommandEvent event) {
         event.reactSuccess();
         bot.shutdown();
     }
-    
+
 }
