@@ -29,8 +29,6 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '1.2.4'
 }
 
-apply plugin: 'org.junit.platform.gradle.plugin'
-
 mainClassName = 'com.jagrosh.giveawaybot.entities.GiveAway'
 
 version '0.0.0_0'
