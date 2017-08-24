@@ -23,17 +23,6 @@
  *
  */
 
-buildscript {
-    ext.kotlin_version = '1.1.4-2'
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.0-RC2'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
-
 plugins {
     id 'java'
     id 'application'
@@ -41,9 +30,8 @@ plugins {
 }
 
 apply plugin: 'org.junit.platform.gradle.plugin'
-apply plugin: 'kotlin'
 
-mainClassName = 'net.dunciboy.discord_bot.RunBots'
+mainClassName = 'com.jagrosh.giveawaybot.entities.GiveAway'
 
 version '0.0.0_0'
 
@@ -54,9 +42,6 @@ repositories {
 }
 
 dependencies {
-    testCompile("org.junit.jupiter:junit-jupiter-api:5.0.0-RC2")
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:5.0.0-RC2")
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
     compile "net.dv8tion:JDA:3.2.0_248"
     compile 'com.jagrosh:JDA-Utilities:1.5'
 }
@@ -70,14 +55,3 @@ tasks.withType(JavaCompile) {
 }
 
 compileJava.options.encoding = "UTF-8"
-
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-}
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-}
