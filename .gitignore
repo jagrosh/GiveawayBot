@@ -1,0 +1,4 @@
+*.txt
+*.jar
+/test/
+/target/

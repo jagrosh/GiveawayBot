@@ -15,7 +15,7 @@
  */
 package com.jagrosh.giveawaybot.commands;
 
-import com.jagrosh.giveawaybot.GiveawayBot;
+import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
 
@@ -33,9 +33,9 @@ public class InviteCommand extends Command {
     
     @Override
     protected void execute(CommandEvent event) {
-        event.reply(GiveawayBot.YAY+" Hello! I'm **GiveawayBot**! I help to make giveaways quick and easy!\n"
+        event.reply(Constants.YAY+" Hello! I'm **GiveawayBot**! I help to make giveaways quick and easy!\n"
                 + "You can add me to your server with this link:\n\n"
-                + "\uD83D\uDD17 **<"+GiveawayBot.INVITE+">**\n\n"
+                + "\uD83D\uDD17 **<"+Constants.INVITE+">**\n\n"
                 + "Check out my commands by typing `!ghelp`");
     }
     

@@ -15,12 +15,11 @@
  */
 package com.jagrosh.giveawaybot.util;
 
-import com.jagrosh.giveawaybot.GiveawayBot;
+import com.jagrosh.giveawaybot.Constants;
 import java.util.Objects;
 import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.Command.Category;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
-import net.dv8tion.jda.core.entities.User;
 
 /**
  *
@@ -31,7 +30,7 @@ import net.dv8tion.jda.core.entities.User;
 public class FormatUtil {
     
     public static String formatHelp(CommandEvent event) {
-        StringBuilder builder = new StringBuilder(GiveawayBot.YAY+" __**"+event.getSelfUser().getName()+"** commands:__\n");
+        StringBuilder builder = new StringBuilder(Constants.YAY+" __**"+event.getSelfUser().getName()+"** commands:__\n");
         Category category = null;
         for(Command command : event.getClient().getCommands())
             if(!command.isOwnerCommand() || event.getAuthor().getId().equals(event.getClient().getOwnerId())){
@@ -43,12 +42,8 @@ public class FormatUtil {
                         .append(command.getArguments()==null ? "**" : " "+command.getArguments()+"**")
                         .append(" - ").append(command.getHelp());
             }
-        User owner = event.getJDA().getUserById(event.getClient().getOwnerId());
-        if(owner!=null){
-            builder.append("\n\nDo not include <> nor [] - <> means required and [] means optional."
-                    + "\nFor additional help, contact **").append(owner.getName()).append("**#").append(owner.getDiscriminator()).append(" or check out <http://giveawaybot.party>");
-                    //.append(" or join ").append(event.getClient().getServerInvite());
-        }
+        builder.append("\n\nDo not include <> nor [] - <> means required and [] means optional."
+                    + "\nFor additional help, contact **jagrosh**#4824 or check out http://giveawaybot.party");
         return builder.toString();
     }
     

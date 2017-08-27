@@ -13,32 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jagrosh.giveawaybot.commands;
-
-import com.jagrosh.giveawaybot.Bot;
-import com.jagrosh.jdautilities.commandclient.Command;
-import com.jagrosh.jdautilities.commandclient.CommandEvent;
+package com.jagrosh.giveawaybot.entities;
 
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class ShutdownCommand extends Command {
-
-    private final Bot bot;
-    public ShutdownCommand(Bot bot) {
-        this.bot = bot;
-        name = "shutdown";
-        help = "shuts down the bot";
-        ownerCommand = true;
-        guildOnly = false;
-        category = new Category("Owner");
-    }
+public enum Status {
     
-    @Override
-    protected void execute(CommandEvent event) {
-        event.reactSuccess();
-        bot.shutdown();
-    }
-    
+    INIT,
+    RUN,
+    SCHEDULED,
+    ENDNOW,
+    DELETE
 }

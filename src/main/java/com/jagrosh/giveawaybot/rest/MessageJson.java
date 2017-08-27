@@ -13,32 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jagrosh.giveawaybot.commands;
+package com.jagrosh.giveawaybot.rest;
 
-import com.jagrosh.giveawaybot.Bot;
-import com.jagrosh.jdautilities.commandclient.Command;
-import com.jagrosh.jdautilities.commandclient.CommandEvent;
+import org.json.JSONObject;
 
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class ShutdownCommand extends Command {
-
-    private final Bot bot;
-    public ShutdownCommand(Bot bot) {
-        this.bot = bot;
-        name = "shutdown";
-        help = "shuts down the bot";
-        ownerCommand = true;
-        guildOnly = false;
-        category = new Category("Owner");
-    }
+public class MessageJson
+{
+    private final JSONObject object;
     
-    @Override
-    protected void execute(CommandEvent event) {
-        event.reactSuccess();
-        bot.shutdown();
+    public MessageJson(JSONObject object)
+    {
+        this.object = object;
     }
-    
 }

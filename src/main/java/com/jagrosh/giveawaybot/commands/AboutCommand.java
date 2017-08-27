@@ -15,7 +15,8 @@
  */
 package com.jagrosh.giveawaybot.commands;
 
-import com.jagrosh.giveawaybot.GiveawayBot;
+import com.jagrosh.giveawaybot.Bot;
+import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.jdautilities.JDAUtilitiesInfo;
 import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
@@ -23,7 +24,6 @@ import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.JDAInfo;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.User;
 
 /**
  *
@@ -31,8 +31,8 @@ import net.dv8tion.jda.core.entities.User;
  */
 public class AboutCommand extends Command {
 
-    private final GiveawayBot bot;
-    public AboutCommand(GiveawayBot bot) {
+    private final Bot bot;
+    public AboutCommand(Bot bot) {
         this.bot = bot;
         name = "about";
         aliases = new String[]{"info"};
@@ -45,7 +45,7 @@ public class AboutCommand extends Command {
     protected void execute(CommandEvent event) {
         EmbedBuilder eb = new EmbedBuilder();
         MessageBuilder mb = new MessageBuilder();
-        mb.append(GiveawayBot.YAY+" All about **GiveawayBot** "+GiveawayBot.YAY);
+        mb.append(Constants.YAY+" All about **GiveawayBot** "+Constants.YAY);
         //eb.setThumbnail("http://i.imgur.com/sCEbmKa.png");
         eb.setTitle("Hold giveaways quickly and easily!");
         eb.setDescription("Hello! I'm **GiveawayBot**, and I'm here to make it as easy as possible to hold "
@@ -56,10 +56,10 @@ public class AboutCommand extends Command {
         eb.addField("\uD83D\uDCCA Stats", bot.getShards().stream().mapToInt(jda -> jda.getGuilds().size()).sum()+" servers\n"+bot.getShards().size()+" shards\n"
                 +bot.getShards().stream().mapToInt(jda -> jda.getUsers().size()).sum()+" users", true);
         eb.addField("\uD83C\uDF89 Giveaways", bot.getGiveaways().size()+" right now!", true);
-        eb.addField("\uD83C\uDF10 Links", "[Website](http://giveawaybot.party)\n[Invite]("+GiveawayBot.INVITE+")\n[Support](https://discord.gg/0p9LSGoRLu6Pet0k)", true);
+        eb.addField("\uD83C\uDF10 Links", "[Website]("+Constants.WEBSITE+")\n[Invite]("+Constants.INVITE+")\n[Support](https://discord.gg/0p9LSGoRLu6Pet0k)", true);
         eb.setFooter("Last restart", null);
-        eb.setTimestamp(GiveawayBot.START);
-        eb.setColor(GiveawayBot.BLURPLE);
+        eb.setTimestamp(Constants.START);
+        eb.setColor(Constants.BLURPLE);
         mb.setEmbed(eb.build());
         event.getChannel().sendMessage(mb.build()).queue();
     }

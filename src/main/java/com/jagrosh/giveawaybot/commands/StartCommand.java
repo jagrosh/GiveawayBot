@@ -15,11 +15,11 @@
  */
 package com.jagrosh.giveawaybot.commands;
 
-import com.jagrosh.giveawaybot.GiveawayBot;
-import com.jagrosh.giveawaybot.entities.Giveaway;
-import java.time.OffsetDateTime;
+import com.jagrosh.giveawaybot.Bot;
+import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
+import java.time.Instant;
 import net.dv8tion.jda.core.Permission;
 
 /**
@@ -28,19 +28,24 @@ import net.dv8tion.jda.core.Permission;
  */
 public class StartCommand extends Command {
 
-    private final GiveawayBot bot;
-    public StartCommand(GiveawayBot bot) {
+    private final Bot bot;
+    public StartCommand(Bot bot) {
         this.bot = bot;
         name = "start";
         help = "starts a giveaway; time can be in seconds (Ex: __40__ or __40s__) or minutes (Ex: __3m__)";
         arguments = "<time> [prize]";
-        category = GiveawayBot.GIVEAWAY;
+        category = Constants.GIVEAWAY;
         guildOnly = true;
         botPermissions = new Permission[]{Permission.MESSAGE_HISTORY,Permission.MESSAGE_ADD_REACTION,Permission.MESSAGE_EMBED_LINKS};
     }
     
     @Override
     protected void execute(CommandEvent event) {
+        if(!Constants.canSendGiveaway(event.getTextChannel()))
+        {
+            event.replyError("I cannot start a giveaway here; please make sure I have the following permissions:\n\n"+Constants.PERMS);
+            return;
+        }
         String[] parts = event.getArgs().split("\\s+",2);
         boolean minutes;
         if(parts[0].toLowerCase().endsWith("m")) {
@@ -53,16 +58,16 @@ public class StartCommand extends Command {
             minutes = false;
         try {
             int value = (int)(Double.parseDouble(parts[0]) * (minutes ? 60 : 1) );
-            if(value<10 || value>60*60*24*7)
+            if(!Constants.validTime(value))
             {
-                event.reply(event.getClient().getWarning()+" Time must be at least 10 seconds and can't be too long!");
+                event.replyWarning("Time must be at least 10 seconds and can't be longer than a week!");
                 return;
             }
-            OffsetDateTime end = OffsetDateTime.now().plusSeconds(value);
-            String item = parts.length==1 ? null : parts[1];
-            new Giveaway(bot, end, event.getMessage(), item, 1).start();
+            Instant now = Instant.now();
+            String item = parts.length==1 ? null : (parts[1].length()>Constants.PRIZE_MAX ? parts[1].substring(0,Constants.PRIZE_MAX) : parts[1]);
+            bot.startGiveaway(event.getTextChannel(), now, value, 1, item);
         } catch(NumberFormatException e) {
-            event.reply(event.getClient().getWarning()+" Failed to parse "+(minutes ? "minutes" : "seconds")+" from `"+parts[0]+"`.");
+            event.replyWarning("Failed to parse "+(minutes ? "minutes" : "seconds")+" from `"+parts[0]+"`.");
         }
     }
     
