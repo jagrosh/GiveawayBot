@@ -17,7 +17,6 @@ package com.jagrosh.giveawaybot.entities;
 
 import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.giveawaybot.database.DatabaseConnector;
-import com.jagrosh.giveawaybot.database.managers.GuildSettingsManager;
 import com.jagrosh.giveawaybot.rest.RestJDA;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import java.awt.Color;
@@ -26,6 +25,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.Message;
@@ -122,7 +122,9 @@ public class Giveaway {
         eb.setTimestamp(end);
         if(prize!=null)
             eb.setAuthor(prize, null, null);
-        restJDA.getReactionUsers(Long.toString(channelId), Long.toString(messageId), MiscUtil.encodeUTF8(Constants.TADA)).cache(true).queue(ids -> {
+        try {
+            List<Long> ids = restJDA.getReactionUsers(Long.toString(channelId), Long.toString(messageId), MiscUtil.encodeUTF8(Constants.TADA))
+                    .cache(true).stream().collect(Collectors.toList());
             List<Long> wins = selectWinners(ids, winners);
             String toSend;
             if(wins.isEmpty())
@@ -147,12 +149,12 @@ public class Giveaway {
             mb.setEmbed(eb.build());
             restJDA.editMessage(Long.toString(channelId), Long.toString(messageId), mb.build()).queue();
             restJDA.sendMessage(Long.toString(channelId), toSend).queue();
-        }, v -> {
+        } catch(Exception e) {
             eb.setDescription("Could not determine a winner!");
             mb.setEmbed(eb.build());
             restJDA.editMessage(Long.toString(channelId), Long.toString(messageId), mb.build()).queue();
             restJDA.sendMessage(Long.toString(channelId), "A winner could not be determined!").queue();
-        });
+        }
     }
     
     public static <T> List<T> selectWinners(List<T> list, int winners)
@@ -169,29 +171,27 @@ public class Giveaway {
     public static void getWinners(Message message, Consumer<List<User>> success, Runnable failure) {
         try {
             MessageReaction mr = message.getReactions().stream().filter(r -> r.getEmote().getName().equals(Constants.TADA)).findAny().orElse(null);
-            mr.getUsers(100).queue(u -> {
-                List<User> users = new LinkedList<>();
-                users.addAll(u);
-                users.remove(mr.getJDA().getSelfUser());
-                if(users.isEmpty())
-                    failure.run();
-                else
-                {
-                    int wincount;
-                    String[] split = message.getEmbeds().get(0).getFooter().getText().split(" ");
-                    try {
-                        wincount = Integer.parseInt(split[0]);
-                    }catch(NumberFormatException e){
-                        wincount = 1;
-                    }
-                    List<User> wins = new LinkedList<>();
-                    for(int i=0; i<wincount && !users.isEmpty(); i++)
-                    {
-                        wins.add(users.remove((int)(Math.random()*users.size())));
-                    }
-                    success.accept(wins);
+            List<User> users = new LinkedList<>();
+            mr.getUsers().stream().forEach(u -> users.add(u));
+            users.remove(mr.getJDA().getSelfUser());
+            if(users.isEmpty())
+                failure.run();
+            else
+            {
+                int wincount;
+                String[] split = message.getEmbeds().get(0).getFooter().getText().split(" ");
+                try {
+                    wincount = Integer.parseInt(split[0]);
+                }catch(NumberFormatException e){
+                    wincount = 1;
                 }
-            }, f -> failure.run());
+                List<User> wins = new LinkedList<>();
+                for(int i=0; i<wincount && !users.isEmpty(); i++)
+                {
+                    wins.add(users.remove((int)(Math.random()*users.size())));
+                }
+                success.accept(wins);
+            }
         } catch(Exception e) {
             failure.run();
         }
