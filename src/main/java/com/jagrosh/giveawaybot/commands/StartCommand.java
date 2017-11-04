@@ -21,6 +21,7 @@ import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
 import java.time.Instant;
 import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.core.exceptions.PermissionException;
 
 /**
  *
@@ -63,6 +64,7 @@ public class StartCommand extends Command {
                 event.replyWarning("Time must be at least 10 seconds and can't be longer than a week!");
                 return;
             }
+            try{ event.getMessage().delete().queue(); }catch(PermissionException ex){}
             Instant now = Instant.now();
             String item = parts.length==1 ? null : (parts[1].length()>Constants.PRIZE_MAX ? parts[1].substring(0,Constants.PRIZE_MAX) : parts[1]);
             bot.startGiveaway(event.getTextChannel(), now, value, 1, item);

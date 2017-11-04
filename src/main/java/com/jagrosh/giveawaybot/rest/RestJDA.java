@@ -37,7 +37,7 @@ import org.json.JSONObject;
  */
 public class RestJDA {
     
-    private final JDAImpl fakeJDA = new JDAImpl(AccountType.BOT, new OkHttpClient.Builder(), null, false, false, false, false, 2, 900);
+    private final JDAImpl fakeJDA = new JDAImpl(AccountType.BOT, new OkHttpClient.Builder(), null, null, false, false, false, false, true, 2, 900);
     
     public RestJDA(String token)
     {

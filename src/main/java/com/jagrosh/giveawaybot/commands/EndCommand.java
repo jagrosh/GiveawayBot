@@ -30,6 +30,7 @@ import net.dv8tion.jda.core.entities.Message;
  */
 public class EndCommand extends Command {
     private final Bot bot;
+    
     public EndCommand(Bot bot) {
         this.bot = bot;
         name = "end";
@@ -64,7 +65,7 @@ public class EndCommand extends Command {
                 else
                 {
                     Giveaway.getWinners(m, wins -> event.replySuccess("The new winner is "+wins.get(0).getAsMention()+"! Congratulations!"), 
-                        () -> event.replyWarning("I couldn't determine a winner for that giveaway."));
+                        () -> event.replyWarning("I couldn't determine a winner for that giveaway."), bot.getThreadpool());
                 }
             }, v -> event.replyError("I failed to retrieve message history"));
         }
@@ -74,7 +75,7 @@ public class EndCommand extends Command {
             {
                 event.getChannel().getMessageById(event.getArgs()).queue(m -> {
                     Giveaway.getWinners(m, wins -> event.replySuccess("The new winner is "+wins.get(0).getAsMention()+"! Congratulations!"), 
-                        () -> event.replyWarning("I couldn't determine a winner for that giveaway."));
+                        () -> event.replyWarning("I couldn't determine a winner for that giveaway."), bot.getThreadpool());
                 }, v -> event.replyError("I failed to retrieve that message."));
             }
             else if(!bot.getDatabase().giveaways.endGiveaway(giveaway.messageId))

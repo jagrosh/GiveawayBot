@@ -67,12 +67,9 @@ public class DatabaseConnector {
                         if(!connection.getMetaData().getColumns(null, null, manager.getTableName(), col.name).next())
                         {
                             LOG.info("Creating column '"+col.name+"` in "+manager.getTableName());
-                            PreparedStatement ps = connection.prepareStatement("ALTER TABLE ?\n"
-                                    + "ADD COLUMN ?", ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-                            ps.closeOnCompletion();
-                            ps.setString(1, manager.getTableName());
-                            ps.setString(2, col.name+col.getDataDescription());
-                            ps.execute();
+                            Statement st = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+                            st.closeOnCompletion();
+                            st.execute("ALTER TABLE "+manager.getTableName()+" ADD "+col.name+" "+col.getDataDescription());
                         }
                     }
                 }

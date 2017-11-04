@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.core.EmbedBuilder;
@@ -168,32 +169,35 @@ public class Giveaway {
         return winlist;
     }
     
-    public static void getWinners(Message message, Consumer<List<User>> success, Runnable failure) {
-        try {
-            MessageReaction mr = message.getReactions().stream().filter(r -> r.getEmote().getName().equals(Constants.TADA)).findAny().orElse(null);
-            List<User> users = new LinkedList<>();
-            mr.getUsers().stream().forEach(u -> users.add(u));
-            users.remove(mr.getJDA().getSelfUser());
-            if(users.isEmpty())
-                failure.run();
-            else
-            {
-                int wincount;
-                String[] split = message.getEmbeds().get(0).getFooter().getText().split(" ");
-                try {
-                    wincount = Integer.parseInt(split[0]);
-                }catch(NumberFormatException e){
-                    wincount = 1;
-                }
-                List<User> wins = new LinkedList<>();
-                for(int i=0; i<wincount && !users.isEmpty(); i++)
+    public static void getWinners(Message message, Consumer<List<User>> success, Runnable failure, ExecutorService threadpool)
+    {
+        threadpool.submit(() -> {
+            try {
+                MessageReaction mr = message.getReactions().stream().filter(r -> r.getEmote().getName().equals(Constants.TADA)).findAny().orElse(null);
+                List<User> users = new LinkedList<>();
+                mr.getUsers().stream().forEach(u -> users.add(u));
+                users.remove(mr.getJDA().getSelfUser());
+                if(users.isEmpty())
+                    failure.run();
+                else
                 {
-                    wins.add(users.remove((int)(Math.random()*users.size())));
+                    int wincount;
+                    String[] split = message.getEmbeds().get(0).getFooter().getText().split(" ");
+                    try {
+                        wincount = Integer.parseInt(split[0]);
+                    }catch(NumberFormatException e){
+                        wincount = 1;
+                    }
+                    List<User> wins = new LinkedList<>();
+                    for(int i=0; i<wincount && !users.isEmpty(); i++)
+                    {
+                        wins.add(users.remove((int)(Math.random()*users.size())));
+                    }
+                    success.accept(wins);
                 }
-                success.accept(wins);
+            } catch(Exception e) {
+                failure.run();
             }
-        } catch(Exception e) {
-            failure.run();
-        }
+        });
     }
 }

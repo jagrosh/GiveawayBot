@@ -46,11 +46,19 @@ import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.core.entities.impl.JDAImpl;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.core.events.role.update.RoleUpdateColorEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.core.requests.Request;
+import net.dv8tion.jda.core.requests.Response;
+import net.dv8tion.jda.core.requests.RestAction;
+import net.dv8tion.jda.core.requests.Route;
 import net.dv8tion.jda.core.utils.SimpleLog;
+import net.dv8tion.jda.webhook.WebhookClient;
+import net.dv8tion.jda.webhook.WebhookClientBuilder;
+import org.json.JSONObject;
 
 /**
  *
@@ -227,11 +235,14 @@ public class Bot extends ListenerAdapter
                         new CreateCommand(bot,waiter),
                         new StartCommand(bot),
                         new EndCommand(bot),
-                        new RerollCommand(),
+                        new RerollCommand(bot),
                         
                         new EvalCommand(bot),
                         new ShutdownCommand(bot)
                 ).build();
+        
+        // set up log
+        Route.CompiledRoute route = Route.Messages.SEND_MESSAGE.compile("196692840602927104");
         
         // start up each shard
         for(int i=0; i<shards; i++)
@@ -246,8 +257,18 @@ public class Bot extends ListenerAdapter
                     .addEventListener(bot);
             if(shards>1)
                 builder.useSharding(i, shards);
-            bot.addShard(builder.buildBlocking());
+            long time = System.currentTimeMillis();
+            JDA tmp = builder.buildBlocking();
+            bot.addShard(tmp);
             System.gc();
+            new RestAction<Void>(tmp, route, new JSONObject().put("content", "\uD83D\uDCE1 Shard `"+(i+1)+"/"
+                    +shards+"` has connected. Guilds: `"+tmp.getGuilds().size()+"` Users: `"+tmp.getUsers().size()+"`")){
+                @Override
+                protected void handleResponse(Response rspns, Request<Void> rqst) {}
+            }.queue();
+            long diff = System.currentTimeMillis()-time;
+            if(diff<6000)
+                try{Thread.sleep(6000-diff);}catch(InterruptedException ex){}
         }
         
         // starts the API
