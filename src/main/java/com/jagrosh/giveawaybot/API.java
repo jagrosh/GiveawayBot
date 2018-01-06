@@ -23,13 +23,8 @@ import java.util.List;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.utils.SimpleLog;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import spark.Request;
-import spark.Response;
-import spark.Route;
-import spark.Spark;
 
 /**
  *
@@ -37,14 +32,14 @@ import spark.Spark;
  */
 public class API {
     
-    private static SimpleLog LOG = SimpleLog.getLog("API");
+    //private static SimpleLog LOG = SimpleLog.getLog("API");
     
     /**
      * Starts the REST API
      * @param token
      * @param bot
      */
-    public static void main(String token, Bot bot)
+    /*public static void main(String token, Bot bot)
     {
         Spark.port(8182);
         
@@ -297,5 +292,5 @@ public class API {
         res.status(400);
         res.body(new JSONObject().put("message", message).toString());
         return res.body();
-    }
+    }//*/
 }

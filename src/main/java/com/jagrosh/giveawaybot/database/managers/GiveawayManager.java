@@ -15,10 +15,10 @@
  */
 package com.jagrosh.giveawaybot.database.managers;
 
-import com.jagrosh.giveawaybot.database.DataManager;
-import com.jagrosh.giveawaybot.database.DatabaseConnector;
-import com.jagrosh.giveawaybot.database.SQLColumn;
-import com.jagrosh.giveawaybot.database.columns.*;
+import com.jagrosh.easysql.DataManager;
+import com.jagrosh.easysql.SQLColumn;
+import com.jagrosh.easysql.columns.*;
+import com.jagrosh.giveawaybot.database.Database;
 import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.entities.Status;
 import java.sql.ResultSet;
@@ -45,7 +45,7 @@ public class GiveawayManager extends DataManager
     public final static SQLColumn<String>  PRIZE       = new StringColumn ("PRIZE",       true,  null, 250);
     public final static SQLColumn<Integer> STATUS      = new IntegerColumn("STATUS",      false, Status.RUN.ordinal());
     
-    public GiveawayManager(DatabaseConnector connector)
+    public GiveawayManager(Database connector)
     {
         super(connector, "GIVEAWAYS");
     }

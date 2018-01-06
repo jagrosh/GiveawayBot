@@ -23,7 +23,7 @@ import com.jagrosh.giveawaybot.commands.InviteCommand;
 import com.jagrosh.giveawaybot.commands.RerollCommand;
 import com.jagrosh.giveawaybot.commands.ShutdownCommand;
 import com.jagrosh.giveawaybot.commands.StartCommand;
-import com.jagrosh.giveawaybot.database.DatabaseConnector;
+import com.jagrosh.giveawaybot.database.Database;
 import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.jdautilities.commandclient.CommandClient;
@@ -46,7 +46,6 @@ import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.impl.JDAImpl;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.core.events.role.update.RoleUpdateColorEvent;
@@ -55,10 +54,9 @@ import net.dv8tion.jda.core.requests.Request;
 import net.dv8tion.jda.core.requests.Response;
 import net.dv8tion.jda.core.requests.RestAction;
 import net.dv8tion.jda.core.requests.Route;
-import net.dv8tion.jda.core.utils.SimpleLog;
-import net.dv8tion.jda.webhook.WebhookClient;
-import net.dv8tion.jda.webhook.WebhookClientBuilder;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -69,10 +67,10 @@ public class Bot extends ListenerAdapter
     
     private final List<JDA> shards; // list of all logins the bot has
     private final ScheduledExecutorService threadpool; // threadpool to use for timings
-    private final DatabaseConnector database; // database
-    private final SimpleLog LOG = SimpleLog.getLog("Bot");
+    private final Database database; // database
+    private final static Logger LOG = LoggerFactory.getLogger("Bot");
     
-    private Bot(DatabaseConnector database)
+    private Bot(Database database)
     {
         this.database = database;
         shards = new LinkedList<>();
@@ -118,7 +116,7 @@ public class Bot extends ListenerAdapter
         return threadpool;
     }
     
-    public DatabaseConnector getDatabase()
+    public Database getDatabase()
     {
         return database;
     }
@@ -212,7 +210,7 @@ public class Bot extends ListenerAdapter
         List<String> tokens = Files.readAllLines(Paths.get("config.txt"));
         
         // instantiate a bot with a database connector
-        Bot bot = new Bot(new DatabaseConnector(tokens.get(2), tokens.get(3), tokens.get(4)));
+        Bot bot = new Bot(new Database(tokens.get(2), tokens.get(3), tokens.get(4)));
         
         // instantiate an event waiter
         EventWaiter waiter = new EventWaiter();
@@ -222,11 +220,13 @@ public class Bot extends ListenerAdapter
                 .setPrefix("!g")
                 .setAlternativePrefix("g!")
                 .setOwnerId("113156185389092864")
-                .setGame(Game.of(Constants.WEBSITE+" | Type !ghelp"))
+                .setGame(Game.playing(Constants.WEBSITE+" | Type !ghelp"))
                 .setEmojis(Constants.TADA, "\uD83D\uDCA5", "\uD83D\uDCA5")
                 //.setServerInvite("https://discordapp.com/invite/0p9LSGoRLu6Pet0k")
                 .setHelpFunction(event -> FormatUtil.formatHelp(event))
                 .setDiscordBotsKey(tokens.get(1))
+                .setCarbonitexKey(tokens.get(5))
+                .setDiscordBotListKey(tokens.get(6))
                 .addCommands(
                         new AboutCommand(bot),
                         new InviteCommand(),
@@ -250,7 +250,7 @@ public class Bot extends ListenerAdapter
             JDABuilder builder = new JDABuilder(AccountType.BOT)
                     .setToken(tokens.get(0))
                     .setAudioEnabled(false)
-                    .setGame(Game.of("loading..."))
+                    .setGame(Game.playing("loading..."))
                     .setStatus(OnlineStatus.DO_NOT_DISTURB)
                     .addEventListener(client)
                     .addEventListener(waiter)
@@ -258,7 +258,17 @@ public class Bot extends ListenerAdapter
             if(shards>1)
                 builder.useSharding(i, shards);
             long time = System.currentTimeMillis();
-            JDA tmp = builder.buildBlocking();
+            JDA tmp;
+            try
+            {
+                LOG.info("Starting shard "+i);
+                tmp = builder.buildBlocking();
+            } catch(Exception e)
+            {
+                Thread.sleep(5000);
+                LOG.info("Retrying shard "+i);
+                tmp = builder.buildBlocking();
+            }
             bot.addShard(tmp);
             System.gc();
             new RestAction<Void>(tmp, route, new JSONObject().put("content", "\uD83D\uDCE1 Shard `"+(i+1)+"/"
@@ -270,8 +280,5 @@ public class Bot extends ListenerAdapter
             if(diff<6000)
                 try{Thread.sleep(6000-diff);}catch(InterruptedException ex){}
         }
-        
-        // starts the API
-        API.main(tokens.get(5), bot);
     }
 }

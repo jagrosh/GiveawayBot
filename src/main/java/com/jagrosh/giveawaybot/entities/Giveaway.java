@@ -16,7 +16,7 @@
 package com.jagrosh.giveawaybot.entities;
 
 import com.jagrosh.giveawaybot.Constants;
-import com.jagrosh.giveawaybot.database.DatabaseConnector;
+import com.jagrosh.giveawaybot.database.Database;
 import com.jagrosh.giveawaybot.rest.RestJDA;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import java.awt.Color;
@@ -34,7 +34,8 @@ import net.dv8tion.jda.core.entities.MessageReaction;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.exceptions.ErrorResponseException;
 import net.dv8tion.jda.core.utils.MiscUtil;
-import net.dv8tion.jda.core.utils.SimpleLog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -42,7 +43,7 @@ import net.dv8tion.jda.core.utils.SimpleLog;
  */
 public class Giveaway {
     
-    public static final SimpleLog LOG = SimpleLog.getLog("REST");
+    public static final Logger LOG = LoggerFactory.getLogger("REST");
     
     public final long messageId;
     public final long channelId;
@@ -84,9 +85,9 @@ public class Giveaway {
         return mb.build();
     }
     
-    public void update(RestJDA restJDA, DatabaseConnector connector, Instant now)
+    public void update(RestJDA restJDA, Database connector, Instant now)
     {
-        restJDA.editMessage(Long.toString(channelId), Long.toString(messageId), render(connector.settings.getSettings(guildId).color, now)).queue(m -> {}, t -> {
+        restJDA.editMessage(channelId, messageId, render(connector.settings.getSettings(guildId).color, now)).queue(m -> {}, t -> {
             if(t instanceof ErrorResponseException)
             {
                 ErrorResponseException e = (ErrorResponseException)t;
@@ -109,7 +110,7 @@ public class Giveaway {
                 }
             }
             else
-                LOG.fatal("RestAction failure: ["+t+"] "+t.getMessage());
+                LOG.error("RestAction failure: ["+t+"] "+t.getMessage());
         });
     }
     
@@ -148,13 +149,13 @@ public class Giveaway {
                 toSend+="! You won"+(prize==null ? "" : " the **"+prize+"**")+"!";
             }
             mb.setEmbed(eb.build());
-            restJDA.editMessage(Long.toString(channelId), Long.toString(messageId), mb.build()).queue();
-            restJDA.sendMessage(Long.toString(channelId), toSend).queue();
+            restJDA.editMessage(channelId, messageId, mb.build()).queue();
+            restJDA.sendMessage(channelId, toSend).queue();
         } catch(Exception e) {
             eb.setDescription("Could not determine a winner!");
             mb.setEmbed(eb.build());
-            restJDA.editMessage(Long.toString(channelId), Long.toString(messageId), mb.build()).queue();
-            restJDA.sendMessage(Long.toString(channelId), "A winner could not be determined!").queue();
+            restJDA.editMessage(channelId, messageId, mb.build()).queue();
+            restJDA.sendMessage(channelId, "A winner could not be determined!").queue();
         }
     }
     
@@ -173,7 +174,7 @@ public class Giveaway {
     {
         threadpool.submit(() -> {
             try {
-                MessageReaction mr = message.getReactions().stream().filter(r -> r.getEmote().getName().equals(Constants.TADA)).findAny().orElse(null);
+                MessageReaction mr = message.getReactions().stream().filter(r -> r.getReactionEmote().getName().equals(Constants.TADA)).findAny().orElse(null);
                 List<User> users = new LinkedList<>();
                 mr.getUsers().stream().forEach(u -> users.add(u));
                 users.remove(mr.getJDA().getSelfUser());

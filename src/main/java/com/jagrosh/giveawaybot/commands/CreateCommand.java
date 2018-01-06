@@ -17,16 +17,14 @@ package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Bot;
 import com.jagrosh.giveawaybot.Constants;
-import com.jagrosh.giveawaybot.util.FinderUtil;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
+import com.jagrosh.jdautilities.utils.FinderUtil;
 import com.jagrosh.jdautilities.waiter.EventWaiter;
 import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 
@@ -72,7 +70,7 @@ public class CreateCommand extends Command {
                     else
                     {
                         String query = e.getMessage().getRawContent().replace(" ", "_");
-                        List<TextChannel> list = FinderUtil.findTextChannel(query, event.getGuild());
+                        List<TextChannel> list = FinderUtil.findTextChannels(query, event.getGuild());
                         if(list.isEmpty())
                         {
                             event.replyWarning("Uh oh, I couldn't find any channels called '"+query+"'! Try again!"+CHANNEL);

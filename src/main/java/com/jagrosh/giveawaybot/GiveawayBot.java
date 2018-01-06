@@ -15,7 +15,9 @@
  */
 package com.jagrosh.giveawaybot;
 
-import net.dv8tion.jda.core.utils.SimpleLog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  *
@@ -27,7 +29,7 @@ import net.dv8tion.jda.core.utils.SimpleLog;
  */
 public class GiveawayBot {
     
-    private final static SimpleLog LOG = SimpleLog.getLog("Startup");
+    private final static Logger LOG = LoggerFactory.getLogger("Init");
     
     /**
      * Main execution
@@ -37,7 +39,7 @@ public class GiveawayBot {
     {
         if(args.length==0)
         {
-            LOG.fatal("Must include command line arguments");
+            LOG.error("Must include command line arguments");
         }
         else try
         {
@@ -49,13 +51,19 @@ public class GiveawayBot {
                 case "bot":
                     Bot.main(Integer.parseInt(args[1]));
                     break;
+                case "website":
+                    Website.main(new String[0]);
+                    break;
+                case "none":
+                    break;
                 default:
-                    LOG.fatal(String.format("Invalid startup type '%s'",args[0]));
+                    LOG.error(String.format("Invalid startup type '%s'",args[0]));
             }
         }
         catch (Exception e)
         {
-            LOG.fatal(e);
+            LOG.error(""+e);
+            e.printStackTrace();
         }
     }
 }

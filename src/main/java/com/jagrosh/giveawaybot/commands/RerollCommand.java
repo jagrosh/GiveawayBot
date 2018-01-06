@@ -20,7 +20,6 @@ import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
-import java.util.concurrent.ExecutorService;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
 
@@ -46,7 +45,7 @@ public class RerollCommand extends Command {
         if(event.getArgs().isEmpty()) {
             event.getChannel().getHistory().retrievePast(100).queue(messages -> {
                 Message m = messages.stream().filter(msg -> msg.getAuthor().equals(event.getSelfUser()) && !msg.getEmbeds().isEmpty() 
-                        && msg.getReactions().stream().anyMatch(mr -> mr.getEmote().getName().equals(Constants.TADA)&&mr.getCount()>0)).findFirst().orElse(null);
+                        && msg.getReactions().stream().anyMatch(mr -> mr.getReactionEmote().getName().equals(Constants.TADA)&&mr.getCount()>0)).findFirst().orElse(null);
                 if(m==null)
                     event.replyWarning("I couldn't find any recent giveaways in this channel.");
                 else

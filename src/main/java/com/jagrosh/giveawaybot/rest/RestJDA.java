@@ -15,21 +15,20 @@
  */
 package com.jagrosh.giveawaybot.rest;
 
-import java.util.List;
 import javax.annotation.CheckReturnValue;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageEmbed;
+import net.dv8tion.jda.core.entities.impl.GuildImpl;
 import net.dv8tion.jda.core.entities.impl.JDAImpl;
-import net.dv8tion.jda.core.entities.impl.MessageImpl;
+import net.dv8tion.jda.core.entities.impl.TextChannelImpl;
 import net.dv8tion.jda.core.requests.Request;
 import net.dv8tion.jda.core.requests.Response;
 import net.dv8tion.jda.core.requests.RestAction;
 import net.dv8tion.jda.core.requests.Route;
+import net.dv8tion.jda.core.requests.restaction.MessageAction;
 import net.dv8tion.jda.core.utils.Checks;
 import okhttp3.OkHttpClient;
-import org.json.JSONObject;
 
 /**
  *
@@ -37,87 +36,39 @@ import org.json.JSONObject;
  */
 public class RestJDA {
     
-    private final JDAImpl fakeJDA = new JDAImpl(AccountType.BOT, new OkHttpClient.Builder(), null, null, false, false, false, false, true, 2, 900);
+    private final JDAImpl fakeJDA;
     
     public RestJDA(String token)
     {
-        fakeJDA.setToken(token);
+        fakeJDA = new JDAImpl(AccountType.BOT, token, null, new OkHttpClient.Builder(), null, false, false, false, false, true, false, 2, 900, null);
     }
     
     @CheckReturnValue
-    public RestAction<MessageJson> editMessage(String channelId, String messageId, Message newContent)
+    public MessageAction editMessage(long channelId, long messageId, Message newContent)
     {
         Checks.notNull(newContent, "message");
-        if (!newContent.getEmbeds().isEmpty())
-        {
-            MessageEmbed embed = newContent.getEmbeds().get(0);
-            Checks.check(embed.isSendable(AccountType.BOT),
-                    "Provided Message contains an embed with a length greater than %d characters, which is the max for %s accounts!",
-                    MessageEmbed.EMBED_MAX_LENGTH_BOT, AccountType.BOT);
-        }
-        JSONObject json = ((MessageImpl) newContent).toJSONObject();
-        Route.CompiledRoute route = net.dv8tion.jda.core.requests.Route.Messages.EDIT_MESSAGE.compile(channelId, messageId);
-        return new RestAction<MessageJson>(fakeJDA, route, json)
-        {
-            @Override
-            protected void handleResponse(Response response, Request<MessageJson> request)
-            {
-                if (response.isOk())
-                {
-                    request.onSuccess(new MessageJson(response.getObject()));
-                }
-                else
-                {
-                    request.onFailure(response);
-                }
-            }
-        };
+        Route.CompiledRoute route = Route.Messages.EDIT_MESSAGE.compile(Long.toString(channelId), Long.toString(messageId));
+        return new MessageAction(fakeJDA, route, new TextChannelImpl(channelId, new GuildImpl(fakeJDA, 0))).apply(newContent);
     }
     
     @CheckReturnValue
-    public RestAction<MessageJson> sendMessage(String channelId, String msg)
+    public MessageAction sendMessage(long channelId, String msg)
     {
         return sendMessage(channelId, new MessageBuilder().append(msg).build());
     }
     
     @CheckReturnValue
-    public RestAction<MessageJson> sendMessage(String channelId, Message msg)
+    public MessageAction sendMessage(long channelId, Message msg)
     {
         Checks.notNull(msg, "Message");
-
-        if (!msg.getEmbeds().isEmpty())
-        {
-            MessageEmbed embed = msg.getEmbeds().get(0);
-            Checks.check(embed.isSendable(AccountType.BOT),
-                "Provided Message contains an embed with a length greater than %d characters, which is the max for %s accounts!",
-                    MessageEmbed.EMBED_MAX_LENGTH_BOT, AccountType.BOT);
-        }
-
-        Route.CompiledRoute route = Route.Messages.SEND_MESSAGE.compile(channelId);
-        JSONObject json = ((MessageImpl) msg).toJSONObject();
-        return new RestAction<MessageJson>(fakeJDA, route, json)
-        {
-            @Override
-            protected void handleResponse(Response response, Request<MessageJson> request)
-            {
-                if (response.isOk())
-                {
-                    request.onSuccess(new MessageJson(response.getObject()));
-                }
-                else
-                {
-                    request.onFailure(response);
-                }
-            }
-        };
+        Route.CompiledRoute route = Route.Messages.SEND_MESSAGE.compile(Long.toString(channelId));
+        return new MessageAction(fakeJDA, route, new TextChannelImpl(channelId, new GuildImpl(fakeJDA, 0))).apply(msg);
     }
     
     @CheckReturnValue
-    public RestAction<MessageJson> getMessageById(String channelId, String messageId)
+    public RestAction<MessageJson> getMessageById(long channelId, long messageId)
     {
-        Checks.notEmpty(messageId, "Provided messageId");
-
-        Route.CompiledRoute route = Route.Messages.GET_MESSAGE.compile(channelId, messageId);
+        Route.CompiledRoute route = Route.Messages.GET_MESSAGE.compile(Long.toString(channelId), Long.toString(messageId));
         return new RestAction<MessageJson>(fakeJDA, route)
         {
             @Override
@@ -127,7 +78,6 @@ public class RestJDA {
                     request.onSuccess(new MessageJson(response.getObject()));
                 else
                     request.onFailure(response);
-
             }
         };
     }

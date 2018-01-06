@@ -29,7 +29,8 @@ import com.jagrosh.jdautilities.commandclient.CommandEvent;
  */
 public class FormatUtil {
     
-    public static String formatHelp(CommandEvent event) {
+    public static String formatHelp(CommandEvent event)
+    {
         StringBuilder builder = new StringBuilder(Constants.YAY+" __**"+event.getSelfUser().getName()+"** commands:__\n");
         Category category = null;
         for(Command command : event.getClient().getCommands())
@@ -47,7 +48,8 @@ public class FormatUtil {
         return builder.toString();
     }
     
-    public static String secondsToTime(long timeseconds) {
+    public static String secondsToTime(long timeseconds)
+    {
         StringBuilder builder = new StringBuilder();
         int years = (int)(timeseconds / (60*60*24*365));
         if(years>0){
