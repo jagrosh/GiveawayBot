@@ -156,7 +156,8 @@ public class CreateCommand extends Command {
                     {
                         try {
                             int num = Integer.parseInt(e.getMessage().getRawContent().trim());
-                            if(num<1 || num>15)
+                            if(num<1 || num>1 000
+                              )
                             {
                                 event.replyWarning("Hey! I can only support 1 to 15 winners!"+WINNERS);
                                 waitForWinners(event, tchan, seconds);
