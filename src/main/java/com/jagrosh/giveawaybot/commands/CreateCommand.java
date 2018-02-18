@@ -18,10 +18,10 @@ package com.jagrosh.giveawaybot.commands;
 import com.jagrosh.giveawaybot.Bot;
 import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.giveawaybot.util.FormatUtil;
-import com.jagrosh.jdautilities.commandclient.Command;
-import com.jagrosh.jdautilities.commandclient.CommandEvent;
-import com.jagrosh.jdautilities.utils.FinderUtil;
-import com.jagrosh.jdautilities.waiter.EventWaiter;
+import com.jagrosh.jdautilities.command.Command;
+import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.commons.utils.FinderUtil;
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -63,13 +63,13 @@ public class CreateCommand extends Command {
         waiter.waitForEvent(GuildMessageReceivedEvent.class, 
                 e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()), 
                 e -> {
-                    if(e.getMessage().getRawContent().equalsIgnoreCase("cancel"))
+                    if(e.getMessage().getContentRaw().equalsIgnoreCase("cancel"))
                     {
                         event.replyWarning("Alright, I guess we're not having a giveaway after all..."+CANCEL);
                     }
                     else
                     {
-                        String query = e.getMessage().getRawContent().replace(" ", "_");
+                        String query = e.getMessage().getContentRaw().replace(" ", "_");
                         List<TextChannel> list = FinderUtil.findTextChannels(query, event.getGuild());
                         if(list.isEmpty())
                         {
@@ -104,13 +104,13 @@ public class CreateCommand extends Command {
         waiter.waitForEvent(GuildMessageReceivedEvent.class, 
                 e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()), 
                 e -> {
-                    if(e.getMessage().getRawContent().equalsIgnoreCase("cancel"))
+                    if(e.getMessage().getContentRaw().equalsIgnoreCase("cancel"))
                     {
                         event.replyWarning("Alright, I guess we're not having a giveaway after all..."+CANCEL);
                     }
                     else
                     {
-                        String val = e.getMessage().getRawContent().toUpperCase().trim();
+                        String val = e.getMessage().getContentRaw().toUpperCase().trim();
                         boolean min = false;
                         if(val.endsWith("M"))
                         {
@@ -148,14 +148,14 @@ public class CreateCommand extends Command {
         waiter.waitForEvent(GuildMessageReceivedEvent.class, 
                 e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()), 
                 e -> {
-                    if(e.getMessage().getRawContent().equalsIgnoreCase("cancel"))
+                    if(e.getMessage().getContentRaw().equalsIgnoreCase("cancel"))
                     {
                         event.replyWarning("Alright, I guess we're not having a giveaway after all..."+CANCEL);
                     }
                     else
                     {
                         try {
-                            int num = Integer.parseInt(e.getMessage().getRawContent().trim());
+                            int num = Integer.parseInt(e.getMessage().getContentRaw().trim());
                             if(num<1 || num>15)
                             {
                                 event.replyWarning("Hey! I can only support 1 to 15 winners!"+WINNERS);
@@ -180,13 +180,13 @@ public class CreateCommand extends Command {
         waiter.waitForEvent(GuildMessageReceivedEvent.class, 
                 e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()), 
                 e -> {
-                    if(e.getMessage().getRawContent().equalsIgnoreCase("cancel"))
+                    if(e.getMessage().getContentRaw().equalsIgnoreCase("cancel"))
                     {
                         event.replyWarning("Alright, I guess we're not having a giveaway after all..."+CANCEL);
                     }
                     else
                     {
-                        String prize = e.getMessage().getRawContent();
+                        String prize = e.getMessage().getContentRaw();
                         if(prize.length()>250)
                         {
                             event.replyWarning("Ack! That prize is too long. Can you shorten it a bit?"+PRIZE);
@@ -197,7 +197,7 @@ public class CreateCommand extends Command {
                             Instant now = Instant.now();
                             if(bot.startGiveaway(tchan, now, seconds, winners, prize))
                             {
-                                event.replySuccess("Done! The giveaway for the `"+e.getMessage().getRawContent()+"` is starting in "+tchan.getAsMention()+"!");
+                                event.replySuccess("Done! The giveaway for the `"+e.getMessage().getContentRaw()+"` is starting in "+tchan.getAsMention()+"!");
                             }
                             else
                             {

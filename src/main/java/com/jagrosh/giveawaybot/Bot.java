@@ -26,10 +26,10 @@ import com.jagrosh.giveawaybot.commands.StartCommand;
 import com.jagrosh.giveawaybot.database.Database;
 import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.util.FormatUtil;
-import com.jagrosh.jdautilities.commandclient.CommandClient;
-import com.jagrosh.jdautilities.commandclient.CommandClientBuilder;
-import com.jagrosh.jdautilities.commandclient.examples.PingCommand;
-import com.jagrosh.jdautilities.waiter.EventWaiter;
+import com.jagrosh.jdautilities.command.CommandClient;
+import com.jagrosh.jdautilities.command.CommandClientBuilder;
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+import com.jagrosh.jdautilities.examples.command.PingCommand;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -37,24 +37,22 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import net.dv8tion.jda.core.AccountType;
+import net.dv8tion.jda.bot.sharding.DefaultShardManagerBuilder;
+import net.dv8tion.jda.bot.sharding.ShardManager;
 import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.core.events.role.update.RoleUpdateColorEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
-import net.dv8tion.jda.core.requests.Request;
-import net.dv8tion.jda.core.requests.Response;
-import net.dv8tion.jda.core.requests.RestAction;
-import net.dv8tion.jda.core.requests.Route;
-import org.json.JSONObject;
+import net.dv8tion.jda.webhook.WebhookClient;
+import net.dv8tion.jda.webhook.WebhookClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,50 +63,29 @@ import org.slf4j.LoggerFactory;
 public class Bot extends ListenerAdapter
 {
     
-    private final List<JDA> shards; // list of all logins the bot has
+    private ShardManager shards; // list of all logins the bot has
     private final ScheduledExecutorService threadpool; // threadpool to use for timings
     private final Database database; // database
+    private final WebhookClient webhook;
     private final static Logger LOG = LoggerFactory.getLogger("Bot");
     
-    private Bot(Database database)
+    private Bot(Database database, String webhookUrl)
     {
         this.database = database;
-        shards = new LinkedList<>();
         threadpool = Executors.newScheduledThreadPool(20);
+        webhook = new WebhookClientBuilder(webhookUrl).build();
     }
     
     // protected methods
-    protected void addShard(JDA shard)
+    protected void setShardManager(ShardManager shards)
     {
-        shards.add(shard);
+        this.shards = shards;
     }
     
     // public getters
-    public List<JDA> getShards()
+    public ShardManager getShardManager()
     {
         return shards;
-    }
-    
-    public TextChannel getTextChannelById(long id)
-    {
-        for(JDA shard: shards)
-        {
-            TextChannel tc = shard.getTextChannelById(id);
-            if(tc!=null)
-                return tc;
-        }
-        return null;
-    }
-    
-    public Guild getGuildById(long id)
-    {
-        for(JDA shard: shards)
-        {
-            Guild g = shard.getGuildById(id);
-            if(g!=null)
-                return g;
-        }
-        return null;
     }
     
     public ScheduledExecutorService getThreadpool()
@@ -124,7 +101,7 @@ public class Bot extends ListenerAdapter
     public List<Guild> getManagedGuildsForUser(long userId)
     {
         List<Guild> guilds = new LinkedList<>();
-        for(JDA shard: shards)
+        for(JDA shard: shards.getShards())
         {
             for(Guild g: shard.getGuilds())
             {
@@ -145,7 +122,7 @@ public class Bot extends ListenerAdapter
     public void shutdown()
     {
         threadpool.shutdown();
-        shards.forEach(jda -> jda.shutdown());
+        shards.shutdown();
         database.shutdown();
     }
     
@@ -165,7 +142,7 @@ public class Bot extends ListenerAdapter
     
     public boolean deleteGiveaway(long channelId, long messageId)
     {
-        TextChannel channel = getTextChannelById(channelId);
+        TextChannel channel = shards.getTextChannelById(channelId);
         try {
             channel.deleteMessageById(messageId).queue();
         } catch(Exception e) {
@@ -175,30 +152,40 @@ public class Bot extends ListenerAdapter
     
     // events
     @Override
-    public void onRoleUpdateColor(RoleUpdateColorEvent event) {
+    public void onRoleUpdateColor(RoleUpdateColorEvent event)
+    {
         if(event.getGuild().getSelfMember().getRoles().contains(event.getRole()))
             database.settings.updateColor(event.getGuild());
     }
 
     @Override
-    public void onGuildMemberRoleAdd(GuildMemberRoleAddEvent event) {
+    public void onGuildMemberRoleAdd(GuildMemberRoleAddEvent event)
+    {
         if(event.getMember().equals(event.getGuild().getSelfMember()))
             database.settings.updateColor(event.getGuild());
     }
 
     @Override
-    public void onGuildMemberRoleRemove(GuildMemberRoleRemoveEvent event) {
+    public void onGuildMemberRoleRemove(GuildMemberRoleRemoveEvent event)
+    {
         if(event.getMember().equals(event.getGuild().getSelfMember()))
             database.settings.updateColor(event.getGuild());
     }
-    
+
+    @Override
+    public void onReady(ReadyEvent event)
+    {
+        webhook.send("\uD83C\uDF89 Shard `"+(event.getJDA().getShardInfo().getShardId()+1)+"/"
+                +event.getJDA().getShardInfo().getShardTotal()+"` has connected. Guilds: `"
+                +event.getJDA().getGuilds().size()+"` Users: `"+event.getJDA().getUsers().size()+"`");
+    }
     
     /**
      * Starts the application in Bot mode
-     * @param shards 
+     * @param shardTotal 
      * @throws java.lang.Exception 
      */
-    public static void main(int shards) throws Exception
+    public static void main(int shardTotal) throws Exception
     {
         // load tokens from a file
         // 0 - bot token
@@ -206,11 +193,13 @@ public class Bot extends ListenerAdapter
         // 2 - database host
         // 3 - database username
         // 4 - database pass
-        // 5 - rest token
+        // 5 - carbon key
+        // 6 - dbl key
+        // 7 - webhook
         List<String> tokens = Files.readAllLines(Paths.get("config.txt"));
         
         // instantiate a bot with a database connector
-        Bot bot = new Bot(new Database(tokens.get(2), tokens.get(3), tokens.get(4)));
+        Bot bot = new Bot(new Database(tokens.get(2), tokens.get(3), tokens.get(4)), tokens.get(7));
         
         // instantiate an event waiter
         EventWaiter waiter = new EventWaiter();
@@ -223,7 +212,7 @@ public class Bot extends ListenerAdapter
                 .setGame(Game.playing(Constants.WEBSITE+" | Type !ghelp"))
                 .setEmojis(Constants.TADA, "\uD83D\uDCA5", "\uD83D\uDCA5")
                 //.setServerInvite("https://discordapp.com/invite/0p9LSGoRLu6Pet0k")
-                .setHelpFunction(event -> FormatUtil.formatHelp(event))
+                .setHelpConsumer(event -> FormatUtil.formatHelp(event))
                 .setDiscordBotsKey(tokens.get(1))
                 .setCarbonitexKey(tokens.get(5))
                 .setDiscordBotListKey(tokens.get(6))
@@ -241,44 +230,14 @@ public class Bot extends ListenerAdapter
                         new ShutdownCommand(bot)
                 ).build();
         
-        // set up log
-        Route.CompiledRoute route = Route.Messages.SEND_MESSAGE.compile("196692840602927104");
-        
-        // start up each shard
-        for(int i=0; i<shards; i++)
-        {
-            JDABuilder builder = new JDABuilder(AccountType.BOT)
-                    .setToken(tokens.get(0))
-                    .setAudioEnabled(false)
-                    .setGame(Game.playing("loading..."))
-                    .setStatus(OnlineStatus.DO_NOT_DISTURB)
-                    .addEventListener(client)
-                    .addEventListener(waiter)
-                    .addEventListener(bot);
-            if(shards>1)
-                builder.useSharding(i, shards);
-            long time = System.currentTimeMillis();
-            JDA tmp;
-            try
-            {
-                LOG.info("Starting shard "+i);
-                tmp = builder.buildBlocking();
-            } catch(Exception e)
-            {
-                Thread.sleep(5000);
-                LOG.info("Retrying shard "+i);
-                tmp = builder.buildBlocking();
-            }
-            bot.addShard(tmp);
-            System.gc();
-            new RestAction<Void>(tmp, route, new JSONObject().put("content", "\uD83D\uDCE1 Shard `"+(i+1)+"/"
-                    +shards+"` has connected. Guilds: `"+tmp.getGuilds().size()+"` Users: `"+tmp.getUsers().size()+"`")){
-                @Override
-                protected void handleResponse(Response rspns, Request<Void> rqst) {}
-            }.queue();
-            long diff = System.currentTimeMillis()-time;
-            if(diff<6000)
-                try{Thread.sleep(6000-diff);}catch(InterruptedException ex){}
-        }
+        // start logging in
+        bot.setShardManager(new DefaultShardManagerBuilder()
+                .setShardsTotal(shardTotal)
+                .setToken(tokens.get(0))
+                .setAudioEnabled(false)
+                .setGame(Game.playing("loading..."))
+                .setStatus(OnlineStatus.DO_NOT_DISTURB)
+                .addEventListeners(client, waiter, bot)
+                .build());
     }
 }

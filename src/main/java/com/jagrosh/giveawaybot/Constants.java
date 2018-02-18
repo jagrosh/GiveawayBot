@@ -15,7 +15,7 @@
  */
 package com.jagrosh.giveawaybot;
 
-import com.jagrosh.jdautilities.commandclient.Command;
+import com.jagrosh.jdautilities.command.Command;
 import java.awt.Color;
 import java.time.OffsetDateTime;
 import net.dv8tion.jda.core.Permission;
@@ -33,12 +33,12 @@ public class Constants {
     public static final String TADA     = "\uD83C\uDF89";
     public static final String YAY      = "<:yay:294906617378504704>";
     public static final Color  BLURPLE  = Color.decode("#7289DA");
-    public static final String INVITE   = "https://discordapp.com/oauth2/authorize?permissions=347200&scope=bot&client_id=294882584201003009";
+    public static final String INVITE   = "https://giveawaybot.party/invite";
     public static final int MIN_TIME    = 10;
     public static final int MAX_TIME    = 60*60*24*7;
-    public static final String WEBSITE  = "http://giveawaybot.party";
+    public static final String WEBSITE  = "https://giveawaybot.party";
     public static final String GITHUB   = "https://github.com/jagrosh/GiveawayBot";
-    public static final String VERSION  = "2.0";
+    public static final String VERSION  = "2.1";
     public static final String PERMS    = "`Read Messages`, `Write Messages`, `Read Message History`, `Embed Links`, `Use External Emoji`, and `Add Reactions`";
     
     public static final boolean validTime(int seconds)

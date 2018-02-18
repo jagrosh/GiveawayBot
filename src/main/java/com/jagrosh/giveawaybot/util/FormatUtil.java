@@ -17,9 +17,9 @@ package com.jagrosh.giveawaybot.util;
 
 import com.jagrosh.giveawaybot.Constants;
 import java.util.Objects;
-import com.jagrosh.jdautilities.commandclient.Command;
-import com.jagrosh.jdautilities.commandclient.Command.Category;
-import com.jagrosh.jdautilities.commandclient.CommandEvent;
+import com.jagrosh.jdautilities.command.Command;
+import com.jagrosh.jdautilities.command.Command.Category;
+import com.jagrosh.jdautilities.command.CommandEvent;
 
 /**
  *
