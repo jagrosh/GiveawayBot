@@ -185,7 +185,7 @@ public class Bot extends ListenerAdapter
      * @param shardTotal 
      * @throws java.lang.Exception 
      */
-    public static void main(int shardTotal) throws Exception
+    public static void main(int shardTotal, int shardSetId) throws Exception
     {
         // load tokens from a file
         // 0 - bot token
@@ -212,7 +212,7 @@ public class Bot extends ListenerAdapter
                 .setGame(Game.playing(Constants.WEBSITE+" | Type !ghelp"))
                 .setEmojis(Constants.TADA, "\uD83D\uDCA5", "\uD83D\uDCA5")
                 //.setServerInvite("https://discordapp.com/invite/0p9LSGoRLu6Pet0k")
-                .setHelpConsumer(event -> FormatUtil.formatHelp(event))
+                .setHelpConsumer(event -> event.replyInDm(FormatUtil.formatHelp(event)))
                 .setDiscordBotsKey(tokens.get(1))
                 .setCarbonitexKey(tokens.get(5))
                 .setDiscordBotListKey(tokens.get(6))
@@ -233,6 +233,7 @@ public class Bot extends ListenerAdapter
         // start logging in
         bot.setShardManager(new DefaultShardManagerBuilder()
                 .setShardsTotal(shardTotal)
+                .setShards(shardSetId*16, (shardSetId+1)*16-1)
                 .setToken(tokens.get(0))
                 .setAudioEnabled(false)
                 .setGame(Game.playing("loading..."))
