@@ -15,14 +15,7 @@
  */
 package com.jagrosh.giveawaybot;
 
-import com.jagrosh.giveawaybot.commands.AboutCommand;
-import com.jagrosh.giveawaybot.commands.CreateCommand;
-import com.jagrosh.giveawaybot.commands.EndCommand;
-import com.jagrosh.giveawaybot.commands.EvalCommand;
-import com.jagrosh.giveawaybot.commands.InviteCommand;
-import com.jagrosh.giveawaybot.commands.RerollCommand;
-import com.jagrosh.giveawaybot.commands.ShutdownCommand;
-import com.jagrosh.giveawaybot.commands.StartCommand;
+import com.jagrosh.giveawaybot.commands.*;
 import com.jagrosh.giveawaybot.database.Database;
 import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.util.FormatUtil;
@@ -185,7 +178,7 @@ public class Bot extends ListenerAdapter
      * @param shardTotal 
      * @throws java.lang.Exception 
      */
-    public static void main(int shardTotal, int shardSetId) throws Exception
+    public static void main(int shardTotal, int shardSetId, int shardSetSize) throws Exception
     {
         // load tokens from a file
         // 0 - bot token
@@ -209,10 +202,12 @@ public class Bot extends ListenerAdapter
                 .setPrefix("!g")
                 .setAlternativePrefix("g!")
                 .setOwnerId("113156185389092864")
-                .setGame(Game.playing(Constants.WEBSITE+" | Type !ghelp"))
+                .setGame(Game.playing(Constants.TADA+" "+Constants.WEBSITE+" "+Constants.TADA+" Type !ghelp "+Constants.TADA))
                 .setEmojis(Constants.TADA, "\uD83D\uDCA5", "\uD83D\uDCA5")
                 //.setServerInvite("https://discordapp.com/invite/0p9LSGoRLu6Pet0k")
-                .setHelpConsumer(event -> event.replyInDm(FormatUtil.formatHelp(event)))
+                .setHelpConsumer(event -> event.replyInDm(FormatUtil.formatHelp(event), 
+                        m-> event.getMessage().addReaction(Constants.REACTION).queue(s->{},f->{}), 
+                        f-> event.replyWarning("Help could not be sent because you are blocking Direct Messages")))
                 .setDiscordBotsKey(tokens.get(1))
                 .setCarbonitexKey(tokens.get(5))
                 .setDiscordBotListKey(tokens.get(6))
@@ -225,6 +220,7 @@ public class Bot extends ListenerAdapter
                         new StartCommand(bot),
                         new EndCommand(bot),
                         new RerollCommand(bot),
+                        new ListCommand(bot),
                         
                         new EvalCommand(bot),
                         new ShutdownCommand(bot)
@@ -233,7 +229,7 @@ public class Bot extends ListenerAdapter
         // start logging in
         bot.setShardManager(new DefaultShardManagerBuilder()
                 .setShardsTotal(shardTotal)
-                .setShards(shardSetId*16, (shardSetId+1)*16-1)
+                .setShards(shardSetId*shardSetSize, (shardSetId+1)*shardSetSize-1)
                 .setToken(tokens.get(0))
                 .setAudioEnabled(false)
                 .setGame(Game.playing("loading..."))

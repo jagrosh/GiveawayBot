@@ -28,10 +28,12 @@ import net.dv8tion.jda.core.entities.Message;
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class EndCommand extends Command {
+public class EndCommand extends Command 
+{
     private final Bot bot;
     
-    public EndCommand(Bot bot) {
+    public EndCommand(Bot bot) 
+    {
         this.bot = bot;
         name = "end";
         help = "ends (picks a winner for) the specified or latest giveaway in the current channel";
@@ -42,8 +44,10 @@ public class EndCommand extends Command {
     }
 
     @Override
-    protected void execute(CommandEvent event) {
-        if(event.getArgs().isEmpty()) {
+    protected void execute(CommandEvent event) 
+    {
+        if(event.getArgs().isEmpty()) 
+        {
             List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getTextChannel());
             Giveaway giveaway = null;
             for(Giveaway g: list)
@@ -69,7 +73,8 @@ public class EndCommand extends Command {
                 }
             }, v -> event.replyError("I failed to retrieve message history"));
         }
-        else if(event.getArgs().matches("\\d{17,20}")) {
+        else if(event.getArgs().matches("\\d{17,20}")) 
+        {
             Giveaway giveaway = bot.getDatabase().giveaways.getGiveaway(Long.parseLong(event.getArgs()), event.getGuild().getIdLong());
             if(giveaway==null)
             {

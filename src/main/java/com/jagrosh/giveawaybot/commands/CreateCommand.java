@@ -18,6 +18,7 @@ package com.jagrosh.giveawaybot.commands;
 import com.jagrosh.giveawaybot.Bot;
 import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.giveawaybot.util.FormatUtil;
+import com.jagrosh.giveawaybot.util.OtherUtil;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
@@ -110,33 +111,21 @@ public class CreateCommand extends Command {
                     }
                     else
                     {
-                        String val = e.getMessage().getContentRaw().toUpperCase().trim();
-                        boolean min = false;
-                        if(val.endsWith("M"))
+                        int seconds = OtherUtil.parseShortTime(e.getMessage().getContentRaw());
+                        if(seconds==-1)
                         {
-                            min=true;
-                            val=val.substring(0,val.length()-1).trim();
-                        }
-                        else if(val.endsWith("S"))
-                        {
-                            val=val.substring(0,val.length()-1).trim();
-                        }
-                        int seconds;
-                        try {
-                            seconds = (min?60:1)*Integer.parseInt(val);
-                            if(seconds<10 || seconds>60*60*24*7)
-                            {
-                                event.replyWarning("Oh! Sorry! Giveaways need to be at least 10 seconds long, and can't be _too_ long. Mind trying again?"+TIME);
-                                waitForTime(event, tchan);
-                            }
-                            else
-                            {
-                                event.replySuccess("Neat! This giveaway will last "+FormatUtil.secondsToTime(seconds)+"! Now, how many winners should there be?"+WINNERS);
-                                waitForWinners(event, tchan, seconds);
-                            }
-                        } catch(NumberFormatException ex) {
                             event.replyWarning("Hm. I can't seem to get a number from that. Can you try again?"+TIME);
                             waitForTime(event, tchan);
+                        }
+                        else if(!OtherUtil.validTime(seconds))
+                        {
+                            event.replyWarning("Oh! Sorry! "+Constants.TIME_MSG+" Mind trying again?"+TIME);
+                            waitForTime(event, tchan);
+                        }
+                        else
+                        {
+                            event.replySuccess("Neat! This giveaway will last "+FormatUtil.secondsToTime(seconds)+"! Now, how many winners should there be?"+WINNERS);
+                            waitForWinners(event, tchan, seconds);
                         }
                     }
                 }, 

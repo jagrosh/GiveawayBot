@@ -15,6 +15,7 @@
  */
 package com.jagrosh.giveawaybot;
 
+import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.jdautilities.command.Command;
 import java.awt.Color;
 import java.time.OffsetDateTime;
@@ -32,19 +33,18 @@ public class Constants {
     public static final int PRIZE_MAX   = 250;
     public static final String TADA     = "\uD83C\uDF89";
     public static final String YAY      = "<:yay:294906617378504704>";
+    public static final String REACTION = "yay:294906617378504704";
     public static final Color  BLURPLE  = Color.decode("#7289DA");
     public static final String INVITE   = "https://giveawaybot.party/invite";
     public static final int MIN_TIME    = 10;
-    public static final int MAX_TIME    = 60*60*24*7;
+    public static final int MAX_TIME    = 60*60*24*7*2;
+    public static final int MAX_WINNERS = 20;
+    public static final String TIME_MSG = "Giveaway time must not be shorter than "+FormatUtil.secondsToTime(Constants.MIN_TIME)+" and no longer than "+FormatUtil.secondsToTime(Constants.MAX_TIME);
     public static final String WEBSITE  = "https://giveawaybot.party";
+    public static final String OWNER    = "**jagrosh**#4824";
     public static final String GITHUB   = "https://github.com/jagrosh/GiveawayBot";
-    public static final String VERSION  = "2.1";
+    public static final String VERSION  = "2.2";
     public static final String PERMS    = "`Read Messages`, `Write Messages`, `Read Message History`, `Embed Links`, `Use External Emoji`, and `Add Reactions`";
-    
-    public static final boolean validTime(int seconds)
-    {
-        return seconds>=MIN_TIME && seconds<=MAX_TIME;
-    }
     
     public static final boolean canSendGiveaway(TextChannel channel)
     {
