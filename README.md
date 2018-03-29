@@ -5,7 +5,7 @@ Hold giveaways quickly and easily on your Discord server! GiveawayBot is powered
 
 ## Invite
 If you'd like to add **GiveawayBot** to your server, use the following link:<br>
-🔗 **https://discordapp.com/oauth2/authorize?permissions=347200&scope=bot&client_id=294882584201003009**
+🔗 **https://giveawaybot.party/invite**
 
 ## Usage
 * **!gstart \<time> [prize]** - Starts a new giveaway in the current channel. Users can react with a 🎉 to enter the giveaway. The time is in seconds, unless you end the time in an "m" (Example times: `50` or `45s` or `3m`)
