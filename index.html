@@ -5,12 +5,12 @@
 
     <meta charset="utf-8">
     <meta property="og:title" content="GiveawayBot">
+    <meta property="og:site_name" content="Discord GiveawayBot">
     <meta property="og:image" content="http://i.imgur.com/sCEbmKa.png">
     <meta property="og:description" content="Hold giveaways on your Discord server quickly and easily!">
     <meta name="theme-color" content="#7289DA">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
     <title>GiveawayBot</title>
 
@@ -28,7 +28,7 @@
     <![endif]-->
 
     <!-- Custom Fonts from Google -->
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
 
 </head>
 
@@ -94,33 +94,29 @@
                     <br>
                     <p class="text-light intro-body"><b>!gcreate</b> - creates a giveaway (interactive setup)</p>
                     <br>
-                    <p class="text-light intro-body"><b>!gstart &lt;time&gt; [prize]</b> - starts a giveaway with the provided number of seconds.
-                                          For example, <b>!gstart 30 Steam Code</b> would start a 30-second giveaway for a Steam Code!
-                                          To use minutes instead of seconds, simply include an "m" in the time ~ <b>!gstart 3m</b> would be a 3-minute giveaway.</p>
+                    <p class="text-light intro-body"><b>!gstart &lt;time&gt; [winners] [prize]</b> - starts a giveaway with the provided number of seconds.
+                                          For example, <b>!gstart 30s 2w Steam Code</b> would start a 30-second giveaway for a Steam Code with 2 winners!
+                                          To use minutes/hours/days instead of seconds, simply include an "m", "h", or "d" in the time ~ <b>!gstart 3m</b> would be a 3-minute giveaway.</p>
                     <br>
                     <p class="text-light intro-body"><b>!gend</b> - ends the most recent giveaway in the current channel. If you want to end an older/more sepcific giveaway, use <b>!gend [messageId]</b></p>
                     <br>
                     <p class="text-light intro-body"><b>!greroll</b> - picks a new winner from the latest giveaway. If you want to reroll an older giveaway, you can use <b>!greroll [messageId]</b></p>
                     <br>
+                    <p class="text-light intro-body"><b>!glist</b> - lists all the currently-running giveaways on the server</p>
+                    <br>
                     <img style="border-radius: 15px;" src="./images/example_giveaway_2.gif">
                 </div>
             </div>
         </div>
-    </section>
-
-
-
-	<!-- Footer -->
-    <footer class="page-footer">
-
+        
         <!-- Copyright etc -->
         <div class="small-print">
         	<div class="container">
+                <br><br><br><br>
         		<p>Copyright &copy; John A. Grosh 2017</p>
         	</div>
         </div>
-
-    </footer>
+    </section>
 
     <!-- jQuery -->
     <script src="js/jquery-1.11.3.min.js"></script>
