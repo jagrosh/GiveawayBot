@@ -222,6 +222,7 @@ public class Bot extends ListenerAdapter
                         new RerollCommand(bot),
                         new ListCommand(bot),
                         
+                        new DebugCommand(bot),
                         new EvalCommand(bot),
                         new ShutdownCommand(bot)
                 ).build();

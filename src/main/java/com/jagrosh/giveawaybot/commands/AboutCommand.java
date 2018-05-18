@@ -57,7 +57,7 @@ public class AboutCommand extends Command {
         eb.addField("\uD83C\uDF89 Giveaways", bot.getGiveaways().size()+" right now!", true);
         eb.addField("\uD83C\uDF10 Links", "[Website]("+Constants.WEBSITE+")\n[Invite]("+Constants.INVITE+")\n[Support](https://discord.gg/0p9LSGoRLu6Pet0k)", true);
         eb.setFooter("Last restart", null);
-        eb.setTimestamp(Constants.START);
+        eb.setTimestamp(Constants.STARTUP);
         eb.setColor(Constants.BLURPLE);
         mb.setEmbed(eb.build());
         event.getChannel().sendMessage(mb.build()).queue();

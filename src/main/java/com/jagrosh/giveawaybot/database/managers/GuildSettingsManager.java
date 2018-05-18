@@ -32,7 +32,8 @@ import net.dv8tion.jda.core.entities.TextChannel;
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class GuildSettingsManager extends DataManager {
+public class GuildSettingsManager extends DataManager 
+{
     
     public final static SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID", false, 0, true);
     public final static SQLColumn<Integer> COLOR = new IntegerColumn("COLOR", false, Constants.BLURPLE.getRGB());
@@ -83,7 +84,8 @@ public class GuildSettingsManager extends DataManager {
         }
     }
     
-    public class GuildSettings {
+    public class GuildSettings 
+    {
         public final Color color;
         private final long defaultChannel;
         private final long managerRole;

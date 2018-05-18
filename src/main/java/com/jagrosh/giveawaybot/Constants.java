@@ -29,7 +29,7 @@ import net.dv8tion.jda.core.entities.TextChannel;
  */
 public class Constants {
     
-    public static final OffsetDateTime START = OffsetDateTime.now();
+    public static final OffsetDateTime STARTUP = OffsetDateTime.now();
     public static final int PRIZE_MAX   = 250;
     public static final String TADA     = "\uD83C\uDF89";
     public static final String YAY      = "<:yay:294906617378504704>";
