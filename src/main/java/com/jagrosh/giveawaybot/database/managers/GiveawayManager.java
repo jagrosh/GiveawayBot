@@ -23,8 +23,8 @@ import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.entities.Status;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import net.dv8tion.jda.core.entities.Guild;
@@ -52,91 +52,48 @@ public class GiveawayManager extends DataManager
     
     public Giveaway getGiveaway(long messageId, long guildId)
     {
-        try (Statement statement = getConnection().createStatement();
-             ResultSet results = statement.executeQuery(selectAll(MESSAGE_ID.is(messageId))))
+        return read(selectAll(MESSAGE_ID.is(messageId)), results -> 
         {
             if(results.next() && GUILD_ID.getValue(results)==guildId)
-                return new Giveaway(MESSAGE_ID.getValue(results), CHANNEL_ID.getValue(results), GUILD_ID.getValue(results), 
-                        END_TIME.getValue(results), NUM_WINNERS.getValue(results), PRIZE.getValue(results));
-        } catch( SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
+                return giveaway(results);
+            return null;
+        });
     }
     
     public List<Giveaway> getGiveaways()
     {
-        List<Giveaway> list = new LinkedList<>();
-        try (Statement statement = getConnection().createStatement();
-             ResultSet results = statement.executeQuery(selectAll(null)))
-        {
-            while(results.next())
-                list.add(new Giveaway(MESSAGE_ID.getValue(results), CHANNEL_ID.getValue(results), GUILD_ID.getValue(results), 
-                        END_TIME.getValue(results), NUM_WINNERS.getValue(results), PRIZE.getValue(results)));
-        } catch( SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
+        return getGiveaways(selectAll());
     }
     
     public List<Giveaway> getGiveaways(TextChannel channel)
     {
-        List<Giveaway> list = new LinkedList<>();
-        try (Statement statement = getConnection().createStatement();
-             ResultSet results = statement.executeQuery(selectAll(CHANNEL_ID.is(channel.getIdLong()))))
-        {
-            while(results.next())
-                list.add(new Giveaway(MESSAGE_ID.getValue(results), CHANNEL_ID.getValue(results), GUILD_ID.getValue(results), 
-                        END_TIME.getValue(results), NUM_WINNERS.getValue(results), PRIZE.getValue(results)));
-        } catch( SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
+        return getGiveaways(selectAll(CHANNEL_ID.is(channel.getIdLong())));
     }
     
     public List<Giveaway> getGiveaways(Guild guild)
     {
-        List<Giveaway> list = new LinkedList<>();
-        try (Statement statement = getConnection().createStatement();
-             ResultSet results = statement.executeQuery(selectAll(GUILD_ID.is(guild.getIdLong()))))
-        {
-            while(results.next())
-                list.add(new Giveaway(MESSAGE_ID.getValue(results), CHANNEL_ID.getValue(results), GUILD_ID.getValue(results), 
-                        END_TIME.getValue(results), NUM_WINNERS.getValue(results), PRIZE.getValue(results)));
-        } catch( SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
+        return getGiveaways(selectAll(GUILD_ID.is(guild.getIdLong())));
     }
     
     public List<Giveaway> getGiveaways(Status status)
     {
-        List<Giveaway> list = new LinkedList<>();
-        try (Statement statement = getConnection().createStatement();
-             ResultSet results = statement.executeQuery(selectAll(STATUS.is(status.ordinal()))))
-        {
-            while(results.next())
-                list.add(new Giveaway(MESSAGE_ID.getValue(results), CHANNEL_ID.getValue(results), GUILD_ID.getValue(results), 
-                        END_TIME.getValue(results), NUM_WINNERS.getValue(results), PRIZE.getValue(results)));
-        } catch( SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
+        return getGiveaways(selectAll(STATUS.is(status.ordinal())));
     }
     
     public List<Giveaway> getGiveawaysEndingBefore(Instant end)
     {
-        List<Giveaway> list = new LinkedList<>();
-        try (Statement statement = getConnection().createStatement();
-             ResultSet results = statement.executeQuery(selectAll(END_TIME.isLessThan(end.getEpochSecond()))))
+        return getGiveaways(selectAll(END_TIME.isLessThan(end.getEpochSecond())));
+    }
+    
+    private List<Giveaway> getGiveaways(String selection)
+    {
+        return read(selection, results -> 
         {
+            List<Giveaway> list = new LinkedList<>();
             while(results.next())
-                list.add(new Giveaway(MESSAGE_ID.getValue(results), CHANNEL_ID.getValue(results), GUILD_ID.getValue(results), 
-                        END_TIME.getValue(results), NUM_WINNERS.getValue(results), PRIZE.getValue(results)));
-        } catch( SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
+                list.add(giveaway(results));
+            return list;
+        }, Collections.EMPTY_LIST);
     }
     
     public boolean createGiveaway(Message message, Instant end, int winners, String prize)
@@ -146,8 +103,7 @@ public class GiveawayManager extends DataManager
     
     public boolean createGiveaway(long guildid, long channelid, long messageid, Instant end, int winners, String prize)
     {
-        try (Statement statement = getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
-             ResultSet results = statement.executeQuery(selectAll(MESSAGE_ID.is(messageid)));)
+        return readWrite(selectAll(MESSAGE_ID.is(messageid)), results -> 
         {
             if(results.next())
             {
@@ -174,16 +130,12 @@ public class GiveawayManager extends DataManager
                 results.insertRow();
                 return true;
             }
-        } catch( SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+        }, false);
     }
     
     public boolean deleteGiveaway(long messageId)
     {
-        try (Statement statement = getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
-             ResultSet results = statement.executeQuery(selectAll(MESSAGE_ID.is(messageId)));)
+        return readWrite(selectAll(MESSAGE_ID.is(messageId)), results -> 
         {
             if(results.next())
             {
@@ -192,16 +144,12 @@ public class GiveawayManager extends DataManager
             }
             else
                 return true;
-        } catch( SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+        }, false);
     }
     
     public boolean endGiveaway(long messageId)
     {
-        try (Statement statement = getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
-             ResultSet results = statement.executeQuery(selectAll(MESSAGE_ID.is(messageId)));)
+        return readWrite(selectAll(MESSAGE_ID.is(messageId)), results -> 
         {
             if(results.next())
             {
@@ -211,9 +159,12 @@ public class GiveawayManager extends DataManager
             }
             else
                 return false;
-        } catch( SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+        }, false);
+    }
+    
+    private static Giveaway giveaway(ResultSet results) throws SQLException
+    {
+        return new Giveaway(MESSAGE_ID.getValue(results), CHANNEL_ID.getValue(results), GUILD_ID.getValue(results), 
+                        END_TIME.getValue(results), NUM_WINNERS.getValue(results), PRIZE.getValue(results));
     }
 }

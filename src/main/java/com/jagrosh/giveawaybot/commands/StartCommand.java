@@ -91,6 +91,11 @@ public class StartCommand extends Command
         }
         try{ event.getMessage().delete().queue(); }catch(PermissionException ex){}
         Instant now = event.getMessage().getCreationTime().toInstant();
+        if(bot.getDatabase().giveaways.getGiveaways(event.getGuild()).size() >= Constants.MAX_GIVEAWAYS)
+        {
+            event.replyError("There are already "+Constants.MAX_GIVEAWAYS+" running on this server!");
+            return;
+        }
         bot.startGiveaway(event.getTextChannel(), now, seconds, winners, item);
     }
     

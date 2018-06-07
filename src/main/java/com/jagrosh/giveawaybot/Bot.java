@@ -18,6 +18,7 @@ package com.jagrosh.giveawaybot;
 import com.jagrosh.giveawaybot.commands.*;
 import com.jagrosh.giveawaybot.database.Database;
 import com.jagrosh.giveawaybot.entities.Giveaway;
+import com.jagrosh.giveawaybot.util.BlockingSessionController;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
@@ -44,6 +45,8 @@ import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.core.events.role.update.RoleUpdateColorEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.core.utils.SessionController;
+import net.dv8tion.jda.core.utils.SessionControllerAdapter;
 import net.dv8tion.jda.webhook.WebhookClient;
 import net.dv8tion.jda.webhook.WebhookClientBuilder;
 import org.slf4j.Logger;
@@ -176,6 +179,8 @@ public class Bot extends ListenerAdapter
     /**
      * Starts the application in Bot mode
      * @param shardTotal 
+     * @param shardSetId 
+     * @param shardSetSize 
      * @throws java.lang.Exception 
      */
     public static void main(int shardTotal, int shardSetId, int shardSetSize) throws Exception
@@ -195,7 +200,7 @@ public class Bot extends ListenerAdapter
         Bot bot = new Bot(new Database(tokens.get(2), tokens.get(3), tokens.get(4)), tokens.get(7));
         
         // instantiate an event waiter
-        EventWaiter waiter = new EventWaiter();
+        EventWaiter waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(), false);
         
         // build the client to deal with commands
         CommandClient client = new CommandClientBuilder()
@@ -236,6 +241,7 @@ public class Bot extends ListenerAdapter
                 .setGame(Game.playing("loading..."))
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .addEventListeners(client, waiter, bot)
+                .setSessionController(new BlockingSessionController())
                 .build());
     }
 }

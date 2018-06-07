@@ -30,7 +30,7 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>3.6.0_366</version>
+            <version>3.6.0_373</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

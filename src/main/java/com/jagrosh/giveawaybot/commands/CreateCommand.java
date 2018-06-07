@@ -54,6 +54,11 @@ public class CreateCommand extends Command {
     
     @Override
     protected void execute(CommandEvent event) {
+        if(bot.getDatabase().giveaways.getGiveaways(event.getGuild()).size() >= Constants.MAX_GIVEAWAYS)
+        {
+            event.replyError("There are already "+Constants.MAX_GIVEAWAYS+" running on this server!");
+            return;
+        }
         event.replySuccess("Alright! Let's set up your giveaway! First, what channel do you want the giveaway in?\n"
                 + "You can type `cancel` at any time to cancel creation."+CHANNEL);
         waitForChannel(event);
@@ -183,6 +188,11 @@ public class CreateCommand extends Command {
                         }
                         else
                         {
+                            if(bot.getDatabase().giveaways.getGiveaways(event.getGuild()).size() >= Constants.MAX_GIVEAWAYS)
+                            {
+                                event.replyError("There are already "+Constants.MAX_GIVEAWAYS+" running on this server!");
+                                return;
+                            }
                             Instant now = Instant.now();
                             if(bot.startGiveaway(tchan, now, seconds, winners, prize))
                             {
