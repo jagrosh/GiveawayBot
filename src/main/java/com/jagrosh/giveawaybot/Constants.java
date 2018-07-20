@@ -32,8 +32,8 @@ public class Constants {
     public static final OffsetDateTime STARTUP = OffsetDateTime.now();
     public static final int PRIZE_MAX   = 250;
     public static final String TADA     = "\uD83C\uDF89";
-    public static final String YAY      = "<:yay:294906617378504704>";
-    public static final String REACTION = "yay:294906617378504704";
+    public static final String YAY      = "<:yay:440620097543864320>";
+    public static final String REACTION = "yay:440620097543864320";
     public static final Color  BLURPLE  = Color.decode("#7289DA");
     public static final String INVITE   = "https://giveawaybot.party/invite";
     public static final int MIN_TIME    = 10;

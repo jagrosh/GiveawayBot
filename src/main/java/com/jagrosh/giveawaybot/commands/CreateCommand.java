@@ -37,7 +37,7 @@ public class CreateCommand extends Command {
 
     private final static String CANCEL = "\n\n`Giveaway creation has been cancelled.`";
     private final static String CHANNEL = "\n\n`Please type the name of a channel in this server.`";
-    private final static String TIME = "\n\n`Please enter the duration of the giveaway in seconds.`\n`Alternatively, enter a duration in minutes and include an M at the end.`";
+    private final static String TIME = "\n\n`Please enter the duration of the giveaway in seconds.`\n`Alternatively, enter a duration in minutes and include an M at the end, or days and include a D.`";
     private final static String WINNERS = "\n\n`Please enter a number of winners between 1 and 15.`";
     private final static String PRIZE = "\n\n`Please enter the giveaway prize. This will also begin the giveaway.`";
     private final Bot bot;

@@ -128,7 +128,7 @@ public class Giveaway {
             eb.setAuthor(prize, null, null);
         try {
             List<Long> ids = restJDA.getReactionUsers(Long.toString(channelId), Long.toString(messageId), MiscUtil.encodeUTF8(Constants.TADA))
-                    .cache(true).stream().collect(Collectors.toList());
+                    .cache(true).stream().distinct().collect(Collectors.toList());
             List<Long> wins = selectWinners(ids, winners);
             String toSend;
             if(wins.isEmpty())
@@ -172,32 +172,17 @@ public class Giveaway {
         return winlist;
     }
     
-    public static void getWinners(Message message, Consumer<List<User>> success, Runnable failure, ExecutorService threadpool)
+    public static void getWinner(Message message, Consumer<User> success, Runnable failure, ExecutorService threadpool)
     {
         threadpool.submit(() -> {
             try {
                 MessageReaction mr = message.getReactions().stream().filter(r -> r.getReactionEmote().getName().equals(Constants.TADA)).findAny().orElse(null);
                 List<User> users = new LinkedList<>();
-                mr.getUsers().stream().forEach(u -> users.add(u));
-                users.remove(mr.getJDA().getSelfUser());
+                mr.getUsers().stream().distinct().filter(u -> !u.isBot()).forEach(u -> users.add(u));
                 if(users.isEmpty())
                     failure.run();
                 else
-                {
-                    int wincount;
-                    String[] split = message.getEmbeds().get(0).getFooter().getText().split(" ");
-                    try {
-                        wincount = Integer.parseInt(split[0]);
-                    }catch(NumberFormatException e){
-                        wincount = 1;
-                    }
-                    List<User> wins = new LinkedList<>();
-                    for(int i=0; i<wincount && !users.isEmpty(); i++)
-                    {
-                        wins.add(users.remove((int)(Math.random()*users.size())));
-                    }
-                    success.accept(wins);
-                }
+                    success.accept(users.get((int)(Math.random()*users.size())));
             } catch(Exception e) {
                 failure.run();
             }

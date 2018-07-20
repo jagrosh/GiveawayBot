@@ -68,7 +68,7 @@ public class EndCommand extends Command
                     event.replyWarning("I couldn't find any recent giveaways in this channel.");
                 else
                 {
-                    Giveaway.getWinners(m, wins -> event.replySuccess("The new winner is "+wins.get(0).getAsMention()+"! Congratulations!"), 
+                    Giveaway.getWinner(m, wins -> event.replySuccess("The new winner is "+wins.getAsMention()+"! Congratulations!"), 
                         () -> event.replyWarning("I couldn't determine a winner for that giveaway."), bot.getThreadpool());
                 }
             }, v -> event.replyError("I failed to retrieve message history"));
@@ -79,7 +79,7 @@ public class EndCommand extends Command
             if(giveaway==null)
             {
                 event.getChannel().getMessageById(event.getArgs()).queue(m -> {
-                    Giveaway.getWinners(m, wins -> event.replySuccess("The new winner is "+wins.get(0).getAsMention()+"! Congratulations!"), 
+                    Giveaway.getWinner(m, wins -> event.replySuccess("The new winner is "+wins.getAsMention()+"! Congratulations!"), 
                         () -> event.replyWarning("I couldn't determine a winner for that giveaway."), bot.getThreadpool());
                 }, v -> event.replyError("I failed to retrieve that message."));
             }

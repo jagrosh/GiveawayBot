@@ -45,8 +45,6 @@ import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.core.events.role.update.RoleUpdateColorEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
-import net.dv8tion.jda.core.utils.SessionController;
-import net.dv8tion.jda.core.utils.SessionControllerAdapter;
 import net.dv8tion.jda.webhook.WebhookClient;
 import net.dv8tion.jda.webhook.WebhookClientBuilder;
 import org.slf4j.Logger;
@@ -87,6 +85,11 @@ public class Bot extends ListenerAdapter
     public ScheduledExecutorService getThreadpool()
     {
         return threadpool;
+    }
+    
+    public WebhookClient getWebhook()
+    {
+        return webhook;
     }
     
     public Database getDatabase()
@@ -231,6 +234,8 @@ public class Bot extends ListenerAdapter
                         new EvalCommand(bot),
                         new ShutdownCommand(bot)
                 ).build();
+        
+        bot.getWebhook().send("\uD83C\uDF89 Starting shards `"+(shardSetId*shardSetSize + 1) + " - " + ((shardSetId+1)*shardSetSize) + "` of `"+shardTotal+"`...");
         
         // start logging in
         bot.setShardManager(new DefaultShardManagerBuilder()
