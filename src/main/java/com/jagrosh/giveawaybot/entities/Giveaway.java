@@ -172,7 +172,7 @@ public class Giveaway {
         return winlist;
     }
     
-    public static void getWinner(Message message, Consumer<User> success, Runnable failure, ExecutorService threadpool)
+    public static void getSingleWinner(Message message, Consumer<User> success, Runnable failure, ExecutorService threadpool)
     {
         threadpool.submit(() -> {
             try {

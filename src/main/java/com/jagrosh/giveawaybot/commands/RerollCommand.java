@@ -61,7 +61,7 @@ public class RerollCommand extends Command {
     }
     
     private void determineWinner(Message m, CommandEvent event) {
-        Giveaway.getWinner(m, wins -> event.replySuccess("The new winner is "+wins.getAsMention()+"! Congratulations!"), 
+        Giveaway.getSingleWinner(m, wins -> event.replySuccess("The new winner is "+wins.getAsMention()+"! Congratulations!"), 
                 () -> event.replyWarning("I couldn't determine a winner for that giveaway."), bot.getThreadpool());
     }
 }
