@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -58,27 +59,30 @@ public class Updater {
         // make a 'JDA' rest client
         RestJDA restJDA = new RestJDA(tokens.get(0));
         
-        // make a pool to run the update loop
-        ScheduledExecutorService pool = Executors.newSingleThreadScheduledExecutor();
+        // make a schedule to run the update loop and a pool for ending giveaways
+        ScheduledExecutorService schedule = Executors.newSingleThreadScheduledExecutor();
+        ExecutorService pool = Executors.newCachedThreadPool();
         
         // create an index to track time
         AtomicLong index = new AtomicLong(0);
         
-        pool.scheduleWithFixedDelay(() -> {
+        schedule.scheduleWithFixedDelay(() -> {
             // set vars for this iteration
             long current = index.getAndIncrement();
             Instant now = Instant.now();
             
             // end giveaways with end status
-            database.giveaways.getGiveaways(Status.ENDNOW).forEach(giveaway -> {
+            database.giveaways.getGiveaways(Status.ENDNOW).forEach(giveaway -> 
+            {
                 database.giveaways.deleteGiveaway(giveaway.messageId);
-                giveaway.end(restJDA);
+                pool.submit(() -> giveaway.end(restJDA));
             });
             
             // end giveaways that have run out of time
-            database.giveaways.getGiveawaysEndingBefore(now.plusMillis(1900)).forEach(giveaway -> {
+            database.giveaways.getGiveawaysEndingBefore(now.plusMillis(1900)).forEach(giveaway -> 
+            {
                 database.giveaways.deleteGiveaway(giveaway.messageId);
-                giveaway.end(restJDA);
+                pool.submit(() -> giveaway.end(restJDA));
             });
             
             if(current%300==0)

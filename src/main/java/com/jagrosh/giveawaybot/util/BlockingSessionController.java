@@ -70,7 +70,9 @@ public class BlockingSessionController extends SessionControllerAdapter
                     if (this.delay > 0)
                         Thread.sleep(this.delay);
                     int total = 0;
-                    while(node.getJDA().getStatus() != JDA.Status.CONNECTED && total < MAX_DELAY)
+                    while(node.getJDA().getStatus() != JDA.Status.CONNECTED 
+                            && node.getJDA().getStatus() != JDA.Status.SHUTDOWN 
+                            && total < MAX_DELAY)
                     {
                         total += 100;
                         Thread.sleep(100);

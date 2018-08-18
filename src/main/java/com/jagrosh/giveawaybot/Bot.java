@@ -27,6 +27,7 @@ import com.jagrosh.jdautilities.examples.command.PingCommand;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -45,6 +46,7 @@ import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.core.events.role.update.RoleUpdateColorEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.core.utils.cache.CacheFlag;
 import net.dv8tion.jda.webhook.WebhookClient;
 import net.dv8tion.jda.webhook.WebhookClientBuilder;
 import org.slf4j.Logger;
@@ -247,6 +249,7 @@ public class Bot extends ListenerAdapter
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .addEventListeners(client, waiter, bot)
                 .setSessionController(new BlockingSessionController())
+                .setDisabledCacheFlags(EnumSet.of(CacheFlag.VOICE_STATE, CacheFlag.GAME))
                 .build());
     }
 }

@@ -15,6 +15,8 @@
  */
 package com.jagrosh.giveawaybot.rest;
 
+import java.util.EnumSet;
+import java.util.concurrent.Executors;
 import javax.annotation.CheckReturnValue;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.MessageBuilder;
@@ -28,6 +30,7 @@ import net.dv8tion.jda.core.requests.RestAction;
 import net.dv8tion.jda.core.requests.Route;
 import net.dv8tion.jda.core.requests.restaction.MessageAction;
 import net.dv8tion.jda.core.utils.Checks;
+import net.dv8tion.jda.core.utils.cache.CacheFlag;
 import okhttp3.OkHttpClient;
 
 /**
@@ -40,7 +43,25 @@ public class RestJDA {
     
     public RestJDA(String token)
     {
-        fakeJDA = new JDAImpl(AccountType.BOT, token, null, new OkHttpClient.Builder(), null, false, false, false, false, true, false, 2, 900, null);
+        fakeJDA = new JDAImpl(AccountType.BOT, // AccountType accountType
+                token, // String token
+                null, // SessionController controller
+                new OkHttpClient.Builder().build(), // OkHttpClient httpClient
+                null, // WebSocketFactory wsFactory
+                null, // ScheduledThreadPoolExecutor rateLimitPool
+                null, // ExecutorService callbackPool
+                false, // boolean autoReconnect
+                false, // boolean audioEnabled
+                false, // boolean useShutdownHook
+                false, // boolean bulkDeleteSplittingEnabled
+                true, // boolean retryOnTimeout
+                false, // boolean enableMDC
+                true, // boolean shutdownRateLimitPool
+                true, // boolean shutdownCallbackPool
+                5, // int poolSize
+                900, // int maxReconnectDelay
+                null, // ConcurrentMap<String, String> contextMap
+                EnumSet.allOf(CacheFlag.class)); // EnumSet<CacheFlag> cacheFlags
     }
     
     @CheckReturnValue
