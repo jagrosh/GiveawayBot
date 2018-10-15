@@ -1,5 +1,7 @@
 *.txt
 *.jar
+*.sh
+/live/
 /test/
 /target/
 /src/main/resources/static/
