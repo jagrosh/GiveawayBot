@@ -53,31 +53,55 @@ public class FormatUtil {
         StringBuilder builder = new StringBuilder();
         int years = (int)(timeseconds / (60*60*24*365));
         if(years>0){
-            builder.append("**").append(years).append("** years, ");
+            builder.append("**").append(years).append("** year");
+            if(years > 1) {
+                builder.append("s");
+            }
+            builder.append(", ");
             timeseconds = timeseconds % (60*60*24*365);
         }
         int weeks = (int)(timeseconds / (60*60*24*365));
         if(weeks>0){
-            builder.append("**").append(weeks).append("** weeks, ");
+            builder.append("**").append(weeks).append("** week");
+            if(weeks > 1) {
+                builder.append("s");
+            }
+            builder.append(", ");
             timeseconds = timeseconds % (60*60*24*7);
         }
         int days = (int)(timeseconds / (60*60*24));
         if(days>0){
-            builder.append("**").append(days).append("** days, ");
+            builder.append("**").append(days).append("** day");
+            if(days > 1) {
+                builder.append("s");
+            }
             timeseconds = timeseconds % (60*60*24);
+            builder.append(", ");
         }
         int hours = (int)(timeseconds / (60*60));
         if(hours>0){
-            builder.append("**").append(hours).append("** hours, ");
+            builder.append("**").append(hours).append("** hour");
+            if(hours > 1) {
+                builder.append("s");
+            }
+            builder.append(", ");
             timeseconds = timeseconds % (60*60);
         }
         int minutes = (int)(timeseconds / (60));
         if(minutes>0){
-            builder.append("**").append(minutes).append("** minutes, ");
+            builder.append("**").append(minutes).append("** minute");
+            if(minutes > 1) {
+                builder.append("s");
+            }
+            builder.append(", ");
             timeseconds = timeseconds % (60);
         }
-        if(timeseconds>0)
-            builder.append("**").append(timeseconds).append("** seconds");
+        if(timeseconds>0) {
+            builder.append("**").append(timeseconds).append("** second");
+            if(timeseconds > 1) {
+                builder.append("s");
+            }
+        }
         String str = builder.toString();
         if(str.endsWith(", "))
             str = str.substring(0,str.length()-2);
