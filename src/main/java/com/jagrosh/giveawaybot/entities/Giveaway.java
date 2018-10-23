@@ -76,7 +76,7 @@ public class Giveaway {
             eb.setColor(Constants.BLURPLE);
         else
             eb.setColor(color);
-        eb.setFooter((winners==1 ? "" : winners+" Winners | ")+"Ends at",null);
+        eb.setFooter((winners==1 ? "" : winners+" winners | ")+"Ends at",null);
         eb.setTimestamp(end);
         eb.setDescription("React with "+Constants.TADA+" to enter!\nTime remaining: "+FormatUtil.secondsToTime(now.until(end, ChronoUnit.SECONDS)));
         if(prize!=null)

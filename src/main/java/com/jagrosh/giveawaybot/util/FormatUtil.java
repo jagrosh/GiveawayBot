@@ -28,6 +28,9 @@ import com.jagrosh.jdautilities.command.CommandEvent;
  * @author John Grosh (john.a.grosh@gmail.com)
  */
 public class FormatUtil {
+    public static String pluralise(long x, String singular, String plural) {
+        return x == 1 ? singular : plural;
+    }
     
     public static String formatHelp(CommandEvent event)
     {
@@ -53,54 +56,31 @@ public class FormatUtil {
         StringBuilder builder = new StringBuilder();
         int years = (int)(timeseconds / (60*60*24*365));
         if(years>0){
-            builder.append("**").append(years).append("** year");
-            if(years > 1) {
-                builder.append("s");
-            }
-            builder.append(", ");
+            builder.append("**").append(years).append("** ").append(pluralise(years, "year", "years")).append(", ");
             timeseconds = timeseconds % (60*60*24*365);
         }
         int weeks = (int)(timeseconds / (60*60*24*365));
         if(weeks>0){
-            builder.append("**").append(weeks).append("** week");
-            if(weeks > 1) {
-                builder.append("s");
-            }
-            builder.append(", ");
+            builder.append("**").append(weeks).append("** ").append(pluralise(weeks, "week", "weeks")).append(", ");
             timeseconds = timeseconds % (60*60*24*7);
         }
         int days = (int)(timeseconds / (60*60*24));
         if(days>0){
-            builder.append("**").append(days).append("** day");
-            if(days > 1) {
-                builder.append("s");
-            }
+            builder.append("**").append(days).append("** ").append(pluralise(days, "day", "days")).append(", ");
             timeseconds = timeseconds % (60*60*24);
-            builder.append(", ");
         }
         int hours = (int)(timeseconds / (60*60));
         if(hours>0){
-            builder.append("**").append(hours).append("** hour");
-            if(hours > 1) {
-                builder.append("s");
-            }
-            builder.append(", ");
+            builder.append("**").append(hours).append("** ").append(pluralise(hours, "hour", "hours")).append(", ");
             timeseconds = timeseconds % (60*60);
         }
         int minutes = (int)(timeseconds / (60));
         if(minutes>0){
-            builder.append("**").append(minutes).append("** minute");
-            if(minutes > 1) {
-                builder.append("s");
-            }
-            builder.append(", ");
+            builder.append("**").append(minutes).append("** ").append(pluralise(minutes, "minute", "minutes")).append(", ");
             timeseconds = timeseconds % (60);
         }
         if(timeseconds>0) {
-            builder.append("**").append(timeseconds).append("** second");
-            if(timeseconds > 1) {
-                builder.append("s");
-            }
+            builder.append("**").append(timeseconds).append("** ").append(pluralise(timeseconds, "second", "seconds"));
         }
         String str = builder.toString();
         if(str.endsWith(", "))

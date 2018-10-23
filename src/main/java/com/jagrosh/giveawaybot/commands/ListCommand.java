@@ -54,9 +54,12 @@ public class ListCommand extends Command
             return;
         }
         StringBuilder sb = new StringBuilder().append("__Active Giveaways on **").append(event.getGuild().getName()).append("**__:\n");
-        list.forEach(giv -> sb.append("\n`").append(giv.messageId).append("` | <#").append(giv.channelId).append("> | **").append(giv.winners)
-                .append("** winner(s) | ").append(giv.prize==null||giv.prize.isEmpty() ? "No prize specified" : "Prize: **"+giv.prize+"**").append(" | Ends in ")
-                .append(FormatUtil.secondsToTime(Instant.now().until(giv.end, ChronoUnit.SECONDS))));
+        list.forEach(giv -> sb.append("\n`").append(giv.messageId).append("` | <#")
+            .append(giv.channelId).append("> | **").
+            append(giv.winners).append("** ")
+            .append(FormatUtil.pluralise(giv.winners, "winner", "winners"))
+            .append(" | ").append(giv.prize==null||giv.prize.isEmpty() ? "No prize specified" : "Prize: **"+giv.prize+"**")
+            .append(" | Ends in ").append(FormatUtil.secondsToTime(Instant.now().until(giv.end, ChronoUnit.SECONDS))));
         event.replySuccess(sb.toString());
     }
 }
