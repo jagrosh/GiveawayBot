@@ -43,7 +43,8 @@ import org.slf4j.LoggerFactory;
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class Giveaway {
+public class Giveaway 
+{
     
     public static final Logger LOG = LoggerFactory.getLogger("REST");
     
@@ -53,8 +54,9 @@ public class Giveaway {
     public final Instant end;
     public final int winners;
     public final String prize;
+    public final Status status;
     
-    public Giveaway(long messageId, long channelId, long guildId, Instant end, int winners, String prize)
+    public Giveaway(long messageId, long channelId, long guildId, Instant end, int winners, String prize, Status status)
     {
         this.messageId = messageId;
         this.channelId = channelId;
@@ -62,6 +64,7 @@ public class Giveaway {
         this.end = end;
         this.winners = winners;
         this.prize = prize==null ? null : prize.isEmpty() ? null : prize;
+        this.status = status;
     }
     
     public Message render(Color color, Instant now)
@@ -89,7 +92,8 @@ public class Giveaway {
     
     public void update(RestJDA restJDA, Database connector, Instant now)
     {
-        restJDA.editMessage(channelId, messageId, render(connector.settings.getSettings(guildId).color, now)).queue(m -> {}, t -> {
+        restJDA.editMessage(channelId, messageId, render(connector.settings.getSettings(guildId).color, now)).queue(m -> {}, t -> 
+        {
             if(t instanceof ErrorResponseException)
             {
                 ErrorResponseException e = (ErrorResponseException)t;
@@ -126,7 +130,8 @@ public class Giveaway {
         eb.setTimestamp(end);
         if(prize!=null)
             eb.setAuthor(prize, null, null);
-        try {
+        try 
+        {
             List<Long> ids = restJDA.getReactionUsers(Long.toString(channelId), Long.toString(messageId), MiscUtil.encodeUTF8(Constants.TADA))
                     .cache(true).stream().distinct().collect(Collectors.toList());
             List<Long> wins = selectWinners(ids, winners);
@@ -151,13 +156,15 @@ public class Giveaway {
                 toSend+="! You won"+(prize==null ? "" : " the **"+prize+"**")+"!";
             }
             mb.setEmbed(eb.build());
-            restJDA.editMessage(channelId, messageId, mb.build()).queue();
-            restJDA.sendMessage(channelId, toSend).queue();
-        } catch(Exception e) {
+            restJDA.editMessage(channelId, messageId, mb.build()).queue(m->{}, f->{});
+            restJDA.sendMessage(channelId, toSend).queue(m->{}, f->{});
+        } 
+        catch(Exception e) 
+        {
             eb.setDescription("Could not determine a winner!");
             mb.setEmbed(eb.build());
-            restJDA.editMessage(channelId, messageId, mb.build()).queue();
-            restJDA.sendMessage(channelId, "A winner could not be determined!").queue();
+            restJDA.editMessage(channelId, messageId, mb.build()).queue(m->{}, f->{});
+            restJDA.sendMessage(channelId, "A winner could not be determined!").queue(m->{}, f->{});
         }
     }
     

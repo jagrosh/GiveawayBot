@@ -19,11 +19,13 @@ package com.jagrosh.giveawaybot.entities;
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public enum Status {
-    
+public enum Status 
+{
+    // order matters here, do not re-order these
     INIT,
     RUN,
     SCHEDULED,
     ENDNOW,
-    DELETE
+    DELETE,
+    ENDING
 }

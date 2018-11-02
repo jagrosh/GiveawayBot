@@ -18,6 +18,7 @@ package com.jagrosh.giveawaybot.commands;
 import com.jagrosh.giveawaybot.Bot;
 import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.giveawaybot.entities.Giveaway;
+import com.jagrosh.giveawaybot.entities.Status;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import java.util.List;
@@ -57,7 +58,7 @@ public class EndCommand extends Command
             }
             if(giveaway!=null)
             {
-                if(!bot.getDatabase().giveaways.endGiveaway(giveaway.messageId))
+                if(!bot.getDatabase().giveaways.setStatus(giveaway.messageId, Status.ENDNOW))
                     event.reactError();
                 return;
             }
@@ -83,7 +84,7 @@ public class EndCommand extends Command
                         () -> event.replyWarning("I couldn't determine a winner for that giveaway."), bot.getThreadpool());
                 }, v -> event.replyError("I failed to retrieve that message."));
             }
-            else if(!bot.getDatabase().giveaways.endGiveaway(giveaway.messageId))
+            else if(!bot.getDatabase().giveaways.setStatus(giveaway.messageId, Status.ENDNOW))
                 event.reactError();
         }
         else

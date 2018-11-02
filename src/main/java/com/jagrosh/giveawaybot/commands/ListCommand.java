@@ -54,9 +54,29 @@ public class ListCommand extends Command
             return;
         }
         StringBuilder sb = new StringBuilder().append("__Active Giveaways on **").append(event.getGuild().getName()).append("**__:\n");
-        list.forEach(giv -> sb.append("\n`").append(giv.messageId).append("` | <#").append(giv.channelId).append("> | **").append(giv.winners)
-                .append("** winner(s) | ").append(giv.prize==null||giv.prize.isEmpty() ? "No prize specified" : "Prize: **"+giv.prize+"**").append(" | Ends in ")
-                .append(FormatUtil.secondsToTime(Instant.now().until(giv.end, ChronoUnit.SECONDS))));
+        list.forEach(giv -> 
+        {
+            sb.append("\n`").append(giv.messageId).append("` | <#").append(giv.channelId).append("> | **").append(giv.winners)
+                .append("** winner(s) | ").append(giv.prize==null||giv.prize.isEmpty() ? "No prize specified" : "Prize: **"+giv.prize+"**").append(" | ");
+            switch(giv.status)
+            {
+                case RUN:
+                    sb.append("Ends in ").append(FormatUtil.secondsToTime(Instant.now().until(giv.end, ChronoUnit.SECONDS)));
+                    break;
+                case ENDING:
+                    sb.append("Ending **soon**");
+                    break;
+                case ENDNOW:
+                    sb.append("Ending **now**");
+                    break;
+                case SCHEDULED:
+                    sb.append("Hasn't started");
+                    break;
+                default:
+                    sb.append("Unknown status");
+            }
+            
+        });
         event.replySuccess(sb.toString());
     }
 }

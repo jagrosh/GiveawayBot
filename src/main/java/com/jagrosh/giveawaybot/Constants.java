@@ -39,7 +39,7 @@ public class Constants {
     public static final int MIN_TIME    = 10;
     public static final int MAX_TIME    = 60*60*24*7*2;
     public static final int MAX_WINNERS = 20;
-    public static final int MAX_GIVEAWAYS = 30;
+    public static final int MAX_GIVEAWAYS = 15;
     public static final String TIME_MSG = "Giveaway time must not be shorter than "+FormatUtil.secondsToTime(Constants.MIN_TIME)+" and no longer than "+FormatUtil.secondsToTime(Constants.MAX_TIME);
     public static final String WEBSITE  = "https://giveawaybot.party";
     public static final String OWNER    = "**jagrosh**#4824";
@@ -59,7 +59,8 @@ public class Constants {
                     member.getRoles().stream().anyMatch(r -> r.getName().equalsIgnoreCase("giveaways"));
     }
     
-    public static final Command.Category GIVEAWAY = new Command.Category("Giveaway", event -> {
+    public static final Command.Category GIVEAWAY = new Command.Category("Giveaway", event -> 
+    {
         if(event.getGuild()==null)
         {
             event.replyError("This command cannot be used in Direct Messages!");

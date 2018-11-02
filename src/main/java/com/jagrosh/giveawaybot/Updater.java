@@ -56,54 +56,66 @@ public class Updater {
         // migrate the old giveaways if the file exists
         //migrateGiveaways(database);
         
+        // end any giveaways that didn't get deleted before last restart
+        database.giveaways.getGiveaways(Status.ENDING).forEach(giveaway -> database.giveaways.setStatus(giveaway.messageId, Status.ENDNOW));
+        
         // make a 'JDA' rest client
         RestJDA restJDA = new RestJDA(tokens.get(0));
         
         // make a schedule to run the update loop and a pool for ending giveaways
         ScheduledExecutorService schedule = Executors.newSingleThreadScheduledExecutor();
-        ExecutorService pool = Executors.newCachedThreadPool();
+        ExecutorService pool = Executors.newFixedThreadPool(15);
         
         // create an index to track time
         AtomicLong index = new AtomicLong(0);
         
-        schedule.scheduleWithFixedDelay(() -> {
+        schedule.scheduleWithFixedDelay(() -> 
+        {
             // set vars for this iteration
             long current = index.getAndIncrement();
             Instant now = Instant.now();
             
-            // end giveaways with end status
+            // end giveaways with endnow status
             database.giveaways.getGiveaways(Status.ENDNOW).forEach(giveaway -> 
             {
-                database.giveaways.deleteGiveaway(giveaway.messageId);
-                pool.submit(() -> giveaway.end(restJDA));
+                database.giveaways.setStatus(giveaway.messageId, Status.ENDING);
+                pool.submit(() -> 
+                {
+                    giveaway.end(restJDA);
+                    database.giveaways.deleteGiveaway(giveaway.messageId);
+                });
             });
             
             // end giveaways that have run out of time
             database.giveaways.getGiveawaysEndingBefore(now.plusMillis(1900)).forEach(giveaway -> 
             {
-                database.giveaways.deleteGiveaway(giveaway.messageId);
-                pool.submit(() -> giveaway.end(restJDA));
+                database.giveaways.setStatus(giveaway.messageId, Status.ENDING);
+                pool.submit(() -> 
+                {
+                    giveaway.end(restJDA);
+                    database.giveaways.deleteGiveaway(giveaway.messageId);
+                });
             });
             
             if(current%300==0)
             {
                 // update all giveaways
-                database.giveaways.getGiveaways().forEach(giveaway -> giveaway.update(restJDA, database, now));
+                database.giveaways.getGiveaways(Status.RUN).forEach(giveaway -> giveaway.update(restJDA, database, now));
             }
             else if(current%60==0)
             {
                 // update giveaways within 1 hour of ending
                 database.giveaways.getGiveawaysEndingBefore(now.plusSeconds(60*60)).forEach(giveaway -> giveaway.update(restJDA, database, now));
             }
-            else if(current%5==0)
+            else if(current%10==0)
             {
                 // update giveaways within 3 minutes of ending
                 database.giveaways.getGiveawaysEndingBefore(now.plusSeconds(3*60)).forEach(giveaway -> giveaway.update(restJDA, database, now));
             }
             else
             {
-                // update giveaways within 10 seconds of ending
-                database.giveaways.getGiveawaysEndingBefore(now.plusSeconds(6)).forEach(giveaway -> giveaway.update(restJDA, database, now));
+                // update giveaways within 5 seconds of ending
+                database.giveaways.getGiveawaysEndingBefore(now.plusSeconds(5)).forEach(giveaway -> giveaway.update(restJDA, database, now));
             }
         }, 0, 1, TimeUnit.SECONDS);
     }
