@@ -18,6 +18,7 @@ package com.jagrosh.giveawaybot;
 import com.jagrosh.giveawaybot.commands.*;
 import com.jagrosh.giveawaybot.database.Database;
 import com.jagrosh.giveawaybot.entities.Giveaway;
+import com.jagrosh.giveawaybot.entities.Status;
 import com.jagrosh.giveawaybot.util.BlockingSessionController;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.jdautilities.command.CommandClient;
@@ -28,17 +29,13 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.EnumSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import net.dv8tion.jda.bot.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.bot.sharding.ShardManager;
-import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Game;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.events.ReadyEvent;
@@ -99,7 +96,7 @@ public class Bot extends ListenerAdapter
         return database;
     }
     
-    public List<Guild> getManagedGuildsForUser(long userId)
+    /*public List<Guild> getManagedGuildsForUser(long userId)
     {
         List<Guild> guilds = new LinkedList<>();
         for(JDA shard: shards.getShards())
@@ -112,7 +109,7 @@ public class Bot extends ListenerAdapter
             }
         }
         return guilds;
-    }
+    }//*/
     
     public List<Giveaway> getGiveaways()
     {
@@ -133,7 +130,7 @@ public class Bot extends ListenerAdapter
             return false;
         database.settings.updateColor(channel.getGuild());
         Instant end = now.plusSeconds(seconds);
-        Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), end, winners, prize).render(channel.getGuild().getSelfMember().getColor(), now);
+        Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), end, winners, prize, Status.RUN).render(channel.getGuild().getSelfMember().getColor(), now);
         channel.sendMessage(msg).queue(m -> {
             m.addReaction(Constants.TADA).queue();
             database.giveaways.createGiveaway(m, end, winners, prize);

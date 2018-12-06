@@ -82,7 +82,7 @@ public class GiveawayManager extends DataManager
     
     public List<Giveaway> getGiveawaysEndingBefore(Instant end)
     {
-        return getGiveaways(selectAll(END_TIME.isLessThan(end.getEpochSecond())));
+        return getGiveaways(selectAll(END_TIME.isLessThan(end.getEpochSecond()) + " AND " + STATUS.is(Status.RUN.ordinal())));
     }
     
     private List<Giveaway> getGiveaways(String selection)
@@ -113,7 +113,7 @@ public class GiveawayManager extends DataManager
                 END_TIME.updateValue(results, end);
                 NUM_WINNERS.updateValue(results, winners);
                 PRIZE.updateValue(results, prize);
-                STATUS.updateValue(results, Status.INIT.ordinal());
+                STATUS.updateValue(results, Status.RUN.ordinal());
                 results.updateRow();
                 return true;
             }
@@ -126,7 +126,7 @@ public class GiveawayManager extends DataManager
                 END_TIME.updateValue(results, end);
                 NUM_WINNERS.updateValue(results, winners);
                 PRIZE.updateValue(results, prize);
-                STATUS.updateValue(results, Status.INIT.ordinal());
+                STATUS.updateValue(results, Status.RUN.ordinal());
                 results.insertRow();
                 return true;
             }
@@ -147,13 +147,13 @@ public class GiveawayManager extends DataManager
         }, false);
     }
     
-    public boolean endGiveaway(long messageId)
+    public boolean setStatus(long messageId, Status status)
     {
         return readWrite(selectAll(MESSAGE_ID.is(messageId)), results -> 
         {
             if(results.next())
             {
-                STATUS.updateValue(results, Status.ENDNOW.ordinal());
+                STATUS.updateValue(results, status.ordinal());
                 results.updateRow();
                 return true;
             }
@@ -165,6 +165,6 @@ public class GiveawayManager extends DataManager
     private static Giveaway giveaway(ResultSet results) throws SQLException
     {
         return new Giveaway(MESSAGE_ID.getValue(results), CHANNEL_ID.getValue(results), GUILD_ID.getValue(results), 
-                        END_TIME.getValue(results), NUM_WINNERS.getValue(results), PRIZE.getValue(results));
+                        END_TIME.getValue(results), NUM_WINNERS.getValue(results), PRIZE.getValue(results), Status.values()[STATUS.getValue(results)]);
     }
 }
