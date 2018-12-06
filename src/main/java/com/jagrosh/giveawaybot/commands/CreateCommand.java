@@ -157,7 +157,9 @@ public class CreateCommand extends Command {
                             }
                             else
                             {
-                                event.replySuccess("Ok! "+num+" winners it is! Finally, what do you want to give away?"+PRIZE);
+                                event.replySuccess("Ok! "+num+" "
+                                    + FormatUtil.pluralise(num, "winner", "winners")
+                                    + " it is! Finally, what do you want to give away?"+PRIZE);
                                 waitForPrize(event, tchan, seconds, num);
                             }
                         } catch(NumberFormatException ex) {

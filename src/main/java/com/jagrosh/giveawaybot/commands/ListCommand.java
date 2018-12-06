@@ -57,7 +57,8 @@ public class ListCommand extends Command
         list.forEach(giv -> 
         {
             sb.append("\n`").append(giv.messageId).append("` | <#").append(giv.channelId).append("> | **").append(giv.winners)
-                .append("** winner(s) | ").append(giv.prize==null||giv.prize.isEmpty() ? "No prize specified" : "Prize: **"+giv.prize+"**").append(" | ");
+                .append("** ").append(FormatUtil.pluralise(giv.winners, "winner", "winners")).append(" | ")
+                .append(giv.prize==null||giv.prize.isEmpty() ? "No prize specified" : "Prize: **"+giv.prize+"**").append(" | ");
             switch(giv.status)
             {
                 case RUN:
