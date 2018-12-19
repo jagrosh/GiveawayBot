@@ -17,11 +17,10 @@ package com.jagrosh.giveawaybot.entities;
 
 import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.giveawaybot.database.Database;
+import com.jagrosh.giveawaybot.rest.EditedMessageAction;
 import com.jagrosh.giveawaybot.rest.RestJDA;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import java.awt.Color;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.LinkedList;
@@ -35,6 +34,7 @@ import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageReaction;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.exceptions.ErrorResponseException;
+import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.utils.MiscUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +70,7 @@ public class Giveaway
     public Message render(Color color, Instant now)
     {
         MessageBuilder mb = new MessageBuilder();
-        boolean close = now.plusSeconds(6).isAfter(end);
+        boolean close = now.plusSeconds(9).isAfter(end);
         mb.append(Constants.YAY).append(close ? " **G I V E A W A Y** " : "   **GIVEAWAY**   ").append(Constants.YAY);
         EmbedBuilder eb = new EmbedBuilder();
         if(close)
@@ -90,34 +90,54 @@ public class Giveaway
         return mb.build();
     }
     
-    public void update(RestJDA restJDA, Database connector, Instant now)
+    public void update(RestJDA restJDA, Database database, Instant now)
     {
-        restJDA.editMessage(channelId, messageId, render(connector.settings.getSettings(guildId).color, now)).queue(m -> {}, t -> 
+        update(restJDA, database, now, true);
+    }
+    
+    public void update(RestJDA restJDA, Database database, Instant now, boolean queue)
+    {
+        EditedMessageAction ra = restJDA.editMessage(channelId, messageId, render(database.settings.getSettings(guildId).color, now));
+        if(queue)
+            ra.queue(m -> {}, t -> handleThrowable(t, database));
+        else
         {
-            if(t instanceof ErrorResponseException)
+            try
             {
-                ErrorResponseException e = (ErrorResponseException)t;
-                switch(e.getErrorCode())
-                {
-                    // delete the giveaway, since the bot wont be able to have access again
-                    case 10008: // message not found
-                    case 10003: // channel not found
-                        connector.giveaways.deleteGiveaway(messageId);
-                        break;
-                        
-                    // for now, just keep chugging, maybe we'll get perms back
-                    case 50001: // missing access
-                    case 50013: // missing permissions
-                        break;
-                     
-                    // anything else, print it out
-                    default:
-                        LOG.warn("RestAction returned error: "+e.getErrorCode()+": "+e.getMeaning());
-                }
+                ra.complete(false);
             }
-            else
-                LOG.error("RestAction failure: ["+t+"] "+t.getMessage());
-        });
+            catch(Exception t)
+            {
+                handleThrowable(t, database);
+            }
+        }
+    }
+    
+    private void handleThrowable(Throwable t, Database database)
+    {
+        if(t instanceof ErrorResponseException)
+        {
+            ErrorResponseException e = (ErrorResponseException)t;
+            switch(e.getErrorCode())
+            {
+                // delete the giveaway, since the bot wont be able to have access again
+                case 10008: // message not found
+                case 10003: // channel not found
+                    database.giveaways.deleteGiveaway(messageId);
+                    break;
+
+                // for now, just keep chugging, maybe we'll get perms back
+                case 50001: // missing access
+                case 50013: // missing permissions
+                    break;
+
+                // anything else, print it out
+                default:
+                    LOG.warn("RestAction returned error: "+e.getErrorCode()+": "+e.getMeaning());
+            }
+        }
+        else if(t instanceof RateLimitedException) { /* ignore */ }
+        else LOG.error("RestAction failure: ["+t+"] "+t.getMessage());
     }
     
     public void end(RestJDA restJDA)

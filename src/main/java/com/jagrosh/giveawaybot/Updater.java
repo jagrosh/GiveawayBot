@@ -16,11 +16,13 @@
 package com.jagrosh.giveawaybot;
 
 import com.jagrosh.giveawaybot.database.Database;
+import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.entities.Status;
 import com.jagrosh.giveawaybot.rest.RestJDA;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -63,12 +65,13 @@ public class Updater {
         RestJDA restJDA = new RestJDA(tokens.get(0));
         
         // make a schedule to run the update loop and a pool for ending giveaways
-        ScheduledExecutorService schedule = Executors.newSingleThreadScheduledExecutor();
+        ScheduledExecutorService schedule = Executors.newScheduledThreadPool(2);
         ExecutorService pool = Executors.newFixedThreadPool(15);
         
         // create an index to track time
-        AtomicLong index = new AtomicLong(0);
+        AtomicLong index = new AtomicLong(1);
         
+        // main updating loop
         schedule.scheduleWithFixedDelay(() -> 
         {
             // set vars for this iteration
@@ -97,17 +100,12 @@ public class Updater {
                 });
             });
             
-            if(current%300==0)
-            {
-                // update all giveaways
-                database.giveaways.getGiveaways(Status.RUN).forEach(giveaway -> giveaway.update(restJDA, database, now));
-            }
-            else if(current%60==0)
+            if(current%120==0)
             {
                 // update giveaways within 1 hour of ending
                 database.giveaways.getGiveawaysEndingBefore(now.plusSeconds(60*60)).forEach(giveaway -> giveaway.update(restJDA, database, now));
             }
-            else if(current%10==0)
+            else if(current%15==0)
             {
                 // update giveaways within 3 minutes of ending
                 database.giveaways.getGiveawaysEndingBefore(now.plusSeconds(3*60)).forEach(giveaway -> giveaway.update(restJDA, database, now));
@@ -118,5 +116,18 @@ public class Updater {
                 database.giveaways.getGiveawaysEndingBefore(now.plusSeconds(5)).forEach(giveaway -> giveaway.update(restJDA, database, now));
             }
         }, 0, 1, TimeUnit.SECONDS);
+        
+        // secondary update loop that updates all giveaways
+        schedule.scheduleWithFixedDelay(() -> 
+        {
+            for(Giveaway giveaway: database.giveaways.getGiveaways(Status.RUN))
+            {
+                if(Instant.now().until(giveaway.end, ChronoUnit.MINUTES)>60)
+                {
+                    giveaway.update(restJDA, database, Instant.now(), false);
+                    try{Thread.sleep(100);}catch(Exception ex){} // stop hitting global ratelimits...
+                }
+            }
+        }, 1, 1, TimeUnit.MINUTES);
     }
 }

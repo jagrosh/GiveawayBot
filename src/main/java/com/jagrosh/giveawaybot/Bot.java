@@ -217,7 +217,7 @@ public class Bot extends ListenerAdapter
                         f-> event.replyWarning("Help could not be sent because you are blocking Direct Messages")))
                 .setDiscordBotsKey(tokens.get(1))
                 .setCarbonitexKey(tokens.get(5))
-                .setDiscordBotListKey(tokens.get(6))
+                //.setDiscordBotListKey(tokens.get(6))
                 .addCommands(
                         new AboutCommand(bot),
                         new InviteCommand(),
