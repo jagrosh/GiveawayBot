@@ -19,11 +19,10 @@ import com.jagrosh.giveawaybot.database.Database;
 import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.entities.Status;
 import com.jagrosh.giveawaybot.rest.RestJDA;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -45,15 +44,12 @@ public class Updater {
     {
         LoggerFactory.getLogger("Updater").info("Updater starting.");
         
-        // load tokens from a file
-        // 0 - bot token
-        // 1 - database host
-        // 2 - database username
-        // 3 - database pass
-        List<String> tokens = Files.readAllLines(Paths.get("updater.txt"));
+        Config config = ConfigFactory.load();
         
         // connects to the database
-        Database database = new Database(tokens.get(1), tokens.get(2), tokens.get(3));
+        Database database = new Database(config.getString("database.host"), 
+                                       config.getString("database.username"), 
+                                       config.getString("database.password"));
         
         // migrate the old giveaways if the file exists
         //migrateGiveaways(database);
@@ -62,7 +58,7 @@ public class Updater {
         database.giveaways.getGiveaways(Status.ENDING).forEach(giveaway -> database.giveaways.setStatus(giveaway.messageId, Status.ENDNOW));
         
         // make a 'JDA' rest client
-        RestJDA restJDA = new RestJDA(tokens.get(0));
+        RestJDA restJDA = new RestJDA(config.getString("bot-token"));
         
         // make a schedule to run the update loop and a pool for ending giveaways
         ScheduledExecutorService schedule = Executors.newScheduledThreadPool(2);
