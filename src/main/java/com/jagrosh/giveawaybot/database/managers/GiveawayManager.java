@@ -93,7 +93,7 @@ public class GiveawayManager extends DataManager
             while(results.next())
                 list.add(giveaway(results));
             return list;
-        }, Collections.EMPTY_LIST);
+        }, null);
     }
     
     public boolean createGiveaway(Message message, Instant end, int winners, String prize)

@@ -17,11 +17,13 @@ package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Bot;
 import com.jagrosh.giveawaybot.Constants;
+import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.giveawaybot.util.OtherUtil;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import java.time.Instant;
+import java.util.List;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 
@@ -91,7 +93,13 @@ public class StartCommand extends Command
         }
         try{ event.getMessage().delete().queue(); }catch(PermissionException ex){}
         Instant now = event.getMessage().getCreationTime().toInstant();
-        if(bot.getDatabase().giveaways.getGiveaways(event.getGuild()).size() >= Constants.MAX_GIVEAWAYS)
+        List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getGuild());
+        if(list==null)
+        {
+            event.replyError("An error occurred when trying to start giveaway.");
+            return;
+        }
+        else if(list.size() >= Constants.MAX_GIVEAWAYS)
         {
             event.replyError("There are already "+Constants.MAX_GIVEAWAYS+" giveaways running on this server!");
             return;

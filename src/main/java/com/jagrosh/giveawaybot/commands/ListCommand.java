@@ -48,7 +48,12 @@ public class ListCommand extends Command
     protected void execute(CommandEvent event)
     {
         List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getGuild());
-        if(list.isEmpty())
+        if(list==null)
+        {
+            event.replyError("An error occurred when trying to retrieve the list of giveaways!");
+            return;
+        }
+        else if(list.isEmpty())
         {
             event.replyWarning("There are no giveaways running on the server!");
             return;

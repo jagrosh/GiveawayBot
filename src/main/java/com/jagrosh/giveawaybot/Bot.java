@@ -111,11 +111,6 @@ public class Bot extends ListenerAdapter
         return guilds;
     }//*/
     
-    public List<Giveaway> getGiveaways()
-    {
-        return database.giveaways.getGiveaways();
-    }
-    
     // public methods
     public void shutdown()
     {

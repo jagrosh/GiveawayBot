@@ -17,9 +17,11 @@ package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Bot;
 import com.jagrosh.giveawaybot.Constants;
+import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.JDAUtilitiesInfo;
+import java.util.List;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.JDAInfo;
 import net.dv8tion.jda.core.MessageBuilder;
@@ -54,7 +56,8 @@ public class AboutCommand extends Command {
                 + "[JDA-Utilities]("+JDAUtilitiesInfo.GITHUB+") ("+JDAUtilitiesInfo.VERSION+"). Check out my "
                 + "commands by typing `!ghelp`, and checkout my website at **http://giveawaybot.party**.");
         eb.addField("\uD83D\uDCCA Stats", event.getClient().getTotalGuilds()+" servers\n"+event.getJDA().getShardInfo().getShardTotal()+" shards", true);
-        eb.addField("\uD83C\uDF89 Giveaways", bot.getGiveaways().size()+" right now!", true);
+        List<Giveaway> current = bot.getDatabase().giveaways.getGiveaways();
+        eb.addField("\uD83C\uDF89 Giveaways", current==null ? "?" : current.size()+" right now!", true);
         eb.addField("\uD83C\uDF10 Links", "[Website]("+Constants.WEBSITE+")\n[Invite]("+Constants.INVITE+")\n[Support](https://discord.gg/0p9LSGoRLu6Pet0k)", true);
         eb.setFooter("Last restart", null);
         eb.setTimestamp(Constants.STARTUP);

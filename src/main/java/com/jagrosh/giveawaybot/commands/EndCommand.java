@@ -21,6 +21,7 @@ import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.entities.Status;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import java.util.Collections;
 import java.util.List;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
@@ -50,6 +51,8 @@ public class EndCommand extends Command
         if(event.getArgs().isEmpty()) 
         {
             List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getTextChannel());
+            if(list==null)
+                list = Collections.EMPTY_LIST;
             Giveaway giveaway = null;
             for(Giveaway g: list)
             {
