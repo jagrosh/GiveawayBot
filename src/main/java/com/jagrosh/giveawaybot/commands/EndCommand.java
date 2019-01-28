@@ -51,13 +51,14 @@ public class EndCommand extends Command
         if(event.getArgs().isEmpty()) 
         {
             List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getTextChannel());
-            if(list==null)
-                list = Collections.EMPTY_LIST;
             Giveaway giveaway = null;
-            for(Giveaway g: list)
+            if(list!=null)
             {
-                if(giveaway==null || g.messageId>giveaway.messageId)
-                    giveaway = g;
+                for(Giveaway g: list)
+                {
+                    if(giveaway==null || g.messageId>giveaway.messageId)
+                        giveaway = g;
+                }
             }
             if(giveaway!=null)
             {
