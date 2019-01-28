@@ -136,10 +136,11 @@ public class Bot extends ListenerAdapter
     public boolean deleteGiveaway(long channelId, long messageId)
     {
         TextChannel channel = shards.getTextChannelById(channelId);
-        try {
+        try 
+        {
             channel.deleteMessageById(messageId).queue();
-        } catch(Exception e) {
-        }
+        } 
+        catch(Exception ignore) {}
         return database.giveaways.deleteGiveaway(messageId);
     }
     
@@ -168,7 +169,7 @@ public class Bot extends ListenerAdapter
     @Override
     public void onReady(ReadyEvent event)
     {
-        webhook.send("\uD83C\uDF89 Shard `"+(event.getJDA().getShardInfo().getShardId()+1)+"/"
+        webhook.send(Constants.TADA + " Shard `"+(event.getJDA().getShardInfo().getShardId()+1)+"/"
                 +event.getJDA().getShardInfo().getShardTotal()+"` has connected. Guilds: `"
                 +event.getJDA().getGuilds().size()+"` Users: `"+event.getJDA().getUsers().size()+"`");
     }
@@ -199,7 +200,7 @@ public class Bot extends ListenerAdapter
                 .setAlternativePrefix("g!")
                 .setOwnerId("113156185389092864")
                 .setGame(Game.playing(Constants.TADA+" "+Constants.WEBSITE+" "+Constants.TADA+" Type !ghelp "+Constants.TADA))
-                .setEmojis(Constants.TADA, "\uD83D\uDCA5", "\uD83D\uDCA5")
+                .setEmojis(Constants.TADA, Constants.WARNING, Constants.ERROR)
                 //.setServerInvite("https://discordapp.com/invite/0p9LSGoRLu6Pet0k")
                 .setHelpConsumer(event -> event.replyInDm(FormatUtil.formatHelp(event), 
                         m-> event.getMessage().addReaction(Constants.REACTION).queue(s->{},f->{}), 
@@ -223,7 +224,7 @@ public class Bot extends ListenerAdapter
                         new ShutdownCommand(bot)
                 ).build();
         
-        bot.getWebhook().send("\uD83C\uDF89 Starting shards `"+(shardSetId*shardSetSize + 1) + " - " + ((shardSetId+1)*shardSetSize) + "` of `"+shardTotal+"`...");
+        bot.getWebhook().send(Constants.TADA + " Starting shards `"+(shardSetId*shardSetSize + 1) + " - " + ((shardSetId+1)*shardSetSize) + "` of `"+shardTotal+"`...");
         
         // start logging in
         bot.setShardManager(new DefaultShardManagerBuilder()

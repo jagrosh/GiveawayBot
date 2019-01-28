@@ -31,10 +31,13 @@ import net.dv8tion.jda.core.Permission;
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class AboutCommand extends Command {
-
+public class AboutCommand extends Command 
+{
+    private final static String STATS = "\uD83D\uDCCA"; // 📊
+    private final static String LINKS = "\uD83C\uDF10"; // 🌐
     private final Bot bot;
-    public AboutCommand(Bot bot) {
+    public AboutCommand(Bot bot) 
+    {
         this.bot = bot;
         name = "about";
         aliases = new String[]{"info"};
@@ -55,10 +58,10 @@ public class AboutCommand extends Command {
                 + "(<@113156185389092864>) using the [JDA]("+JDAInfo.GITHUB+") library ("+JDAInfo.VERSION+") and "
                 + "[JDA-Utilities]("+JDAUtilitiesInfo.GITHUB+") ("+JDAUtilitiesInfo.VERSION+"). Check out my "
                 + "commands by typing `!ghelp`, and checkout my website at **http://giveawaybot.party**.");
-        eb.addField("\uD83D\uDCCA Stats", event.getClient().getTotalGuilds()+" servers\n"+event.getJDA().getShardInfo().getShardTotal()+" shards", true);
+        eb.addField(STATS + " Stats", event.getClient().getTotalGuilds()+" servers\n"+event.getJDA().getShardInfo().getShardTotal()+" shards", true);
         List<Giveaway> current = bot.getDatabase().giveaways.getGiveaways();
-        eb.addField("\uD83C\uDF89 Giveaways", current==null ? "?" : current.size()+" right now!", true);
-        eb.addField("\uD83C\uDF10 Links", "[Website]("+Constants.WEBSITE+")\n[Invite]("+Constants.INVITE+")\n[Support](https://discord.gg/0p9LSGoRLu6Pet0k)", true);
+        eb.addField(Constants.TADA + " Giveaways", current==null ? "?" : current.size()+" right now!", true);
+        eb.addField(LINKS + " Links", "[Website]("+Constants.WEBSITE+")\n[Invite]("+Constants.INVITE+")\n[Support](https://discord.gg/0p9LSGoRLu6Pet0k)", true);
         eb.setFooter("Last restart", null);
         eb.setTimestamp(Constants.STARTUP);
         eb.setColor(Constants.BLURPLE);

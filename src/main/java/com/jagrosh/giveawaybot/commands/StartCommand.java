@@ -91,7 +91,11 @@ public class StartCommand extends Command
             event.replyWarning("Number of winners must be at least 1 and no larger than "+Constants.MAX_WINNERS+EXAMPLE);
             return;
         }
-        try{ event.getMessage().delete().queue(); }catch(PermissionException ex){}
+        try
+        { 
+            event.getMessage().delete().queue(); 
+        }
+        catch(PermissionException ignore) {}
         Instant now = event.getMessage().getCreationTime().toInstant();
         List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getGuild());
         if(list==null)

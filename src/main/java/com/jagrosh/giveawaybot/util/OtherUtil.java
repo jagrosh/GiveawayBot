@@ -50,6 +50,7 @@ public class OtherUtil
             case 'm':
                 multiplier *= 60;
             case 's':
+            default:
                 timestr = timestr.substring(0, timestr.length()-1);
         }
         return multiplier * Integer.parseInt(timestr);

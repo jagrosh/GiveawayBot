@@ -31,7 +31,9 @@ public class Constants {
     
     public static final OffsetDateTime STARTUP = OffsetDateTime.now();
     public static final int PRIZE_MAX   = 250;
-    public static final String TADA     = "\uD83C\uDF89";
+    public static final String TADA     = "\uD83C\uDF89"; // 🎉
+    public static final String WARNING  = "\uD83D\uDCA5"; // 💥
+    public static final String ERROR    = "\uD83D\uDCA5"; // 💥
     public static final String YAY      = "<:yay:440620097543864320>";
     public static final String REACTION = "yay:440620097543864320";
     public static final Color  BLURPLE  = Color.decode("#7289DA");
