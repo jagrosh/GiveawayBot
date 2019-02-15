@@ -59,7 +59,7 @@ public class FormatUtil {
             builder.append("**").append(years).append("** ").append(pluralise(years, "year", "years")).append(", ");
             timeseconds = timeseconds % (60*60*24*365);
         }
-        int weeks = (int)(timeseconds / (60*60*24*365));
+        int weeks = (int)(timeseconds / (60*60*24*7));
         if(weeks>0){
             builder.append("**").append(weeks).append("** ").append(pluralise(weeks, "week", "weeks")).append(", ");
             timeseconds = timeseconds % (60*60*24*7);
