@@ -59,7 +59,7 @@ public class CreateCommand extends Command {
         List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getGuild());
         if(list==null)
         {
-            event.replyError("An error occurred while trying to being giveaway creation.");
+            event.replyError("An error occurred while trying to create the giveaway.");
             return;
         }
         else if(list.size() >= Constants.MAX_GIVEAWAYS)
