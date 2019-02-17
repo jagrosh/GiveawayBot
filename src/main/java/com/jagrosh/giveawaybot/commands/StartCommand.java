@@ -100,7 +100,7 @@ public class StartCommand extends Command
         List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getGuild());
         if(list==null)
         {
-            event.replyError("An error occurred when trying to start giveaway.");
+            event.replyError("An error occurred when trying to start the giveaway.");
             return;
         }
         else if(list.size() >= Constants.MAX_GIVEAWAYS)

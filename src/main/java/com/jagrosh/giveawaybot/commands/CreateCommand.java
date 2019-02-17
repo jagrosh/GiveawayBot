@@ -54,17 +54,17 @@ public class CreateCommand extends Command {
     }
     
     @Override
-    protected void execute(CommandEvent event) 
+    protected void execute(CommandEvent event)
     {
         List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getGuild());
         if(list==null)
         {
-            event.replyError("An error occurred when trying to being giveaway creation.");
+            event.replyError("An error occurred when trying to create the giveaway.");
             return;
         }
         else if(list.size() >= Constants.MAX_GIVEAWAYS)
         {
-            event.replyError("There are already "+Constants.MAX_GIVEAWAYS+" running on this server!");
+            event.replyError("There are already "+Constants.MAX_GIVEAWAYS+" giveaways running on this server!");
             return;
         }
         event.replySuccess("Alright! Let's set up your giveaway! First, what channel do you want the giveaway in?\n"
@@ -198,17 +198,6 @@ public class CreateCommand extends Command {
                         }
                         else
                         {
-                            List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getGuild());
-                            if(list==null)
-                            {
-                                event.replyError("An error occurred when trying to create giveaway.");
-                                return;
-                            }
-                            else if(list.size() >= Constants.MAX_GIVEAWAYS)
-                            {
-                                event.replyError("There are already "+Constants.MAX_GIVEAWAYS+" running on this server!");
-                                return;
-                            }
                             Instant now = Instant.now();
                             if(bot.startGiveaway(tchan, now, seconds, winners, prize))
                             {
