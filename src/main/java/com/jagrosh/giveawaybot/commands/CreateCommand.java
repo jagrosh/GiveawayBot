@@ -198,6 +198,17 @@ public class CreateCommand extends Command {
                         }
                         else
                         {
+                            List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getGuild());
+                            if(list==null)
+                            {
+                                event.replyError("An error occurred when trying to create the giveaway.");
+                                return;
+                            }
+                            else if(list.size() >= Constants.MAX_GIVEAWAYS)
+                            {
+                                event.replyError("There are already "+Constants.MAX_GIVEAWAYS+" giveaways running on this server!");
+                                return;
+                            }
                             Instant now = Instant.now();
                             if(bot.startGiveaway(tchan, now, seconds, winners, prize))
                             {
