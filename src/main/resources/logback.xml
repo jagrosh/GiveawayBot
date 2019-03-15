@@ -14,20 +14,25 @@
  * limitations under the License.
  -->
  
-<!-- author: Kaidan Gustave -->
 <configuration>
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <fileNamePattern>logs/log-${logname}.%d{yyyy-MM-dd}.txt</fileNamePattern>
 
-    <appender name="Simple" class="ch.qos.logback.core.ConsoleAppender">
+            <!-- keep 30 days' worth of history capped at 1GB total size -->
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
         <encoder>
-            <!-- Pattern -->
-            <pattern>
+            <!-- author: Kaidan Gustave  -->
+            <pattern> 
                 %nopex[%d{HH:mm:ss}] [%level] [%logger{0}]: %msg%n%ex
             </pattern>
         </encoder>
     </appender>
-
+    
     <root level="INFO">
-        <appender-ref ref="Simple"/>
+        <appender-ref ref="FILE"/>
     </root>
-
 </configuration>

@@ -59,7 +59,7 @@ public class Bot extends ListenerAdapter
     private final ScheduledExecutorService threadpool; // threadpool to use for timings
     private final Database database; // database
     private final WebhookClient webhook;
-    private final static Logger LOG = LoggerFactory.getLogger("Bot");
+    private final Logger LOG = LoggerFactory.getLogger("Bot");
     
     private Bot(Database database, String webhookUrl)
     {
@@ -235,7 +235,7 @@ public class Bot extends ListenerAdapter
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .addEventListeners(client, waiter, bot)
                 .setSessionController(new BlockingSessionController())
-                .setDisabledCacheFlags(EnumSet.of(CacheFlag.VOICE_STATE, CacheFlag.GAME))
+                .setDisabledCacheFlags(EnumSet.of(CacheFlag.VOICE_STATE, CacheFlag.GAME, CacheFlag.EMOTE))
                 .build());
     }
 }

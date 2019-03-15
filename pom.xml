@@ -18,6 +18,11 @@
             <name>bintray</name>
             <url>http://jcenter.bintray.com</url>
         </repository>
+        <repository>
+            <id>bintray-jagrosh-maven</id>
+            <name>bintray</name>
+            <url>https://dl.bintray.com/jagrosh/maven</url>
+        </repository>
     </repositories>
     
     <dependencies>
@@ -30,7 +35,7 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>3.8.1_457</version>
+            <version>3.8.3_460</version>
             <exclusions>
                 <exclusion>
                     <groupId>club.minnced</groupId>
@@ -52,7 +57,7 @@
         <dependency>
             <groupId>com.jagrosh</groupId>
             <artifactId>EasySQL</artifactId>
-            <version>0.2</version>
+            <version>0.3</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
