@@ -30,7 +30,7 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>3.8.1_457</version>
+            <version>3.8.3_462</version>
             <exclusions>
                 <exclusion>
                     <groupId>club.minnced</groupId>
