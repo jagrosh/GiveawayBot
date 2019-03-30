@@ -49,7 +49,7 @@ public class GiveawayBot {
                     Updater.main();
                     break;
                 case "bot":
-                    Bot.main(Integer.parseInt(args[1]), Integer.parseInt(args[2]), args.length>3 ? Integer.parseInt(args[3]) : 16);
+                    Bot.main(Integer.parseInt(args[1]), Integer.parseInt(args[2]), args.length>3 ? Integer.parseInt(args[3]) : 32);
                     break;
                 case "website":
                     Website.main(new String[0]);

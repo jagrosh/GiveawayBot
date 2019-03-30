@@ -145,7 +145,7 @@ public class Giveaway
         MessageBuilder mb = new MessageBuilder();
         mb.append(Constants.YAY).append(" **GIVEAWAY ENDED** ").append(Constants.YAY);
         EmbedBuilder eb = new EmbedBuilder();
-        eb.setColor(new Color(1));
+        eb.setColor(new Color(0x36393F));
         eb.setFooter((winners==1 ? "" : winners+" Winners | ")+"Ended at",null);
         eb.setTimestamp(end);
         if(prize!=null)
