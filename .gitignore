@@ -1,6 +1,8 @@
 *.txt
 *.jar
 *.sh
+/.idea/
+/.gradle/
 /live/
 /test/
 /target/
