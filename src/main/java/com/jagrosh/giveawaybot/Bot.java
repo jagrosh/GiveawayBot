@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.util.EnumSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import net.dv8tion.jda.bot.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.bot.sharding.ShardManager;
 import net.dv8tion.jda.core.OnlineStatus;
@@ -66,6 +67,12 @@ public class Bot extends ListenerAdapter
         this.database = database;
         threadpool = Executors.newScheduledThreadPool(20);
         webhook = new WebhookClientBuilder(webhookUrl).build();
+        
+        threadpool.scheduleWithFixedDelay(()->
+        {
+            if(!database.databaseCheck())
+                webhook.send("\uD83D\uDE31 `"+System.getProperty("logname")+"` has failed a database check!"); // 😱
+        }, 5, 5, TimeUnit.MINUTES);
     }
     
     // protected methods

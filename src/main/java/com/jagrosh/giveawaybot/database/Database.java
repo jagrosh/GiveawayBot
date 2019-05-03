@@ -37,4 +37,9 @@ public class Database extends DatabaseConnector
         
         init();
     }
+    
+    public boolean databaseCheck()
+    {
+        return !this.giveaways.getGiveaways().isEmpty();
+    }
 }

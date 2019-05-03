@@ -25,6 +25,8 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+import net.dv8tion.jda.webhook.WebhookClient;
+import net.dv8tion.jda.webhook.WebhookClientBuilder;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -47,6 +49,10 @@ public class Updater
         Database database = new Database(config.getString("database.host"), 
                                        config.getString("database.username"), 
                                        config.getString("database.password"));
+        
+        WebhookClient webhook = new WebhookClientBuilder(config.getString("webhook")).build();
+        
+        webhook.send(Constants.TADA + " Starting updater...");
         
         // migrate the old giveaways if the file exists
         //migrateGiveaways(database);
@@ -122,5 +128,11 @@ public class Updater
                 }
             }
         }, 1, 1, TimeUnit.MINUTES);
+        
+        schedule.scheduleWithFixedDelay(()->
+        {
+            if(!database.databaseCheck())
+                webhook.send("\uD83D\uDE31 `Updater` has failed a database check!"); // 😱
+        }, 5, 5, TimeUnit.MINUTES);
     }
 }
