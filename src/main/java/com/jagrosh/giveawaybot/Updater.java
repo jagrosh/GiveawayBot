@@ -124,7 +124,7 @@ public class Updater
                 if(Instant.now().until(giveaway.end, ChronoUnit.MINUTES)>60)
                 {
                     giveaway.update(restJDA, database, Instant.now(), false);
-                    try{Thread.sleep(100);}catch(Exception ignore){} // stop hitting global ratelimits...
+                    try{Thread.sleep(120);}catch(Exception ignore){} // stop hitting global ratelimits...
                 }
             }
         }, 1, 1, TimeUnit.MINUTES);
