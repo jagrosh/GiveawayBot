@@ -68,10 +68,22 @@ public class Bot extends ListenerAdapter
         threadpool = Executors.newScheduledThreadPool(20);
         webhook = new WebhookClientBuilder(webhookUrl).build();
         
+        int[] dbfailures = {0};
         threadpool.scheduleWithFixedDelay(()->
         {
             if(!database.databaseCheck())
-                webhook.send("\uD83D\uDE31 `"+System.getProperty("logname")+"` has failed a database check!"); // 😱
+            {
+                dbfailures[0]++;
+                if(dbfailures[0] < 3)
+                    webhook.send("\uD83D\uDE31 `"+System.getProperty("logname")+"` has failed a database check ("+dbfailures[0]+")!"); // 😱
+                else
+                {
+                    webhook.send("\uD83D\uDE31 `"+System.getProperty("logname")+"` has failed a database check ("+dbfailures[0]+")! Restarting..."); // 😱
+                    System.exit(0);
+                }
+            }
+            else
+                dbfailures[0] = 0;
         }, 5, 5, TimeUnit.MINUTES);
     }
     

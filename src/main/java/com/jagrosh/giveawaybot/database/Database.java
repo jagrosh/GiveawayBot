@@ -40,6 +40,6 @@ public class Database extends DatabaseConnector
     
     public boolean databaseCheck()
     {
-        return !this.giveaways.getGiveaways().isEmpty();
+        return this.giveaways.getGiveaways() != null;
     }
 }

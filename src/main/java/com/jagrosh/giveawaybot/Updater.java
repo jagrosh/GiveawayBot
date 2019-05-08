@@ -129,10 +129,22 @@ public class Updater
             }
         }, 1, 1, TimeUnit.MINUTES);
         
+        int[] dbfailures = {0};
         schedule.scheduleWithFixedDelay(()->
         {
             if(!database.databaseCheck())
-                webhook.send("\uD83D\uDE31 `Updater` has failed a database check!"); // 😱
+            {
+                dbfailures[0]++;
+                if(dbfailures[0] < 3)
+                    webhook.send("\uD83D\uDE31 `Updater` has failed a database check ("+dbfailures[0]+")!"); // 😱
+                else
+                {
+                    webhook.send("\uD83D\uDE31 `Updater` has failed a database check ("+dbfailures[0]+")! Restarting..."); // 😱
+                    System.exit(0);
+                }
+            }
+            else
+                dbfailures[0] = 0;
         }, 5, 5, TimeUnit.MINUTES);
     }
 }
