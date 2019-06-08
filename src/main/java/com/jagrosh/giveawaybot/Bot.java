@@ -36,6 +36,7 @@ import net.dv8tion.jda.bot.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.bot.sharding.ShardManager;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Game;
+import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.events.ReadyEvent;
@@ -55,12 +56,12 @@ import org.slf4j.LoggerFactory;
  */
 public class Bot extends ListenerAdapter
 {
-    
     private ShardManager shards; // list of all logins the bot has
     private final ScheduledExecutorService threadpool; // threadpool to use for timings
     private final Database database; // database
     private final WebhookClient webhook;
     private final Logger LOG = LoggerFactory.getLogger("Bot");
+    private final int[] dbfailures = {0};
     
     private Bot(Database database, String webhookUrl)
     {
@@ -68,24 +69,38 @@ public class Bot extends ListenerAdapter
         threadpool = Executors.newScheduledThreadPool(20);
         webhook = new WebhookClientBuilder(webhookUrl).build();
         
-        int[] dbfailures = {0};
-        threadpool.scheduleWithFixedDelay(()->
-        {
-            if(!database.databaseCheck())
-            {
-                dbfailures[0]++;
-                if(dbfailures[0] < 3)
-                    webhook.send("\uD83D\uDE31 `"+System.getProperty("logname")+"` has failed a database check ("+dbfailures[0]+")!"); // 😱
-                else
-                {
-                    webhook.send("\uD83D\uDE31 `"+System.getProperty("logname")+"` has failed a database check ("+dbfailures[0]+")! Restarting..."); // 😱
-                    System.exit(0);
-                }
-            }
-            else
-                dbfailures[0] = 0;
-        }, 5, 5, TimeUnit.MINUTES);
+        threadpool.scheduleWithFixedDelay(()-> databaseCheck(), 5, 5, TimeUnit.MINUTES);
+        threadpool.scheduleWithFixedDelay(()-> premiumUpdate(), 5, 5, TimeUnit.MINUTES);
     }
+    
+    // scheduled processes
+    private void databaseCheck()
+    {
+        if(!database.databaseCheck())
+        {
+            dbfailures[0]++;
+            if(dbfailures[0] < 3)
+                webhook.send("\uD83D\uDE31 `"+System.getProperty("logname")+"` has failed a database check ("+dbfailures[0]+")!"); // 😱
+            else
+            {
+                webhook.send("\uD83D\uDE31 `"+System.getProperty("logname")+"` has failed a database check ("+dbfailures[0]+")! Restarting..."); // 😱
+                System.exit(0);
+            }
+        }
+        else
+            dbfailures[0] = 0;
+    }
+    
+    private void premiumUpdate()
+    {
+        if(shards == null)
+            return;
+        Guild g = shards.getGuildById(Constants.SERVER_ID);
+        if(g==null || !g.isAvailable())
+            return;
+        
+    }
+    
     
     // protected methods
     protected void setShardManager(ShardManager shards)
@@ -113,21 +128,6 @@ public class Bot extends ListenerAdapter
     {
         return database;
     }
-    
-    /*public List<Guild> getManagedGuildsForUser(long userId)
-    {
-        List<Guild> guilds = new LinkedList<>();
-        for(JDA shard: shards.getShards())
-        {
-            for(Guild g: shard.getGuilds())
-            {
-                Member m = g.getMemberById(userId);
-                if(m!=null && Constants.canGiveaway(m))
-                    guilds.add(g);
-            }
-        }
-        return guilds;
-    }//*/
     
     // public methods
     public void shutdown()

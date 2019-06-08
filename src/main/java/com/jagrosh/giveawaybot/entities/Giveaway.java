@@ -20,19 +20,15 @@ import com.jagrosh.giveawaybot.database.Database;
 import com.jagrosh.giveawaybot.rest.EditedMessageAction;
 import com.jagrosh.giveawaybot.rest.RestJDA;
 import com.jagrosh.giveawaybot.util.FormatUtil;
+import com.jagrosh.giveawaybot.util.GiveawayUtil;
 import java.awt.Color;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageReaction;
-import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.exceptions.ErrorResponseException;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.utils.MiscUtil;
@@ -154,7 +150,7 @@ public class Giveaway
         {
             List<Long> ids = restJDA.getReactionUsers(Long.toString(channelId), Long.toString(messageId), MiscUtil.encodeUTF8(Constants.TADA))
                     .cache(true).stream().distinct().collect(Collectors.toList());
-            List<Long> wins = selectWinners(ids, winners);
+            List<Long> wins = GiveawayUtil.selectWinners(ids, winners);
             String toSend;
             if(wins.isEmpty())
             {
@@ -186,33 +182,5 @@ public class Giveaway
             restJDA.editMessage(channelId, messageId, mb.build()).queue(m->{}, f->{});
             restJDA.sendMessage(channelId, "A winner could not be determined!").queue(m->{}, f->{});
         }
-    }
-    
-    public static <T> List<T> selectWinners(List<T> list, int winners)
-    {
-        List<T> winlist = new LinkedList<>();
-        List<T> pullist = new LinkedList<>(list);
-        for(int i=0; i<winners && !pullist.isEmpty(); i++)
-        {
-            winlist.add(pullist.remove((int)(Math.random()*pullist.size())));
-        }
-        return winlist;
-    }
-    
-    public static void getSingleWinner(Message message, Consumer<User> success, Runnable failure, ExecutorService threadpool)
-    {
-        threadpool.submit(() -> {
-            try {
-                MessageReaction mr = message.getReactions().stream().filter(r -> r.getReactionEmote().getName().equals(Constants.TADA)).findAny().orElse(null);
-                List<User> users = new LinkedList<>();
-                mr.getUsers().stream().distinct().filter(u -> !u.isBot()).forEach(u -> users.add(u));
-                if(users.isEmpty())
-                    failure.run();
-                else
-                    success.accept(users.get((int)(Math.random()*users.size())));
-            } catch(Exception e) {
-                failure.run();
-            }
-        });
     }
 }

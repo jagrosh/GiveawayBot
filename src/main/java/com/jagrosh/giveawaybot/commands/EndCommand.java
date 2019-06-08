@@ -19,9 +19,8 @@ import com.jagrosh.giveawaybot.Bot;
 import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.entities.Status;
-import com.jagrosh.jdautilities.command.Command;
+import com.jagrosh.giveawaybot.util.GiveawayUtil;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import java.util.Collections;
 import java.util.List;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
@@ -30,18 +29,14 @@ import net.dv8tion.jda.core.entities.Message;
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class EndCommand extends Command 
+public class EndCommand extends GiveawayCommand 
 {
-    private final Bot bot;
-    
     public EndCommand(Bot bot) 
     {
-        this.bot = bot;
+        super(bot);
         name = "end";
         help = "ends (picks a winner for) the specified or latest giveaway in the current channel";
         arguments = "[messageId]";
-        category = Constants.GIVEAWAY;
-        guildOnly = true;
         botPermissions = new Permission[]{Permission.MESSAGE_HISTORY};
     }
 
@@ -73,7 +68,7 @@ public class EndCommand extends Command
                     event.replyWarning("I couldn't find any recent giveaways in this channel.");
                 else
                 {
-                    Giveaway.getSingleWinner(m, wins -> event.replySuccess("The new winner is "+wins.getAsMention()+"! Congratulations!"), 
+                    GiveawayUtil.getSingleWinner(m, wins -> event.replySuccess("The new winner is "+wins.getAsMention()+"! Congratulations!"), 
                         () -> event.replyWarning("I couldn't determine a winner for that giveaway."), bot.getThreadpool());
                 }
             }, v -> event.replyError("I failed to retrieve message history"));
@@ -84,7 +79,7 @@ public class EndCommand extends Command
             if(giveaway==null)
             {
                 event.getChannel().getMessageById(event.getArgs()).queue(m -> {
-                    Giveaway.getSingleWinner(m, wins -> event.replySuccess("The new winner is "+wins.getAsMention()+"! Congratulations!"), 
+                    GiveawayUtil.getSingleWinner(m, wins -> event.replySuccess("The new winner is "+wins.getAsMention()+"! Congratulations!"), 
                         () -> event.replyWarning("I couldn't determine a winner for that giveaway."), bot.getThreadpool());
                 }, v -> event.replyError("I failed to retrieve that message."));
             }

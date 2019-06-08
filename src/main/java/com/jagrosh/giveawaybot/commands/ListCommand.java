@@ -16,10 +16,8 @@
 package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Bot;
-import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.util.FormatUtil;
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -30,17 +28,13 @@ import net.dv8tion.jda.core.Permission;
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class ListCommand extends Command
+public class ListCommand extends GiveawayCommand
 {
-    private final Bot bot;
-    
     public ListCommand(Bot bot) 
     {
-        this.bot = bot;
+        super(bot);
         name = "list";
         help = "lists active giveaways on the server";
-        category = Constants.GIVEAWAY;
-        guildOnly = true;
         botPermissions = new Permission[]{Permission.MESSAGE_HISTORY};
     }
 

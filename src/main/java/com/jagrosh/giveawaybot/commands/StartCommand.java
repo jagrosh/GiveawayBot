@@ -17,10 +17,11 @@ package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Bot;
 import com.jagrosh.giveawaybot.Constants;
+import com.jagrosh.giveawaybot.database.managers.GuildSettingsManager.GuildSettings;
 import com.jagrosh.giveawaybot.entities.Giveaway;
+import com.jagrosh.giveawaybot.entities.PremiumLevel;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.giveawaybot.util.OtherUtil;
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import java.time.Instant;
 import java.util.List;
@@ -31,33 +32,37 @@ import net.dv8tion.jda.core.exceptions.PermissionException;
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class StartCommand extends Command
+public class StartCommand extends GiveawayCommand
 {
     private final static String EXAMPLE = "\nExample usage: `!gstart 30m 5w Awesome T-Shirt`";
-    private final Bot bot;
+    
     public StartCommand(Bot bot)
     {
-        this.bot = bot;
+        super(bot);
         name = "start";
         help = "starts a giveaway (quick setup)";
         arguments = "<time> [winners]w [prize]";
-        category = Constants.GIVEAWAY;
-        guildOnly = true;
         botPermissions = new Permission[]{Permission.MESSAGE_HISTORY,Permission.MESSAGE_ADD_REACTION,Permission.MESSAGE_EMBED_LINKS};
     }
     
     @Override
-    protected void execute(CommandEvent event) {
+    protected void execute(CommandEvent event) 
+    {
+        // check permissions
         if(!Constants.canSendGiveaway(event.getTextChannel()))
         {
             event.replyError("I cannot start a giveaway here; please make sure I have the following permissions:\n\n"+Constants.PERMS);
             return;
         }
+        
+        // check for arguments
         if(event.getArgs().isEmpty())
         {
             event.replyError("Please include a length of time, and optionally a number of winners and a prize!"+EXAMPLE);
             return;
         }
+        
+        // parse and check length of time
         String[] parts = event.getArgs().split("\\s+", 2);
         int seconds = OtherUtil.parseShortTime(parts[0]);
         if(seconds==-1)
@@ -65,11 +70,15 @@ public class StartCommand extends Command
             event.replyWarning("Failed to parse time from `"+parts[0]+"`"+EXAMPLE);
             return;
         }
-        if(!OtherUtil.validTime(seconds))
+        PremiumLevel level = bot.getDatabase().premium.getPremiumLevel(event.getGuild());
+        if(!level.isValidTime(seconds))
         {
-            event.replyWarning(Constants.TIME_MSG);
+            event.replyError("Giveaway time must not be shorter than " + FormatUtil.secondsToTime(Constants.MIN_TIME) 
+                    + " and no longer than " + FormatUtil.secondsToTime(level.maxTime));
             return;
         }
+        
+        // parse and check number of winners
         int winners = 1;
         String item = null;
         if(parts.length>1)
@@ -86,28 +95,37 @@ public class StartCommand extends Command
                 item = parts2.length>1 ? parts2[1] : null;
             }
         }
-        if(!OtherUtil.validWinners(winners))
+        if(!level.isValidWinners(winners))
         {
-            event.replyWarning("Number of winners must be at least 1 and no larger than "+Constants.MAX_WINNERS+EXAMPLE);
+            event.replyError("Number of winners must be at least 1 and no larger than " + level.maxWinners);
             return;
         }
+        
+        // check for too many giveaways runnning
+        List<Giveaway> list = level.perChannelMaxGiveaways 
+                ? bot.getDatabase().giveaways.getGiveaways(event.getTextChannel()) 
+                : bot.getDatabase().giveaways.getGiveaways(event.getGuild());
+        if(list == null)
+        {
+            event.replyError("An error occurred when trying to start giveaway.");
+            return;
+        }
+        else if(list.size() >= level.maxGiveaways)
+        {
+            event.replyError("There are already " + level.maxGiveaways + " giveaways running in this " 
+                    + (level.perChannelMaxGiveaways ? "channel" : "server") + "!");
+            return;
+        }
+        
+        // try to delete the command if possible
         try
         { 
             event.getMessage().delete().queue(); 
         }
         catch(PermissionException ignore) {}
+        
+        // start the giveaway
         Instant now = event.getMessage().getCreationTime().toInstant();
-        List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getGuild());
-        if(list==null)
-        {
-            event.replyError("An error occurred when trying to start giveaway.");
-            return;
-        }
-        else if(list.size() >= Constants.MAX_GIVEAWAYS)
-        {
-            event.replyError("There are already "+Constants.MAX_GIVEAWAYS+" giveaways running on this server!");
-            return;
-        }
         bot.startGiveaway(event.getTextChannel(), now, seconds, winners, item);
     }
     

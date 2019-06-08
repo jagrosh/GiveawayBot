@@ -15,26 +15,12 @@
  */
 package com.jagrosh.giveawaybot.util;
 
-import com.jagrosh.giveawaybot.Constants;
-import static com.jagrosh.giveawaybot.Constants.MAX_TIME;
-import static com.jagrosh.giveawaybot.Constants.MIN_TIME;
-
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
 public class OtherUtil
 {
-    public static final boolean validTime(int seconds)
-    {
-        return seconds>=MIN_TIME && seconds<=MAX_TIME;
-    }
-    
-    public static final boolean validWinners(int winners)
-    {
-        return winners>=1 && winners<=Constants.MAX_WINNERS;
-    }
-    
     public static int parseShortTime(String timestr)
     {
         timestr = timestr.toLowerCase();

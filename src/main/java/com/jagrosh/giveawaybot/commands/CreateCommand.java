@@ -18,9 +18,9 @@ package com.jagrosh.giveawaybot.commands;
 import com.jagrosh.giveawaybot.Bot;
 import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.giveawaybot.entities.Giveaway;
+import com.jagrosh.giveawaybot.entities.PremiumLevel;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.giveawaybot.util.OtherUtil;
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
@@ -34,42 +34,57 @@ import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class CreateCommand extends Command {
-
+public class CreateCommand extends GiveawayCommand 
+{
     private final static String CANCEL = "\n\n`Giveaway creation has been cancelled.`";
     private final static String CHANNEL = "\n\n`Please type the name of a channel in this server.`";
     private final static String TIME = "\n\n`Please enter the duration of the giveaway in seconds.`\n`Alternatively, enter a duration in minutes and include an M at the end, or days and include a D.`";
     private final static String WINNERS = "\n\n`Please enter a number of winners between 1 and 15.`";
     private final static String PRIZE = "\n\n`Please enter the giveaway prize. This will also begin the giveaway.`";
-    private final Bot bot;
+    
     private final EventWaiter waiter;
-    public CreateCommand(Bot bot, EventWaiter waiter) {
-        this.bot = bot;
+    
+    public CreateCommand(Bot bot, EventWaiter waiter) 
+    {
+        super(bot);
         this.waiter = waiter;
         name = "create";
         help = "creates a giveaway (interactive setup)";
-        category = Constants.GIVEAWAY;
-        guildOnly = true;
-        //botPermissions = new Permission[]{Permission.MESSAGE_HISTORY,Permission.MESSAGE_ADD_REACTION,Permission.MESSAGE_EMBED_LINKS};
     }
     
     @Override
     protected void execute(CommandEvent event) 
     {
-        List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getGuild());
-        if(list==null)
-        {
-            event.replyError("An error occurred when trying to being giveaway creation.");
+        // preliminary giveaway count check
+        // we use current text channel as a basis, even though this may not be the final giveaway channel
+        // this might need to be changed at some point
+        if(tooManyGiveaways(event, null))
             return;
-        }
-        else if(list.size() >= Constants.MAX_GIVEAWAYS)
-        {
-            event.replyError("There are already "+Constants.MAX_GIVEAWAYS+" running on this server!");
-            return;
-        }
+        
+        // get started
         event.replySuccess("Alright! Let's set up your giveaway! First, what channel do you want the giveaway in?\n"
                 + "You can type `cancel` at any time to cancel creation."+CHANNEL);
         waitForChannel(event);
+    }
+    
+    private boolean tooManyGiveaways(CommandEvent event, TextChannel tchannel)
+    {
+        PremiumLevel level = bot.getDatabase().premium.getPremiumLevel(event.getGuild());
+        List<Giveaway> list = level.perChannelMaxGiveaways 
+                ? bot.getDatabase().giveaways.getGiveaways(tchannel==null ? event.getTextChannel() : tchannel) 
+                : bot.getDatabase().giveaways.getGiveaways(event.getGuild());
+        if(list == null)
+        {
+            event.replyError("An error occurred when trying to start giveaway." + CANCEL);
+            return true;
+        }
+        else if(list.size() >= level.maxGiveaways)
+        {
+            event.replyError("There are already " + level.maxGiveaways + " giveaways running in " 
+                    + (tchannel == null ? "this server" : tchannel.getAsMention()) + "!" + CANCEL);
+            return true;
+        }
+        return false;
     }
     
     private void waitForChannel(CommandEvent event)
@@ -77,38 +92,45 @@ public class CreateCommand extends Command {
         waiter.waitForEvent(GuildMessageReceivedEvent.class, 
                 e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()), 
                 e -> {
+                    // check for manual cancel
                     if(e.getMessage().getContentRaw().equalsIgnoreCase("cancel"))
                     {
                         event.replyWarning("Alright, I guess we're not having a giveaway after all..."+CANCEL);
+                        return;
                     }
-                    else
+                    
+                    // look for the channel, handle not found and multiple
+                    String query = e.getMessage().getContentRaw().replace(" ", "_");
+                    List<TextChannel> list = FinderUtil.findTextChannels(query, event.getGuild());
+                    if(list.isEmpty())
                     {
-                        String query = e.getMessage().getContentRaw().replace(" ", "_");
-                        List<TextChannel> list = FinderUtil.findTextChannels(query, event.getGuild());
-                        if(list.isEmpty())
-                        {
-                            event.replyWarning("Uh oh, I couldn't find any channels called '"+query+"'! Try again!"+CHANNEL);
-                            waitForChannel(event);
-                        }
-                        else if(list.size()>1)
-                        {
-                            event.replyWarning("Oh... there are multiple channels with that name. Please be more specific!"+CHANNEL);
-                            waitForChannel(event);
-                        }
-                        else
-                        {
-                            TextChannel tchan = list.get(0);
-                            if(!Constants.canSendGiveaway(tchan))
-                            {
-                                event.replyWarning("Erm, I need the following permissions to start a giveaway in "+tchan.getAsMention()+":\n"+Constants.PERMS+"\nPlease fix this and then try again."+CANCEL);
-                            }
-                            else
-                            {
-                                event.replySuccess("Sweet! The giveaway will be in "+tchan.getAsMention()+"! Next, how long should the giveaway last?"+TIME);
-                                waitForTime(event, tchan);
-                            }
-                        }
+                        event.replyWarning("Uh oh, I couldn't find any channels called '"+query+"'! Try again!" + CHANNEL);
+                        waitForChannel(event);
+                        return;
                     }
+                    if(list.size()>1)
+                    {
+                        event.replyWarning("Oh... there are multiple channels with that name. Please be more specific!" + CHANNEL);
+                        waitForChannel(event);
+                        return;
+                    }
+                    TextChannel tchan = list.get(0);
+                    
+                    // check perms
+                    if(!Constants.canSendGiveaway(tchan))
+                    {
+                        event.replyWarning("Erm, I need the following permissions to start a giveaway in " + tchan.getAsMention() 
+                                + ":\n" + Constants.PERMS + "\nPlease fix this and then try again." + CANCEL);
+                        return;
+                    }
+                    
+                    // check giveaway count again
+                    if(tooManyGiveaways(event, tchan))
+                        return;
+
+                    // channel selection successful
+                    event.replySuccess("Sweet! The giveaway will be in "+tchan.getAsMention()+"! Next, how long should the giveaway last?"+TIME);
+                    waitForTime(event, tchan);
                 }, 
                 2, TimeUnit.MINUTES, () -> event.replyWarning("Uh oh! You took longer than 2 minutes to respond, "+event.getAuthor().getAsMention()+"!"+CANCEL));
     }
@@ -118,62 +140,74 @@ public class CreateCommand extends Command {
         waiter.waitForEvent(GuildMessageReceivedEvent.class, 
                 e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()), 
                 e -> {
+                    // manual cancel
                     if(e.getMessage().getContentRaw().equalsIgnoreCase("cancel"))
                     {
                         event.replyWarning("Alright, I guess we're not having a giveaway after all..."+CANCEL);
+                        return;
                     }
-                    else
+                    
+                    // see if parseable
+                    int seconds = OtherUtil.parseShortTime(e.getMessage().getContentRaw());
+                    if(seconds==-1)
                     {
-                        int seconds = OtherUtil.parseShortTime(e.getMessage().getContentRaw());
-                        if(seconds==-1)
-                        {
-                            event.replyWarning("Hm. I can't seem to get a number from that. Can you try again?"+TIME);
-                            waitForTime(event, tchan);
-                        }
-                        else if(!OtherUtil.validTime(seconds))
-                        {
-                            event.replyWarning("Oh! Sorry! "+Constants.TIME_MSG+" Mind trying again?"+TIME);
-                            waitForTime(event, tchan);
-                        }
-                        else
-                        {
-                            event.replySuccess("Neat! This giveaway will last "+FormatUtil.secondsToTime(seconds)+"! Now, how many winners should there be?"+WINNERS);
-                            waitForWinners(event, tchan, seconds);
-                        }
+                        event.replyWarning("Hm. I can't seem to get a number from that. Can you try again?"+TIME);
+                        waitForTime(event, tchan);
+                        return;
                     }
+                    
+                    // check for valid time
+                    PremiumLevel level = bot.getDatabase().premium.getPremiumLevel(event.getGuild());
+                    if(!level.isValidTime(seconds))
+                    {
+                        event.replyWarning("Oh! Sorry! Giveaway time must not be shorter than " + FormatUtil.secondsToTime(Constants.MIN_TIME) 
+                                + " and no longer than " + FormatUtil.secondsToTime(level.maxTime) + " Mind trying again?" + TIME);
+                        waitForTime(event, tchan);
+                        return;
+                    }
+                    
+                    // valid time, continue
+                    event.replySuccess("Neat! This giveaway will last "+FormatUtil.secondsToTime(seconds)+"! Now, how many winners should there be?"+WINNERS);
+                    waitForWinners(event, level, tchan, seconds);
                 }, 
                 2, TimeUnit.MINUTES, () -> event.replyWarning("Uh oh! You took longer than 2 minutes to respond, "+event.getAuthor().getAsMention()+"!"+CANCEL));
     }
     
-    private void waitForWinners(CommandEvent event, TextChannel tchan, int seconds)
+    private void waitForWinners(CommandEvent event, PremiumLevel level, TextChannel tchan, int seconds)
     {
         waiter.waitForEvent(GuildMessageReceivedEvent.class, 
                 e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()), 
                 e -> {
+                    // manual cancel
                     if(e.getMessage().getContentRaw().equalsIgnoreCase("cancel"))
                     {
                         event.replyWarning("Alright, I guess we're not having a giveaway after all..."+CANCEL);
+                        return;
                     }
-                    else
+                    
+                    try 
                     {
-                        try {
-                            int num = Integer.parseInt(e.getMessage().getContentRaw().trim());
-                            if(num<1 || num>15)
-                            {
-                                event.replyWarning("Hey! I can only support 1 to 15 winners!"+WINNERS);
-                                waitForWinners(event, tchan, seconds);
-                            }
-                            else
-                            {
-                                event.replySuccess("Ok! "+num+" "
-                                    + FormatUtil.pluralise(num, "winner", "winners")
-                                    + " it is! Finally, what do you want to give away?"+PRIZE);
-                                waitForPrize(event, tchan, seconds, num);
-                            }
-                        } catch(NumberFormatException ex) {
-                            event.replyWarning("Uh... that doesn't look like a valid number."+WINNERS);
-                            waitForWinners(event, tchan, seconds);
+                        // attempt to parse
+                        int num = Integer.parseInt(e.getMessage().getContentRaw().trim());
+                        
+                        // check value
+                        if(!level.isValidWinners(num))
+                        {
+                            event.replyWarning("Hey! I can only support 1 to " + level.maxWinners + " winners!" + WINNERS);
+                            waitForWinners(event, level, tchan, seconds);
                         }
+                        else
+                        {
+                            event.replySuccess("Ok! "+num+" "
+                                + FormatUtil.pluralise(num, "winner", "winners")
+                                + " it is! Finally, what do you want to give away?" + PRIZE);
+                            waitForPrize(event, tchan, seconds, num);
+                        }
+                    } 
+                    catch(NumberFormatException ex) 
+                    {
+                        event.replyWarning("Uh... that doesn't look like a valid number."+WINNERS);
+                        waitForWinners(event, level, tchan, seconds);
                     }
                 }, 
                 2, TimeUnit.MINUTES, () -> event.replyWarning("Uh oh! You took longer than 2 minutes to respond, "+event.getAuthor().getAsMention()+"!"+CANCEL));
@@ -184,41 +218,39 @@ public class CreateCommand extends Command {
         waiter.waitForEvent(GuildMessageReceivedEvent.class, 
                 e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()), 
                 e -> {
+                    // manual cancel
                     if(e.getMessage().getContentRaw().equalsIgnoreCase("cancel"))
                     {
                         event.replyWarning("Alright, I guess we're not having a giveaway after all..."+CANCEL);
+                        return;
+                    }
+                    
+                    String prize = e.getMessage().getContentRaw();
+                    if(prize.length()>250)
+                    {
+                        event.replyWarning("Ack! That prize is too long. Can you shorten it a bit?"+PRIZE);
+                        waitForPrize(event, tchan, seconds, winners);
+                        return;
+                    }
+                    
+                    // final checks
+                    if(tooManyGiveaways(event, tchan))
+                        return;
+                    PremiumLevel level = bot.getDatabase().premium.getPremiumLevel(event.getGuild());
+                    if(!level.isValidTime(seconds) || !level.isValidWinners(winners))
+                    {
+                        event.replyError("An invalid amount of time or number of winners was chosen." + CANCEL);
+                        return;
+                    }
+                    
+                    Instant now = Instant.now();
+                    if(bot.startGiveaway(tchan, now, seconds, winners, prize))
+                    {
+                        event.replySuccess("Done! The giveaway for the `"+e.getMessage().getContentRaw()+"` is starting in "+tchan.getAsMention()+"!");
                     }
                     else
                     {
-                        String prize = e.getMessage().getContentRaw();
-                        if(prize.length()>250)
-                        {
-                            event.replyWarning("Ack! That prize is too long. Can you shorten it a bit?"+PRIZE);
-                            waitForPrize(event, tchan, seconds, winners);
-                        }
-                        else
-                        {
-                            List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getGuild());
-                            if(list==null)
-                            {
-                                event.replyError("An error occurred when trying to create giveaway.");
-                                return;
-                            }
-                            else if(list.size() >= Constants.MAX_GIVEAWAYS)
-                            {
-                                event.replyError("There are already "+Constants.MAX_GIVEAWAYS+" running on this server!");
-                                return;
-                            }
-                            Instant now = Instant.now();
-                            if(bot.startGiveaway(tchan, now, seconds, winners, prize))
-                            {
-                                event.replySuccess("Done! The giveaway for the `"+e.getMessage().getContentRaw()+"` is starting in "+tchan.getAsMention()+"!");
-                            }
-                            else
-                            {
-                                event.replyError("Uh oh. Something went wrong and I wasn't able to start the giveaway."+CANCEL);
-                            }
-                        }
+                        event.replyError("Uh oh. Something went wrong and I wasn't able to start the giveaway."+CANCEL);
                     }
                 }, 
                 2, TimeUnit.MINUTES, () -> event.replyWarning("Uh oh! You took longer than 2 minutes to respond, "+event.getAuthor().getAsMention()+"!"+CANCEL));

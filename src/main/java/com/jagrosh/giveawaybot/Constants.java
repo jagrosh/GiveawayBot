@@ -15,34 +15,28 @@
  */
 package com.jagrosh.giveawaybot;
 
-import com.jagrosh.giveawaybot.util.FormatUtil;
-import com.jagrosh.jdautilities.command.Command;
 import java.awt.Color;
 import java.time.OffsetDateTime;
 import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.TextChannel;
 
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class Constants {
-    
+public class Constants 
+{
     public static final OffsetDateTime STARTUP = OffsetDateTime.now();
     public static final int PRIZE_MAX   = 250;
+    public static final long SERVER_ID  = 585687812548853760L;
     public static final String TADA     = "\uD83C\uDF89"; // 🎉
     public static final String WARNING  = "\uD83D\uDCA5"; // 💥
     public static final String ERROR    = "\uD83D\uDCA5"; // 💥
-    public static final String YAY      = "<:yay:440620097543864320>";
-    public static final String REACTION = "yay:440620097543864320";
+    public static final String YAY      = "<:yay:585696613507399692>";//"<:yay:440620097543864320>";
+    public static final String REACTION = "yay:585696613507399692";//"yay:440620097543864320";
     public static final Color  BLURPLE  = Color.decode("#7289DA");
     public static final String INVITE   = "https://giveawaybot.party/invite";
     public static final int MIN_TIME    = 10;
-    public static final int MAX_TIME    = 60*60*24*7*2;
-    public static final int MAX_WINNERS = 20;
-    public static final int MAX_GIVEAWAYS = 15;
-    public static final String TIME_MSG = "Giveaway time must not be shorter than "+FormatUtil.secondsToTime(Constants.MIN_TIME)+" and no longer than "+FormatUtil.secondsToTime(Constants.MAX_TIME);
     public static final String WEBSITE  = "https://giveawaybot.party";
     public static final String OWNER    = "**jagrosh**#4824";
     public static final String GITHUB   = "https://github.com/jagrosh/GiveawayBot";
@@ -54,23 +48,4 @@ public class Constants {
         return channel.getGuild().getSelfMember().hasPermission(channel, Permission.MESSAGE_READ, Permission.MESSAGE_WRITE, 
                 Permission.MESSAGE_HISTORY, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_EXT_EMOJI, Permission.MESSAGE_ADD_REACTION);
     }
-    
-    public static final boolean canGiveaway(Member member)
-    {
-        return member.hasPermission(Permission.MANAGE_SERVER) || 
-                    member.getRoles().stream().anyMatch(r -> r.getName().equalsIgnoreCase("giveaways"));
-    }
-    
-    public static final Command.Category GIVEAWAY = new Command.Category("Giveaway", event -> 
-    {
-        if(event.getGuild()==null)
-        {
-            event.replyError("This command cannot be used in Direct Messages!");
-            return false;
-        }
-        if(canGiveaway(event.getMember()))
-            return true;
-        event.reply(event.getClient().getError()+" You must have the Manage Server permission, or a role called \"Giveaways\", to use this command!");
-        return false;
-    });
 }

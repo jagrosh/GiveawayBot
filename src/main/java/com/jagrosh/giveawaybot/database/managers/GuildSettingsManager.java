@@ -34,12 +34,11 @@ import net.dv8tion.jda.core.entities.TextChannel;
  */
 public class GuildSettingsManager extends DataManager 
 {
-    
     public final static SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID", false, 0, true);
     public final static SQLColumn<Integer> COLOR = new IntegerColumn("COLOR", false, Constants.BLURPLE.getRGB());
-    public final static SQLColumn<Long> DEFAULT_CHANNEL = new LongColumn("DEFAULT_CHANNEL", false, 0);
-    public final static SQLColumn<Long> MANAGER_ROLE = new LongColumn("MANAGER_ROLE", false, 0L);
-    public final static SQLColumn<String> EMOJI = new StringColumn("EMOJI", true, null, 60);
+    public final static SQLColumn<Long> DEFAULT_CHANNEL = new LongColumn("DEFAULT_CHANNEL", false, 0); // currently unused
+    public final static SQLColumn<Long> MANAGER_ROLE = new LongColumn("MANAGER_ROLE", false, 0L); // currently unused
+    public final static SQLColumn<String> EMOJI = new StringColumn("EMOJI", true, null, 60); // currently unused
     
     public GuildSettingsManager(Database connector)
     {
@@ -49,8 +48,7 @@ public class GuildSettingsManager extends DataManager
     public void updateColor(Guild guild)
     {
         int color = guild.getSelfMember().getColor()==null ? Constants.BLURPLE.getRGB() : guild.getSelfMember().getColor().getRGB();
-        try (Statement statement = getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
-             ResultSet results = statement.executeQuery(selectAll(GUILD_ID.is(guild.getIdLong())));)
+        readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), results -> 
         {
             if(results.next())
             {
@@ -64,9 +62,7 @@ public class GuildSettingsManager extends DataManager
                 COLOR.updateValue(results, color);
                 results.insertRow();
             }
-        } catch( SQLException e) {
-            e.printStackTrace();
-        }
+        });
     }
     
     public GuildSettings getSettings(long guildid)

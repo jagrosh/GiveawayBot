@@ -15,31 +15,14 @@
  */
 package com.jagrosh.giveawaybot;
 
-/*import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;*/
-
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-//@SpringBootApplication
 public class Website
 {
     public static void main(String[] args)
     {
-        //SpringApplication.run(Website.class, args);
+        // not implemented
     }
-    
-    /*@EnableWebMvc
-    public class MvcConfig extends WebMvcConfigurerAdapter {
-        @Override
-        public void addResourceHandlers(ResourceHandlerRegistry registry) {
-            System.err.println("Resource handler setup");
-            registry.addResourceHandler("/js/**","/css/**")
-                    .addResourceLocations("/js/","/css/");
-        }
-    }//*/
 }
