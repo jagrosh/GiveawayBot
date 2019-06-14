@@ -25,6 +25,7 @@ import net.dv8tion.jda.core.utils.SessionControllerAdapter;
  */
 public class BlockingSessionController extends SessionControllerAdapter
 {
+    private final long MIN_DELAY = 5500L; // 5.5 seconds
     private final int MAX_DELAY = 5*60*1000; // 5 minutes
     
     @Override
@@ -42,6 +43,11 @@ public class BlockingSessionController extends SessionControllerAdapter
     
     protected class BlockingQueueWorker extends QueueWorker
     {
+        protected BlockingQueueWorker()
+        {
+            super(MIN_DELAY);
+        }
+        
         @Override
         public void run()
         {
@@ -67,7 +73,8 @@ public class BlockingSessionController extends SessionControllerAdapter
                     lastConnect = System.currentTimeMillis();
                     if (connectQueue.isEmpty())
                         break;
-                    Thread.sleep((this.delay > 0 ? this.delay : 0) + 100);
+                    if (this.delay > 0)
+                        Thread.sleep(this.delay);
                     int total = 0;
                     while(node.getJDA().getStatus() != JDA.Status.CONNECTED 
                             && node.getJDA().getStatus() != JDA.Status.SHUTDOWN 
