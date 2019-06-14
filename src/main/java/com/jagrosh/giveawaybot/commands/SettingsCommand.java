@@ -54,6 +54,9 @@ public class SettingsCommand extends Command
         eb.setColor(settings == null ? null : settings.color);
         eb.appendDescription("Premium Level: "+ premium.name);
         eb.setAuthor(event.getGuild().getName(), null, event.getGuild().getIconUrl());
-        event.reply(new MessageBuilder().setContent(Constants.YAY + " **" + event.getSelfUser().getName() + "** settings: ").build());
+        event.reply(new MessageBuilder()
+                .setContent(Constants.YAY + " **" + event.getSelfUser().getName() + "** settings: ")
+                .setEmbed(eb.build())
+                .build());
     }
 }
