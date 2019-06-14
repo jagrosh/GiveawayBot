@@ -67,8 +67,7 @@ public class BlockingSessionController extends SessionControllerAdapter
                     lastConnect = System.currentTimeMillis();
                     if (connectQueue.isEmpty())
                         break;
-                    if (this.delay > 0)
-                        Thread.sleep(this.delay);
+                    Thread.sleep((this.delay > 0 ? this.delay : 0) + 100);
                     int total = 0;
                     while(node.getJDA().getStatus() != JDA.Status.CONNECTED 
                             && node.getJDA().getStatus() != JDA.Status.SHUTDOWN 

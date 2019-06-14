@@ -62,6 +62,8 @@ public class PremiumManager extends DataManager
                 continue;
             premiumGuild.getMembersWithRoles(role).forEach(m -> map.put(m.getUser().getIdLong(), p));
         }
+        
+        // select all existing entries
         readWrite(selectAll(), rs -> 
         {
             while(rs.next())
@@ -76,9 +78,11 @@ public class PremiumManager extends DataManager
                 else if(map.get(userId).level != PREMIUM_LEVEL.getValue(rs))
                 {
                     PREMIUM_LEVEL.updateValue(rs, map.get(userId).level);
-                    map.remove(userId);
                     rs.updateRow();
                 }
+                
+                // if they are in db already, dont try to put them in again
+                map.remove(userId);
             }
             
             // add new users
