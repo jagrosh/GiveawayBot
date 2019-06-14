@@ -23,22 +23,27 @@ import com.jagrosh.giveawaybot.Constants;
  */
 public enum PremiumLevel
     {
-        NONE   (0, 60*60*24*7*2, 20, 20, false),
-        BOOST  (1, 60*60*24*7*4, 30, 25, true),
-        PATRON (2, 60*60*24*7*4, 30, 25, true),
-        DONATOR(3, 60*60*24*7*4, 30, 25, true);
+        NONE   (0, "None", 60*60*24*7*2, 20, 20, false, 0L),
+        BOOST  (1, "Nitro Booster", 60*60*24*7*4, 30, 25, true, 585981877396045826L),
+        PATRON (2, "Patron", 60*60*24*7*4, 30, 25, true, 585689274565918721L),
+        DONATOR(3, "Donator", 60*60*24*7*4, 30, 25, true, 585708901270421504L);
         
         public final int level;
+        public final String name;
         public final int maxTime, maxWinners, maxGiveaways;
         public final boolean perChannelMaxGiveaways;
+        public final long roleId;
         
-        private PremiumLevel(int level, int maxTime, int maxWinners, int maxGiveaways, boolean perChannelMaxGiveaways)
+        private PremiumLevel(int level, String name, int maxTime, int maxWinners, 
+                int maxGiveaways, boolean perChannelMaxGiveaways, long roleId)
         {
             this.level = level;
+            this.name = name;
             this.maxTime = maxTime;
             this.maxWinners = maxWinners;
             this.maxGiveaways = maxGiveaways;
             this.perChannelMaxGiveaways = perChannelMaxGiveaways;
+            this.roleId = roleId;
         }
         
         public boolean isValidTime(int seconds)

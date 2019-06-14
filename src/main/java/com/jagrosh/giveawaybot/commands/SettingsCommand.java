@@ -16,8 +16,14 @@
 package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Bot;
+import com.jagrosh.giveawaybot.Constants;
+import com.jagrosh.giveawaybot.database.managers.GuildSettingsManager.GuildSettings;
+import com.jagrosh.giveawaybot.entities.PremiumLevel;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import java.awt.Color;
+import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.Permission;
 
 /**
@@ -42,7 +48,12 @@ public class SettingsCommand extends Command
     @Override
     protected void execute(CommandEvent event)
     {
-        
+        EmbedBuilder eb = new EmbedBuilder();
+        GuildSettings settings = bot.getDatabase().settings.getSettings(event.getGuild().getIdLong());
+        PremiumLevel premium = bot.getDatabase().premium.getPremiumLevel(event.getGuild());
+        eb.setColor(settings == null ? null : settings.color);
+        eb.appendDescription("Premium Level: "+ premium.name);
+        eb.setAuthor(event.getGuild().getName(), null, event.getGuild().getIconUrl());
+        event.reply(new MessageBuilder().setContent(Constants.YAY + " **" + event.getSelfUser().getName() + "** settings: ").build());
     }
-    
 }

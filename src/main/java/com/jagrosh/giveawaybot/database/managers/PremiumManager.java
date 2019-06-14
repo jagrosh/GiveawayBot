@@ -20,7 +20,11 @@ import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.*;
 import com.jagrosh.giveawaybot.entities.PremiumLevel;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.Role;
 
 /**
  *
@@ -45,11 +49,46 @@ public class PremiumManager extends DataManager
                 : PremiumLevel.NONE, PremiumLevel.NONE);
     }
     
-    public void updatePremiumLevels()
+    public void updatePremiumLevels(Guild premiumGuild)
     {
+        if(premiumGuild == null || !premiumGuild.isAvailable() || premiumGuild.getMemberCache().size()==0)
+            return;
+        // make a map of all users that have premium levels
+        Map<Long, PremiumLevel> map = new HashMap<>();
+        for(PremiumLevel p: PremiumLevel.values())
+        {
+            Role role = premiumGuild.getRoleById(p.roleId);
+            if(role == null)
+                continue;
+            premiumGuild.getMembersWithRoles(role).forEach(m -> map.put(m.getUser().getIdLong(), p));
+        }
         readWrite(selectAll(), rs -> 
         {
+            while(rs.next())
+            {
+                long userId = USER_ID.getValue(rs);
+                
+                // remove users that no longer have premium
+                if(!map.containsKey(userId))
+                    rs.deleteRow();
+                
+                // update users if necessary
+                else if(map.get(userId).level != PREMIUM_LEVEL.getValue(rs))
+                {
+                    PREMIUM_LEVEL.updateValue(rs, map.get(userId).level);
+                    map.remove(userId);
+                    rs.updateRow();
+                }
+            }
             
+            // add new users
+            for(Entry<Long, PremiumLevel> entry: map.entrySet())
+            {
+                rs.moveToInsertRow();
+                USER_ID.updateValue(rs, entry.getKey());
+                PREMIUM_LEVEL.updateValue(rs, entry.getValue().level);
+                rs.insertRow();
+            }
         });
     }
 }

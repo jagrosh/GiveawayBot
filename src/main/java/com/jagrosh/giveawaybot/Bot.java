@@ -95,10 +95,7 @@ public class Bot extends ListenerAdapter
     {
         if(shards == null)
             return;
-        Guild g = shards.getGuildById(Constants.SERVER_ID);
-        if(g==null || !g.isAvailable())
-            return;
-        
+        database.premium.updatePremiumLevels(shards.getGuildById(Constants.SERVER_ID));
     }
     
     
@@ -236,6 +233,7 @@ public class Bot extends ListenerAdapter
                         new EndCommand(bot),
                         new RerollCommand(bot),
                         new ListCommand(bot),
+                        new SettingsCommand(bot),
                         
                         new DebugCommand(bot),
                         new EvalCommand(bot),
