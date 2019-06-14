@@ -37,15 +37,20 @@ public class FormatUtil {
         StringBuilder builder = new StringBuilder(Constants.YAY+" __**"+event.getSelfUser().getName()+"** commands:__\n");
         Category category = null;
         for(Command command : event.getClient().getCommands())
-            if(!command.isOwnerCommand() || event.getAuthor().getId().equals(event.getClient().getOwnerId())){
-                if(!Objects.equals(category, command.getCategory())){
-                    category = command.getCategory();
-                    builder.append("\n\n  __").append(category==null ? "No Category" : category.getName()).append("__:\n");
-                }
-                builder.append("\n**").append(event.getClient().getPrefix()).append(command.getName())
-                        .append(command.getArguments()==null ? "**" : " "+command.getArguments()+"**")
-                        .append(" - ").append(command.getHelp());
+        {
+            if(command.isHidden())
+                continue;
+            if(command.isOwnerCommand() && !event.getAuthor().getId().equals(event.getClient().getOwnerId()))
+                continue;
+            if(!Objects.equals(category, command.getCategory()))
+            {
+                category = command.getCategory();
+                builder.append("\n\n  __").append(category==null ? "No Category" : category.getName()).append("__:\n");
             }
+            builder.append("\n**").append(event.getClient().getPrefix()).append(command.getName())
+                    .append(command.getArguments()==null ? "**" : " "+command.getArguments()+"**")
+                    .append(" - ").append(command.getHelp());
+        }
         builder.append("\n\nDo not include <> nor [] - <> means required and [] means optional."
                     + "\nFor additional help, contact "+Constants.OWNER+" or check out "+Constants.WEBSITE);
         return builder.toString();
