@@ -52,9 +52,10 @@ public class RerollCommand extends GiveawayCommand
                     determineWinner(m,event);
             }, v -> event.replyError("I failed to retrieve message history"));
         }
-        else if(event.getArgs().matches("\\d{17,20}")) 
+        String id = event.getArgs().split("\\s+")[0];
+        if(id.matches("\\d{17,20}")) 
         {
-            event.getChannel().getMessageById(event.getArgs()).queue(m -> determineWinner(m,event), 
+            event.getChannel().getMessageById(id).queue(m -> determineWinner(m,event), 
                     v -> event.replyError("I couldn't find a message with that ID in this channel."));
         }
         else
