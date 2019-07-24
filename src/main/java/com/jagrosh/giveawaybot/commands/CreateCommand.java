@@ -244,7 +244,7 @@ public class CreateCommand extends GiveawayCommand
                     }
                     
                     Instant now = Instant.now();
-                    if(bot.startGiveaway(tchan, now, seconds, winners, prize))
+                    if(bot.startGiveaway(tchan, event.getAuthor(), now, seconds, winners, prize))
                     {
                         event.replySuccess("Done! The giveaway for the `"+e.getMessage().getContentRaw()+"` is starting in "+tchan.getAsMention()+"!");
                     }

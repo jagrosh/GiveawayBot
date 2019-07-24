@@ -35,10 +35,7 @@ import java.util.concurrent.TimeUnit;
 import net.dv8tion.jda.bot.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.bot.sharding.ShardManager;
 import net.dv8tion.jda.core.OnlineStatus;
-import net.dv8tion.jda.core.entities.Game;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.core.entities.*;
 import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleRemoveEvent;
@@ -134,16 +131,16 @@ public class Bot extends ListenerAdapter
         database.shutdown();
     }
     
-    public boolean startGiveaway(TextChannel channel, Instant now, int seconds, int winners, String prize)
+    public boolean startGiveaway(TextChannel channel, User creator, Instant now, int seconds, int winners, String prize)
     {
         if(!Constants.canSendGiveaway(channel))
             return false;
         database.settings.updateColor(channel.getGuild());
         Instant end = now.plusSeconds(seconds);
-        Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), end, winners, prize, Status.RUN).render(channel.getGuild().getSelfMember().getColor(), now);
+        Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, Status.RUN).render(channel.getGuild().getSelfMember().getColor(), now);
         channel.sendMessage(msg).queue(m -> {
             m.addReaction(Constants.TADA).queue();
-            database.giveaways.createGiveaway(m, end, winners, prize);
+            database.giveaways.createGiveaway(m, creator, end, winners, prize);
         }, v -> LOG.warn("Unable to start giveaway: "+v));
         return true;
     }

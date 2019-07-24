@@ -126,7 +126,7 @@ public class StartCommand extends GiveawayCommand
         
         // start the giveaway
         Instant now = event.getMessage().getCreationTime().toInstant();
-        bot.startGiveaway(event.getTextChannel(), now, seconds, winners, item);
+        bot.startGiveaway(event.getTextChannel(), event.getAuthor(), now, seconds, winners, item);
     }
     
 }

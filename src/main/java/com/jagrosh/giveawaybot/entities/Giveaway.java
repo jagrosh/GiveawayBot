@@ -44,19 +44,18 @@ public class Giveaway
     
     public static final Logger LOG = LoggerFactory.getLogger("REST");
     
-    public final long messageId;
-    public final long channelId;
-    public final long guildId;
+    public final long messageId, channelId, guildId, userId;
     public final Instant end;
     public final int winners;
     public final String prize;
     public final Status status;
     
-    public Giveaway(long messageId, long channelId, long guildId, Instant end, int winners, String prize, Status status)
+    public Giveaway(long messageId, long channelId, long guildId, long userId, Instant end, int winners, String prize, Status status)
     {
         this.messageId = messageId;
         this.channelId = channelId;
         this.guildId = guildId;
+        this.userId = userId;
         this.end = end;
         this.winners = winners;
         this.prize = prize==null ? null : prize.isEmpty() ? null : prize;
