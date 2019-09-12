@@ -51,8 +51,10 @@ public class SettingsCommand extends Command
         EmbedBuilder eb = new EmbedBuilder();
         GuildSettings settings = bot.getDatabase().settings.getSettings(event.getGuild().getIdLong());
         PremiumLevel premium = bot.getDatabase().premium.getPremiumLevel(event.getGuild());
-        eb.setColor(settings == null ? null : settings.color);
-        eb.appendDescription("Premium Level: "+ premium.name);
+        
+        eb.setColor(settings.color);
+        eb.appendDescription("Premium Level: **"+ premium.name + "**\n");
+        eb.appendDescription("\nReaction: " + settings.getEmojiDisplay());
         eb.setAuthor(event.getGuild().getName(), null, event.getGuild().getIconUrl());
         event.reply(new MessageBuilder()
                 .setContent(Constants.YAY + " **" + event.getSelfUser().getName() + "** settings: ")

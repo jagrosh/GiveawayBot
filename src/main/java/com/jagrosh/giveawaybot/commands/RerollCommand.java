@@ -51,6 +51,7 @@ public class RerollCommand extends GiveawayCommand
                 else
                     determineWinner(m,event);
             }, v -> event.replyError("I failed to retrieve message history"));
+            return;
         }
         String id = event.getArgs().split("\\s+")[0];
         if(id.matches("\\d{17,20}")) 

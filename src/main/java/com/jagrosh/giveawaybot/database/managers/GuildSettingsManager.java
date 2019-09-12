@@ -23,7 +23,6 @@ import com.jagrosh.giveawaybot.database.Database;
 import java.awt.Color;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -67,17 +66,8 @@ public class GuildSettingsManager extends DataManager
     
     public GuildSettings getSettings(long guildid)
     {
-        try (Statement statement = getConnection().createStatement();
-             ResultSet results = statement.executeQuery(selectAll(GUILD_ID.is(guildid)));)
-        {
-            if(results.next())
-                return new GuildSettings(results);
-            else
-                return new GuildSettings();
-        } catch( SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return read(selectAll(GUILD_ID.is(guildid)), 
+                results -> results.next() ? new GuildSettings(results) : new GuildSettings());
     }
     
     public class GuildSettings 
@@ -87,22 +77,27 @@ public class GuildSettingsManager extends DataManager
         private final long managerRole;
         public final String emoji;
         
-        private GuildSettings()
-        {
-            this(Constants.BLURPLE.getRGB(), 0, 0, null);
-        }
-        
         private GuildSettings(int color, long defaultChannel, long managerRole, String emoji)
         {
             this.color = new Color(color);
             this.defaultChannel = defaultChannel;
             this.managerRole = managerRole;
-            this.emoji = emoji;
+            this.emoji = emoji == null ? Constants.TADA : emoji;
+        }
+        
+        private GuildSettings()
+        {
+            this(Constants.BLURPLE.getRGB(), 0, 0, null);
         }
         
         private GuildSettings(ResultSet rs) throws SQLException
         {
             this(COLOR.getValue(rs), DEFAULT_CHANNEL.getValue(rs), MANAGER_ROLE.getValue(rs), EMOJI.getValue(rs));
+        }
+        
+        public String getEmojiDisplay()
+        {
+            return emoji;
         }
         
         public TextChannel getDefaultChannel(Guild guild)
