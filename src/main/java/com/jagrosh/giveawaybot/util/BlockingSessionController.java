@@ -15,8 +15,6 @@
  */
 package com.jagrosh.giveawaybot.util;
 
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.utils.JDALogger;
 import net.dv8tion.jda.core.utils.SessionControllerAdapter;
 
 /**
@@ -25,7 +23,7 @@ import net.dv8tion.jda.core.utils.SessionControllerAdapter;
  */
 public class BlockingSessionController extends SessionControllerAdapter
 {
-    private final long MIN_DELAY = 7500L; // 7.5 seconds
+    private final long MIN_DELAY = 10000L; // 10 seconds
     
     @Override
     protected void runWorker()
@@ -34,17 +32,9 @@ public class BlockingSessionController extends SessionControllerAdapter
         {
             if (workerHandle == null)
             {
-                workerHandle = new BlockingQueueWorker();
+                workerHandle = new QueueWorker(MIN_DELAY);
                 workerHandle.start();
             }
-        }
-    }
-    
-    protected class BlockingQueueWorker extends QueueWorker
-    {
-        protected BlockingQueueWorker()
-        {
-            super(MIN_DELAY);
         }
     }
 }
