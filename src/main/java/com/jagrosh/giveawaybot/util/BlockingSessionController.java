@@ -15,6 +15,7 @@
  */
 package com.jagrosh.giveawaybot.util;
 
+import com.neovisionaries.ws.client.OpeningHandshakeException;
 import net.dv8tion.jda.core.utils.SessionControllerAdapter;
 
 /**
@@ -32,8 +33,78 @@ public class BlockingSessionController extends SessionControllerAdapter
         {
             if (workerHandle == null)
             {
-                workerHandle = new QueueWorker(MIN_DELAY);
+                workerHandle = new BlockingQueueWorker(MIN_DELAY);
                 workerHandle.start();
+            }
+        }
+    }
+    
+    protected class BlockingQueueWorker extends QueueWorker
+    {
+        protected BlockingQueueWorker(long min)
+        {
+            super(min);
+        }
+        
+        @Override
+        public void run()
+        {
+            try
+            {
+                if (this.delay > 0)
+                {
+                    final long interval = System.currentTimeMillis() - lastConnect;
+                    if (interval < this.delay)
+                        Thread.sleep(this.delay - interval);
+                }
+            }
+            catch (InterruptedException ex)
+            {
+                log.error("Unable to backoff", ex);
+            }
+            processQueue();
+            synchronized (lock)
+            {
+                workerHandle = null;
+                if (!connectQueue.isEmpty())
+                    runWorker();
+            }
+        }
+        
+        @Override
+        protected void processQueue()
+        {
+            boolean isMultiple = connectQueue.size() > 1;
+            while (!connectQueue.isEmpty())
+            {
+                SessionConnectNode node = connectQueue.poll();
+                try
+                {
+                    log.info("Attempting to start node: {}", node.getShardInfo().getShardId());
+                    node.run(isMultiple && connectQueue.isEmpty());
+                    isMultiple = true;
+                    lastConnect = System.currentTimeMillis();
+                    if (connectQueue.isEmpty())
+                        break;
+                    if (this.delay > 0)
+                        Thread.sleep(this.delay);
+                    log.info("Finished with delay of {}", this.delay);
+                }
+                catch (IllegalStateException e)
+                {
+                    Throwable t = e.getCause();
+                    if (t instanceof OpeningHandshakeException)
+                        log.error("Failed opening handshake, appending to queue. Message: {}", e.getMessage());
+                    else
+                        log.error("Failed to establish connection for a node, appending to queue", e);
+                    appendSession(node);
+                }
+                catch (InterruptedException e)
+                {
+                    log.error("Failed to run node", e);
+                    appendSession(node);
+                    return; // caller should start a new thread
+                }
             }
         }
     }
