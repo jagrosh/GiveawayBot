@@ -25,8 +25,7 @@ import net.dv8tion.jda.core.utils.SessionControllerAdapter;
  */
 public class BlockingSessionController extends SessionControllerAdapter
 {
-    private final long MIN_DELAY = 5500L; // 5.5 seconds
-    private final int MAX_DELAY = 3*60*1000; // 5 minutes
+    private final long MIN_DELAY = 7500L; // 7.5 seconds
     
     @Override
     protected void runWorker()
@@ -46,58 +45,6 @@ public class BlockingSessionController extends SessionControllerAdapter
         protected BlockingQueueWorker()
         {
             super(MIN_DELAY);
-        }
-        
-        @Override
-        public void run()
-        {
-            try
-            {
-                if (this.delay > 0)
-                {
-                    final long interval = System.currentTimeMillis() - lastConnect;
-                    if (interval < this.delay)
-                        Thread.sleep(this.delay - interval);
-                }
-            }
-            catch (InterruptedException ex)
-            {
-                JDALogger.getLog(SessionControllerAdapter.class).error("Unable to backoff", ex);
-            }
-            while (!connectQueue.isEmpty())
-            {
-                SessionConnectNode node = connectQueue.poll();
-                try
-                {
-                    Thread.sleep(100); // try to be safe by sleeping an extra 100 millis
-                    node.run(connectQueue.isEmpty());
-                    lastConnect = System.currentTimeMillis();
-                    if (connectQueue.isEmpty())
-                        break;
-                    if (this.delay > 0)
-                        Thread.sleep(this.delay);
-                    int total = 0;
-                    while(node.getJDA().getStatus() != JDA.Status.CONNECTED 
-                            && node.getJDA().getStatus() != JDA.Status.SHUTDOWN 
-                            && node.getJDA().getStatus() != JDA.Status.RECONNECT_QUEUED
-                            && total < MAX_DELAY)
-                    {
-                        total += 100;
-                        Thread.sleep(100);
-                    }
-                }
-                catch (InterruptedException e)
-                {
-                    JDALogger.getLog(SessionControllerAdapter.class).error("Failed to run node", e);
-                    appendSession(node);
-                }
-            }
-            synchronized (lock)
-            {
-                workerHandle = null;
-                if (!connectQueue.isEmpty())
-                    runWorker();
-            }
         }
     }
 }
