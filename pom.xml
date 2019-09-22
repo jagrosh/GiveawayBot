@@ -50,7 +50,7 @@
 	<dependency>
 	    <groupId>com.github.GiveawayBot</groupId>
 	    <artifactId>JDA-Lite</artifactId>
-	    <version>v3.8.103</version>
+	    <version>v3.8.104</version>
 	</dependency>
         <!-- Need this to handle working with some JDA internals -->
         <dependency>
