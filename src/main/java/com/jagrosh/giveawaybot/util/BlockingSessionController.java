@@ -16,6 +16,7 @@
 package com.jagrosh.giveawaybot.util;
 
 import com.neovisionaries.ws.client.OpeningHandshakeException;
+import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.utils.SessionControllerAdapter;
 
 /**
@@ -24,7 +25,8 @@ import net.dv8tion.jda.core.utils.SessionControllerAdapter;
  */
 public class BlockingSessionController extends SessionControllerAdapter
 {
-    private final long MIN_DELAY = 20000L; // 20 seconds
+    private final long MIN_DELAY = 10000L; // 10 seconds
+    private final long MAX_DELAY = 40000L; // 40 seconds
     
     @Override
     protected void runWorker()
@@ -86,9 +88,20 @@ public class BlockingSessionController extends SessionControllerAdapter
                     lastConnect = System.currentTimeMillis();
                     if (connectQueue.isEmpty())
                         break;
+                    
+                    // block until we're fully loaded
+                    long total = 0;
+                    while(node.getJDA().getStatus() != JDA.Status.CONNECTED 
+                            && node.getJDA().getStatus() != JDA.Status.SHUTDOWN 
+                            && total < MAX_DELAY)
+                    {
+                        total += 100;
+                        Thread.sleep(100);
+                    }
+                    
                     if (this.delay > 0)
                         Thread.sleep(this.delay);
-                    log.info("Finished with delay of {}", this.delay);
+                    log.info("Finished with delay of {}", System.currentTimeMillis() - lastConnect);
                 }
                 catch (IllegalStateException e)
                 {
