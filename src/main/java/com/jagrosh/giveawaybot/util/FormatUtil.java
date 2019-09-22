@@ -20,6 +20,9 @@ import java.util.Objects;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.Command.Category;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import java.util.Collection;
+import java.util.HashMap;
+import net.dv8tion.jda.core.JDA;
 
 /**
  *
@@ -27,8 +30,25 @@ import com.jagrosh.jdautilities.command.CommandEvent;
  * 
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class FormatUtil {
-    public static String pluralise(long x, String singular, String plural) {
+public class FormatUtil 
+{
+    public static String formatShardStatuses(Collection<JDA> shards)
+    {
+        HashMap<JDA.Status, String> map = new HashMap<>();
+        shards.forEach(jda -> map.put(jda.getStatus(), map.getOrDefault(jda.getStatus(), "") + " " + jda.getShardInfo().getShardId()));
+        StringBuilder sb = new StringBuilder("```diff");
+        map.entrySet().forEach(entry -> sb.append("\n").append(entry.getKey()==JDA.Status.CONNECTED ? "+ " : "- ").append(entry.getKey()).append(":").append(entry.getValue()));
+        /*shards.forEach(jda -> sb.append("\n")
+                .append(jda.getStatus()==JDA.Status.CONNECTED ? "+ " : "- ")
+                .append(jda.getShardInfo().getShardId() < 10 ? "0" : "")
+                .append(jda.getShardInfo().getShardId())
+                .append(": ").append(jda.getStatus()).append(" ~ ")
+                .append(jda.getGuildCache().size()).append(" guilds"));*/
+        return sb.append(" ```").toString();
+    }
+    
+    public static String pluralise(long x, String singular, String plural) 
+    {
         return x == 1 ? singular : plural;
     }
     

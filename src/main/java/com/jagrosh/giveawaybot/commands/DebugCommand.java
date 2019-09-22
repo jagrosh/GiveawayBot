@@ -47,17 +47,12 @@ public class DebugCommand extends Command
     {
         long totalMb = Runtime.getRuntime().totalMemory()/(1024*1024);
         long usedMb = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())/(1024*1024);
-        StringBuilder sb = new StringBuilder("**"+event.getSelfUser().getName()+"** statistics:"
+        event.reply("**"+event.getSelfUser().getName()+"** statistics:"
                 + "\nLast Startup: "+FormatUtil.secondsToTime(Constants.STARTUP.until(OffsetDateTime.now(), ChronoUnit.SECONDS))+" ago"
                 + "\nGuilds: **"+bot.getShardManager().getGuildCache().size()+"**"
                 + "\nMemory: **"+usedMb+"**Mb / **"+totalMb+"**Mb"
                 + "\nAverage Ping: **"+bot.getShardManager().getAveragePing()+"**ms"
                 + "\nShard Total: **"+bot.getShardManager().getShardsTotal()+"**"
-                + "\nShard Connectivity: ```diff");
-        bot.getShardManager().getShards().forEach(jda -> sb.append("\n").append(jda.getStatus()==JDA.Status.CONNECTED ? "+ " : "- ")
-                .append(jda.getShardInfo().getShardId()<10 ? "0" : "").append(jda.getShardInfo().getShardId()).append(": ").append(jda.getStatus())
-                .append(" ~ ").append(jda.getGuildCache().size()).append(" guilds"));
-        sb.append("\n```");
-        event.reply(sb.toString().trim());
+                + "\nShard Connectivity: " + FormatUtil.formatShardStatuses(bot.getShardManager().getShards()));
     }
 }
