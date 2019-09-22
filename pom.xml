@@ -31,28 +31,16 @@
     
     <dependencies>
         <dependency>
+	    <groupId>com.github.GiveawayBot</groupId>
+	    <artifactId>JDA-Lite</artifactId>
+	    <version>v3.8.105</version>
+	</dependency>
+        <dependency>
             <groupId>com.jagrosh</groupId> 
             <artifactId>jda-utilities</artifactId> 
             <version>2.1.5</version>
             <type>pom</type>
         </dependency>
-        <!--dependency>
-            <groupId>net.dv8tion</groupId>
-            <artifactId>JDA</artifactId>
-            <version>3.8.3_463</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>club.minnced</groupId>
-                    <artifactId>opus-java</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency-->
-	<dependency>
-	    <groupId>com.github.GiveawayBot</groupId>
-	    <artifactId>JDA-Lite</artifactId>
-	    <version>v3.8.104</version>
-	</dependency>
-        <!-- Need this to handle working with some JDA internals -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>

@@ -250,6 +250,7 @@ public class Bot extends ListenerAdapter
                 .addEventListeners(client, waiter, bot)
                 .setSessionController(new BlockingSessionController())
                 .setDisabledCacheFlags(EnumSet.of(CacheFlag.VOICE_STATE, CacheFlag.GAME, CacheFlag.EMOTE))
+                .setCompressionEnabled(true)
                 .build());
     }
 }
