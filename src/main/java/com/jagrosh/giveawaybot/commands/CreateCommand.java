@@ -64,7 +64,7 @@ public class CreateCommand extends GiveawayCommand
         // get started
         event.replySuccess("Alright! Let's set up your giveaway! First, what channel do you want the giveaway in?\n"
                 + "You can type `cancel` at any time to cancel creation."+CHANNEL);
-        waitForChannel(event);
+        waitForChannel(event, event.getMessage().getIdLong());
     }
     
     private boolean tooManyGiveaways(CommandEvent event, TextChannel tchannel)
@@ -87,10 +87,10 @@ public class CreateCommand extends GiveawayCommand
         return false;
     }
     
-    private void waitForChannel(CommandEvent event)
+    private void waitForChannel(CommandEvent event, long lastMessage)
     {
         waiter.waitForEvent(GuildMessageReceivedEvent.class, 
-                e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()), 
+                e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()) && e.getMessageIdLong() != lastMessage, 
                 e -> {
                     // check for manual cancel
                     if(e.getMessage().getContentRaw().equalsIgnoreCase("cancel"))
@@ -105,13 +105,13 @@ public class CreateCommand extends GiveawayCommand
                     if(list.isEmpty())
                     {
                         event.replyWarning("Uh oh, I couldn't find any channels called '"+query+"'! Try again!" + CHANNEL);
-                        waitForChannel(event);
+                        waitForChannel(event, e.getMessageIdLong());
                         return;
                     }
                     if(list.size()>1)
                     {
                         event.replyWarning("Oh... there are multiple channels with that name. Please be more specific!" + CHANNEL);
-                        waitForChannel(event);
+                        waitForChannel(event, e.getMessageIdLong());
                         return;
                     }
                     TextChannel tchan = list.get(0);
@@ -130,15 +130,15 @@ public class CreateCommand extends GiveawayCommand
 
                     // channel selection successful
                     event.replySuccess("Sweet! The giveaway will be in "+tchan.getAsMention()+"! Next, how long should the giveaway last?"+TIME);
-                    waitForTime(event, tchan);
+                    waitForTime(event, tchan, e.getMessageIdLong());
                 }, 
                 2, TimeUnit.MINUTES, () -> event.replyWarning("Uh oh! You took longer than 2 minutes to respond, "+event.getAuthor().getAsMention()+"!"+CANCEL));
     }
     
-    private void waitForTime(CommandEvent event, TextChannel tchan)
+    private void waitForTime(CommandEvent event, TextChannel tchan, long lastMessage)
     {
         waiter.waitForEvent(GuildMessageReceivedEvent.class, 
-                e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()), 
+                e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()) && e.getMessageIdLong() != lastMessage, 
                 e -> {
                     // manual cancel
                     if(e.getMessage().getContentRaw().equalsIgnoreCase("cancel"))
@@ -152,7 +152,7 @@ public class CreateCommand extends GiveawayCommand
                     if(seconds==-1)
                     {
                         event.replyWarning("Hm. I can't seem to get a number from that. Can you try again?"+TIME);
-                        waitForTime(event, tchan);
+                        waitForTime(event, tchan, e.getMessageIdLong());
                         return;
                     }
                     
@@ -162,21 +162,21 @@ public class CreateCommand extends GiveawayCommand
                     {
                         event.replyWarning("Oh! Sorry! Giveaway time must not be shorter than " + FormatUtil.secondsToTime(Constants.MIN_TIME) 
                                 + " and no longer than " + FormatUtil.secondsToTime(level.maxTime) + " Mind trying again?" + TIME);
-                        waitForTime(event, tchan);
+                        waitForTime(event, tchan, e.getMessageIdLong());
                         return;
                     }
                     
                     // valid time, continue
                     event.replySuccess("Neat! This giveaway will last "+FormatUtil.secondsToTime(seconds)+"! Now, how many winners should there be?"+WINNERS);
-                    waitForWinners(event, level, tchan, seconds);
+                    waitForWinners(event, level, tchan, seconds, e.getMessageIdLong());
                 }, 
                 2, TimeUnit.MINUTES, () -> event.replyWarning("Uh oh! You took longer than 2 minutes to respond, "+event.getAuthor().getAsMention()+"!"+CANCEL));
     }
     
-    private void waitForWinners(CommandEvent event, PremiumLevel level, TextChannel tchan, int seconds)
+    private void waitForWinners(CommandEvent event, PremiumLevel level, TextChannel tchan, int seconds, long lastMessage)
     {
         waiter.waitForEvent(GuildMessageReceivedEvent.class, 
-                e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()), 
+                e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()) && e.getMessageIdLong() != lastMessage, 
                 e -> {
                     // manual cancel
                     if(e.getMessage().getContentRaw().equalsIgnoreCase("cancel"))
@@ -194,29 +194,29 @@ public class CreateCommand extends GiveawayCommand
                         if(!level.isValidWinners(num))
                         {
                             event.replyWarning("Hey! I can only support 1 to " + level.maxWinners + " winners!" + WINNERS);
-                            waitForWinners(event, level, tchan, seconds);
+                            waitForWinners(event, level, tchan, seconds, e.getMessageIdLong());
                         }
                         else
                         {
                             event.replySuccess("Ok! "+num+" "
                                 + FormatUtil.pluralise(num, "winner", "winners")
                                 + " it is! Finally, what do you want to give away?" + PRIZE);
-                            waitForPrize(event, tchan, seconds, num);
+                            waitForPrize(event, tchan, seconds, num, e.getMessageIdLong());
                         }
                     } 
                     catch(NumberFormatException ex) 
                     {
                         event.replyWarning("Uh... that doesn't look like a valid number."+WINNERS);
-                        waitForWinners(event, level, tchan, seconds);
+                        waitForWinners(event, level, tchan, seconds, e.getMessageIdLong());
                     }
                 }, 
                 2, TimeUnit.MINUTES, () -> event.replyWarning("Uh oh! You took longer than 2 minutes to respond, "+event.getAuthor().getAsMention()+"!"+CANCEL));
     }
     
-    private void waitForPrize(CommandEvent event, TextChannel tchan, int seconds, int winners)
+    private void waitForPrize(CommandEvent event, TextChannel tchan, int seconds, int winners, long lastMessage)
     {
         waiter.waitForEvent(GuildMessageReceivedEvent.class, 
-                e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()), 
+                e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()) && e.getMessageIdLong() != lastMessage, 
                 e -> {
                     // manual cancel
                     if(e.getMessage().getContentRaw().equalsIgnoreCase("cancel"))
@@ -229,7 +229,7 @@ public class CreateCommand extends GiveawayCommand
                     if(prize.length()>250)
                     {
                         event.replyWarning("Ack! That prize is too long. Can you shorten it a bit?"+PRIZE);
-                        waitForPrize(event, tchan, seconds, winners);
+                        waitForPrize(event, tchan, seconds, winners, e.getMessageIdLong());
                         return;
                     }
                     
