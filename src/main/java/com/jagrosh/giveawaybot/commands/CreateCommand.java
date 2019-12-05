@@ -39,7 +39,7 @@ public class CreateCommand extends GiveawayCommand
     private final static String CANCEL = "\n\n`Giveaway creation has been cancelled.`";
     private final static String CHANNEL = "\n\n`Please type the name of a channel in this server.`";
     private final static String TIME = "\n\n`Please enter the duration of the giveaway in seconds.`\n`Alternatively, enter a duration in minutes and include an M at the end, or days and include a D.`";
-    private final static String WINNERS = "\n\n`Please enter a number of winners between 1 and 15.`";
+    private final static String WINNERS = "\n\n`Please enter a number of winners between 1 and %d.`";
     private final static String PRIZE = "\n\n`Please enter the giveaway prize. This will also begin the giveaway.`";
     
     private final EventWaiter waiter;
@@ -167,7 +167,7 @@ public class CreateCommand extends GiveawayCommand
                     }
                     
                     // valid time, continue
-                    event.replySuccess("Neat! This giveaway will last "+FormatUtil.secondsToTime(seconds)+"! Now, how many winners should there be?"+WINNERS);
+                    event.replySuccess("Neat! This giveaway will last "+FormatUtil.secondsToTime(seconds)+"! Now, how many winners should there be?"+String.format(WINNERS, level.maxWinners));
                     waitForWinners(event, level, tchan, seconds, e.getMessageIdLong());
                 }, 
                 2, TimeUnit.MINUTES, () -> event.replyWarning("Uh oh! You took longer than 2 minutes to respond, "+event.getAuthor().getAsMention()+"!"+CANCEL));
@@ -193,7 +193,7 @@ public class CreateCommand extends GiveawayCommand
                         // check value
                         if(!level.isValidWinners(num))
                         {
-                            event.replyWarning("Hey! I can only support 1 to " + level.maxWinners + " winners!" + WINNERS);
+                            event.replyWarning("Hey! I can only support 1 to " + level.maxWinners + " winners!" + String.format(WINNERS, level.maxWinners));
                             waitForWinners(event, level, tchan, seconds, e.getMessageIdLong());
                         }
                         else
@@ -206,7 +206,7 @@ public class CreateCommand extends GiveawayCommand
                     } 
                     catch(NumberFormatException ex) 
                     {
-                        event.replyWarning("Uh... that doesn't look like a valid number."+WINNERS);
+                        event.replyWarning("Uh... that doesn't look like a valid number."+String.format(WINNERS, level.maxWinners));
                         waitForWinners(event, level, tchan, seconds, e.getMessageIdLong());
                     }
                 }, 

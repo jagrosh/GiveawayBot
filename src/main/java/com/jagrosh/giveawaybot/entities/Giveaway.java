@@ -76,7 +76,9 @@ public class Giveaway
             eb.setColor(color);
         eb.setFooter((winners==1 ? "" : winners+" winners | ")+"Ends at",null);
         eb.setTimestamp(end);
-        eb.setDescription("React with "+Constants.TADA+" to enter!\nTime remaining: "+FormatUtil.secondsToTime(now.until(end, ChronoUnit.SECONDS)));
+        eb.setDescription("React with " + Constants.TADA + " to enter!"
+                + "\nTime remaining: " + FormatUtil.secondsToTime(now.until(end, ChronoUnit.SECONDS))
+                + "\nHosted by: <@" + userId + ">");
         if(prize!=null)
             eb.setAuthor(prize, null, null);
         if(close)
@@ -140,8 +142,8 @@ public class Giveaway
         MessageBuilder mb = new MessageBuilder();
         mb.append(Constants.YAY).append(" **GIVEAWAY ENDED** ").append(Constants.YAY);
         EmbedBuilder eb = new EmbedBuilder();
-        eb.setColor(new Color(0x36393F));
-        eb.setFooter((winners==1 ? "" : winners+" Winners | ")+"Ended at",null);
+        eb.setColor(new Color(0x36393F)); // dark theme background
+        eb.setFooter((winners==1 ? "" : winners+" Winners | ") + "Ended at",null);
         eb.setTimestamp(end);
         if(prize!=null)
             eb.setAuthor(prize, null, null);
@@ -158,8 +160,8 @@ public class Giveaway
             }
             else if(wins.size()==1)
             {
-                eb.setDescription("Winner: <@"+wins.get(0)+">");
-                toSend = "Congratulations <@"+wins.get(0)+">! You won"+(prize==null ? "" : " the **"+prize+"**")+"!";
+                eb.setDescription("Winner: <@" + wins.get(0) + ">");
+                toSend = "Congratulations <@" + wins.get(0) + ">! You won" + (prize==null ? "" : " the **" + prize + "**") + "!";
             }
             else
             {
@@ -170,14 +172,13 @@ public class Giveaway
                     toSend+=", <@"+wins.get(i)+">";
                 toSend+="! You won"+(prize==null ? "" : " the **"+prize+"**")+"!";
             }
-            mb.setEmbed(eb.build());
+            mb.setEmbed(eb.appendDescription("\nHosted by: <@" + userId + ">").build());
             restJDA.editMessage(channelId, messageId, mb.build()).queue(m->{}, f->{});
             restJDA.sendMessage(channelId, toSend).queue(m->{}, f->{});
         } 
         catch(Exception e) 
         {
-            eb.setDescription("Could not determine a winner!");
-            mb.setEmbed(eb.build());
+            mb.setEmbed(eb.setDescription("Could not determine a winner!\nHosted by: <@" + userId + ">").build());
             restJDA.editMessage(channelId, messageId, mb.build()).queue(m->{}, f->{});
             restJDA.sendMessage(channelId, "A winner could not be determined!").queue(m->{}, f->{});
         }
