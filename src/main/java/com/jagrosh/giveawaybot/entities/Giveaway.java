@@ -137,6 +137,11 @@ public class Giveaway
         else LOG.error("RestAction failure: ["+t+"] "+t.getMessage());
     }
     
+    private String messageLink()
+    {
+        return String.format("\n<https://discordapp.com/channels/%d/%d/%d>", guildId, channelId, messageId);
+    }
+    
     public void end(RestJDA restJDA)
     {
         MessageBuilder mb = new MessageBuilder();
@@ -174,13 +179,13 @@ public class Giveaway
             }
             mb.setEmbed(eb.appendDescription("\nHosted by: <@" + userId + ">").build());
             restJDA.editMessage(channelId, messageId, mb.build()).queue(m->{}, f->{});
-            restJDA.sendMessage(channelId, toSend).queue(m->{}, f->{});
+            restJDA.sendMessage(channelId, toSend + messageLink()).queue(m->{}, f->{});
         } 
         catch(Exception e) 
         {
             mb.setEmbed(eb.setDescription("Could not determine a winner!\nHosted by: <@" + userId + ">").build());
             restJDA.editMessage(channelId, messageId, mb.build()).queue(m->{}, f->{});
-            restJDA.sendMessage(channelId, "A winner could not be determined!").queue(m->{}, f->{});
+            restJDA.sendMessage(channelId, "A winner could not be determined!" + messageLink()).queue(m->{}, f->{});
         }
     }
 }
