@@ -7,7 +7,7 @@
 [![Patreon](https://img.shields.io/badge/donate-Patreon-orange.svg)](https://www.patreon.com/discordgiveaways)
 [![CodeFactor](https://www.codefactor.io/repository/github/jagrosh/giveawaybot/badge)](https://www.codefactor.io/repository/github/jagrosh/giveawaybot)<br>
 [![PrivacyPolicy](https://img.shields.io/badge/Privacy%20Policy--lightgrey.svg?style=social)](https://gist.github.com/jagrosh/f1df4441f94ca06274fa78db7cc3c526#privacy-policy)
-[![Discord](https://discordapp.com/api/guilds/287348646071238656/widget.png)](https://discordapp.com/invite/D3VXZyC)
+[![Discord](https://discordapp.com/api/guilds/585687812548853760/widget.png)](https://discordapp.com/invite/Q5wxTJF) [![Gitter](https://badges.gitter.im/jagrosh/GiveawayBot.svg)](https://gitter.im/jagrosh/GiveawayBot?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 Hold giveaways quickly and easily on your Discord server! GiveawayBot is powered by [JDA](https://github.com/DV8FromTheWorld/JDA/) and [JDA-Utilities](https://github.com/jagrosh/JDA-Utilities).
 
