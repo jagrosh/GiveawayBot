@@ -194,10 +194,10 @@ public class RestMessage implements Message
     public MessageAction editMessage(MessageEmbed me) { throw new UnsupportedOperationException(UNSUPPORTED); }
 
     @Override
-    public MessageAction editMessageFormat(String string, Object... os) { throw new UnsupportedOperationException(UNSUPPORTED); }
+    public MessageAction editMessage(Message msg) { throw new UnsupportedOperationException(UNSUPPORTED); }
 
     @Override
-    public MessageAction editMessage(Message msg) { throw new UnsupportedOperationException(UNSUPPORTED); }
+    public MessageAction editMessageFormat(String string, Object... os) { throw new UnsupportedOperationException(UNSUPPORTED); }
 
     @Override
     public AuditableRestAction<Void> delete() { throw new UnsupportedOperationException(UNSUPPORTED); }
