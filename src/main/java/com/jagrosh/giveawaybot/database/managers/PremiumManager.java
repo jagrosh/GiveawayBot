@@ -23,8 +23,8 @@ import com.jagrosh.giveawaybot.entities.PremiumLevel;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Role;
 
 /**
  *

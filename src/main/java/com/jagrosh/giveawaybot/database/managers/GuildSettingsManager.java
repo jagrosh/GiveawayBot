@@ -23,9 +23,9 @@ import com.jagrosh.giveawaybot.database.Database;
 import java.awt.Color;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 /**
  *

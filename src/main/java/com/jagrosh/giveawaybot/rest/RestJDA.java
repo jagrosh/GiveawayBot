@@ -15,21 +15,51 @@
  */
 package com.jagrosh.giveawaybot.rest;
 
+import java.time.OffsetDateTime;
 import java.util.EnumSet;
+import java.util.Formatter;
+import java.util.List;
 import javax.annotation.CheckReturnValue;
-import net.dv8tion.jda.core.AccountType;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.impl.GuildImpl;
-import net.dv8tion.jda.core.entities.impl.JDAImpl;
-import net.dv8tion.jda.core.entities.impl.TextChannelImpl;
-import net.dv8tion.jda.core.requests.Request;
-import net.dv8tion.jda.core.requests.Response;
-import net.dv8tion.jda.core.requests.RestAction;
-import net.dv8tion.jda.core.requests.Route;
-import net.dv8tion.jda.core.utils.Checks;
-import net.dv8tion.jda.core.utils.cache.CacheFlag;
+import net.dv8tion.jda.api.AccountType;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.Category;
+import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Emote;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.IMentionable;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageActivity;
+import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.MessageReaction;
+import net.dv8tion.jda.api.entities.MessageType;
+import net.dv8tion.jda.api.entities.PrivateChannel;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.requests.Request;
+import net.dv8tion.jda.api.requests.Response;
+import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.api.requests.restaction.AuditableRestAction;
+import net.dv8tion.jda.api.requests.restaction.MessageAction;
+import net.dv8tion.jda.api.requests.restaction.pagination.ReactionPaginationAction;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import net.dv8tion.jda.internal.JDAImpl;
+import net.dv8tion.jda.internal.entities.AbstractMessage;
+import net.dv8tion.jda.internal.entities.DataMessage;
+import net.dv8tion.jda.internal.entities.GuildImpl;
+import net.dv8tion.jda.internal.entities.ReceivedMessage;
+import net.dv8tion.jda.internal.entities.TextChannelImpl;
+import net.dv8tion.jda.internal.requests.Route;
+import net.dv8tion.jda.internal.utils.Checks;
+import net.dv8tion.jda.internal.utils.config.AuthorizationConfig;
+import net.dv8tion.jda.internal.utils.config.MetaConfig;
+import net.dv8tion.jda.internal.utils.config.SessionConfig;
+import net.dv8tion.jda.internal.utils.config.ThreadingConfig;
 import okhttp3.OkHttpClient;
+import org.apache.commons.collections4.Bag;
 
 /**
  *
@@ -37,11 +67,18 @@ import okhttp3.OkHttpClient;
  */
 public class RestJDA 
 {
-    private final JDAImpl fakeJDA;
+    private final JDAImpl internalJDA;
     
     public RestJDA(String token)
     {
-        fakeJDA = new JDAImpl(AccountType.BOT, // AccountType accountType
+        AuthorizationConfig authConfig = new AuthorizationConfig(AccountType.BOT, token);
+        SessionConfig sessConfig = null;
+        ThreadingConfig threConfig = null;
+        MetaConfig metaConfig = null;
+        
+        internalJDA = new JDAImpl(authConfig, sessConfig, threConfig, metaConfig);
+        
+        /*fakeJDA = new JDAImpl(AccountType.BOT, // AccountType accountType
                 token, // String token
                 null, // SessionController controller
                 new OkHttpClient.Builder().build(), // OkHttpClient httpClient
@@ -61,36 +98,36 @@ public class RestJDA
                 5, // int poolSize
                 900, // int maxReconnectDelay
                 null, // ConcurrentMap<String, String> contextMap
-                EnumSet.allOf(CacheFlag.class)); // EnumSet<CacheFlag> cacheFlags
+                EnumSet.allOf(CacheFlag.class)); // EnumSet<CacheFlag> cacheFlags*/
     }
     
     @CheckReturnValue
-    public EditedMessageAction editMessage(long channelId, long messageId, Message newContent)
+    public RestMessageAction editMessage(long channelId, long messageId, Message newContent)
     {
         Checks.notNull(newContent, "message");
         Route.CompiledRoute route = Route.Messages.EDIT_MESSAGE.compile(Long.toString(channelId), Long.toString(messageId));
-        return new EditedMessageAction(fakeJDA, route, new TextChannelImpl(channelId, new GuildImpl(fakeJDA, 0))).apply(newContent);
+        return new RestMessageAction(internalJDA, route, new TextChannelImpl(channelId, new GuildImpl(internalJDA, 0))).apply(newContent);
     }
     
     @CheckReturnValue
-    public EditedMessageAction sendMessage(long channelId, String msg)
+    public RestMessageAction sendMessage(long channelId, String msg)
     {
         return sendMessage(channelId, new MessageBuilder().append(msg).build());
     }
     
     @CheckReturnValue
-    public EditedMessageAction sendMessage(long channelId, Message msg)
+    public RestMessageAction sendMessage(long channelId, Message msg)
     {
         Checks.notNull(msg, "Message");
         Route.CompiledRoute route = Route.Messages.SEND_MESSAGE.compile(Long.toString(channelId));
-        return new EditedMessageAction(fakeJDA, route, new TextChannelImpl(channelId, new GuildImpl(fakeJDA, 0))).apply(msg);
+        return new RestMessageAction(internalJDA, route, new TextChannelImpl(channelId, new GuildImpl(internalJDA, 0))).apply(msg);
     }
     
-    @CheckReturnValue
+    /*@CheckReturnValue
     public RestAction<MessageJson> getMessageById(long channelId, long messageId)
     {
         Route.CompiledRoute route = Route.Messages.GET_MESSAGE.compile(Long.toString(channelId), Long.toString(messageId));
-        return new RestAction<MessageJson>(fakeJDA, route)
+        return new RestAction<MessageJson>(internalJDA, route)
         {
             @Override
             protected void handleResponse(Response response, Request<MessageJson> request)
@@ -101,11 +138,11 @@ public class RestJDA
                     request.onFailure(response);
             }
         };
-    }
+    }*/
     
     @CheckReturnValue
-    public EditedReactionPaginationAction getReactionUsers(String channelId, String messageId, String code)
+    public RestReactionPaginationAction getReactionUsers(long channelId, long messageId, String code)
     {
-        return new EditedReactionPaginationAction(fakeJDA, code, channelId, messageId);
+        return new RestReactionPaginationAction(new RestMessage(internalJDA, messageId, channelId), code);
     }
 }

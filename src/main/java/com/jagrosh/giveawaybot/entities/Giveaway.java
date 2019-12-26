@@ -17,7 +17,7 @@ package com.jagrosh.giveawaybot.entities;
 
 import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.giveawaybot.database.Database;
-import com.jagrosh.giveawaybot.rest.EditedMessageAction;
+import com.jagrosh.giveawaybot.rest.RestMessageAction;
 import com.jagrosh.giveawaybot.rest.RestJDA;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.giveawaybot.util.GiveawayUtil;
@@ -26,12 +26,12 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.exceptions.ErrorResponseException;
-import net.dv8tion.jda.core.exceptions.RateLimitedException;
-import net.dv8tion.jda.core.utils.MiscUtil;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.exceptions.RateLimitedException;
+import net.dv8tion.jda.internal.utils.EncodingUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,7 +94,7 @@ public class Giveaway
     
     public void update(RestJDA restJDA, Database database, Instant now, boolean queue)
     {
-        EditedMessageAction ra = restJDA.editMessage(channelId, messageId, render(database.settings.getSettings(guildId).color, now));
+        RestMessageAction ra = restJDA.editMessage(channelId, messageId, render(database.settings.getSettings(guildId).color, now));
         if(queue)
             ra.queue(m -> {}, t -> handleThrowable(t, database));
         else
@@ -154,8 +154,8 @@ public class Giveaway
             eb.setAuthor(prize, null, null);
         try 
         {
-            List<Long> ids = restJDA.getReactionUsers(Long.toString(channelId), Long.toString(messageId), MiscUtil.encodeUTF8(Constants.TADA))
-                    .cache(true).stream().distinct().collect(Collectors.toList());
+            List<Long> ids = restJDA.getReactionUsers(channelId, messageId, EncodingUtil.encodeUTF8(Constants.TADA))
+                    .stream().map(u -> u.getIdLong()).distinct().collect(Collectors.toList());
             List<Long> wins = GiveawayUtil.selectWinners(ids, winners);
             String toSend;
             if(wins.isEmpty())

@@ -27,8 +27,8 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 /**
  *

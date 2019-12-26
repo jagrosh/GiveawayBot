@@ -15,6 +15,8 @@
  */
 package com.jagrosh.giveawaybot;
 
+import club.minnced.discord.webhook.WebhookClient;
+import club.minnced.discord.webhook.WebhookClientBuilder;
 import com.jagrosh.giveawaybot.commands.*;
 import com.jagrosh.giveawaybot.database.Database;
 import com.jagrosh.giveawaybot.entities.Giveaway;
@@ -32,18 +34,16 @@ import java.util.EnumSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import net.dv8tion.jda.bot.sharding.DefaultShardManagerBuilder;
-import net.dv8tion.jda.bot.sharding.ShardManager;
-import net.dv8tion.jda.core.OnlineStatus;
-import net.dv8tion.jda.core.entities.*;
-import net.dv8tion.jda.core.events.ReadyEvent;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleAddEvent;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleRemoveEvent;
-import net.dv8tion.jda.core.events.role.update.RoleUpdateColorEvent;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
-import net.dv8tion.jda.core.utils.cache.CacheFlag;
-import net.dv8tion.jda.webhook.WebhookClient;
-import net.dv8tion.jda.webhook.WebhookClientBuilder;
+import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.ReadyEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
+import net.dv8tion.jda.api.events.role.update.RoleUpdateColorEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
+import net.dv8tion.jda.api.sharding.ShardManager;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -211,7 +211,7 @@ public class Bot extends ListenerAdapter
                 .setPrefix("!g")
                 .setAlternativePrefix("g!")
                 .setOwnerId("113156185389092864")
-                .setGame(Game.playing(Constants.TADA+" "+Constants.WEBSITE+" "+Constants.TADA+" Type !ghelp "+Constants.TADA))
+                .setActivity(Activity.playing(Constants.TADA+" "+Constants.WEBSITE+" "+Constants.TADA+" Type !ghelp "+Constants.TADA))
                 .setEmojis(Constants.TADA, Constants.WARNING, Constants.ERROR)
                 //.setServerInvite("https://discordapp.com/invite/0p9LSGoRLu6Pet0k")
                 .setHelpConsumer(event -> event.replyInDm(FormatUtil.formatHelp(event), 
@@ -244,13 +244,12 @@ public class Bot extends ListenerAdapter
                 .setShardsTotal(shardTotal)
                 .setShards(shardSetId*shardSetSize, (shardSetId+1)*shardSetSize-1)
                 .setToken(config.getString("bot-token"))
-                .setAudioEnabled(false)
-                .setGame(Game.playing("loading..."))
+                .setActivity(Activity.playing("loading..."))
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .addEventListeners(client, waiter, bot)
-                .setSessionController(new BlockingSessionController())
-                .setDisabledCacheFlags(EnumSet.of(CacheFlag.VOICE_STATE, CacheFlag.GAME, CacheFlag.EMOTE))
-                .setCompressionEnabled(true)
+                //.setSessionController(new BlockingSessionController())
+                .setDisabledCacheFlags(EnumSet.of(CacheFlag.VOICE_STATE, CacheFlag.ACTIVITY, CacheFlag.EMOTE))
+                .setGuildSubscriptionsEnabled(false)
                 .build());
     }
 }

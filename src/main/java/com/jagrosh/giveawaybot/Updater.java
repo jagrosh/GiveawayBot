@@ -15,6 +15,8 @@
  */
 package com.jagrosh.giveawaybot;
 
+import club.minnced.discord.webhook.WebhookClient;
+import club.minnced.discord.webhook.WebhookClientBuilder;
 import com.jagrosh.giveawaybot.database.Database;
 import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.entities.Status;
@@ -25,8 +27,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
-import net.dv8tion.jda.webhook.WebhookClient;
-import net.dv8tion.jda.webhook.WebhookClientBuilder;
 import org.slf4j.LoggerFactory;
 
 /**

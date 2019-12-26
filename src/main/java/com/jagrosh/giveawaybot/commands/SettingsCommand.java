@@ -21,10 +21,9 @@ import com.jagrosh.giveawaybot.database.managers.GuildSettingsManager.GuildSetti
 import com.jagrosh.giveawaybot.entities.PremiumLevel;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import java.awt.Color;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.Permission;
 
 /**
  *

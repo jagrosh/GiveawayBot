@@ -19,8 +19,8 @@ import com.jagrosh.giveawaybot.Bot;
 import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.giveawaybot.util.GiveawayUtil;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
 
 /**
  *
@@ -56,7 +56,7 @@ public class RerollCommand extends GiveawayCommand
         String id = event.getArgs().split("\\s+")[0];
         if(id.matches("\\d{17,20}")) 
         {
-            event.getChannel().getMessageById(id).queue(m -> determineWinner(m,event), 
+            event.getChannel().retrieveMessageById(id).queue(m -> determineWinner(m,event), 
                     v -> event.replyError("I couldn't find a message with that ID in this channel."));
         }
         else

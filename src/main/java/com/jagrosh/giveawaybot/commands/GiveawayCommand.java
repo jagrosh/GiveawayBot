@@ -17,7 +17,7 @@ package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Bot;
 import com.jagrosh.jdautilities.command.Command;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.api.Permission;
 
 /**
  *
