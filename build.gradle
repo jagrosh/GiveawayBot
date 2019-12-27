@@ -36,3 +36,9 @@ dependencies {
 //    implementation group: 'org.jgroups', name: 'jgroups', version: '4.0.15.Final'
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
+
+shadowJar {
+    mainClassName = 'com.jagrosh.giveawaybot.GiveawayBot'
+}
+
+compileJava.options.encoding = 'UTF-8'
