@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.RateLimitedException;
@@ -133,7 +134,7 @@ public class Giveaway
                     LOG.warn("RestAction returned error: "+e.getErrorCode()+": "+e.getMeaning());
             }
         }
-        else if(t instanceof RateLimitedException) { /* ignore */ }
+        else if (t instanceof RateLimitedException) { /* ignore */ }
         else LOG.error("RestAction failure: ["+t+"] "+t.getMessage());
     }
     
@@ -154,32 +155,33 @@ public class Giveaway
             eb.setAuthor(prize, null, null);
         try 
         {
-            List<Long> ids = restJDA.getReactionUsers(channelId, messageId, EncodingUtil.encodeUTF8(Constants.TADA))
-                    .stream().map(u -> u.getIdLong()).distinct().collect(Collectors.toList());
-            List<Long> wins = GiveawayUtil.selectWinners(ids, winners);
-            String toSend;
-            if(wins.isEmpty())
-            {
-                eb.setDescription("Could not determine a winner!");
-                toSend = "A winner could not be determined!";
-            }
-            else if(wins.size()==1)
-            {
-                eb.setDescription("Winner: <@" + wins.get(0) + ">");
-                toSend = "Congratulations <@" + wins.get(0) + ">! You won" + (prize==null ? "" : " the **" + prize + "**") + "!";
-            }
-            else
-            {
-                eb.setDescription("Winners:");
-                wins.forEach(w -> eb.appendDescription("\n").appendDescription("<@"+w+">"));
-                toSend = "Congratulations <@"+wins.get(0)+">";
-                for(int i=1; i<wins.size(); i++)
-                    toSend+=", <@"+wins.get(i)+">";
-                toSend+="! You won"+(prize==null ? "" : " the **"+prize+"**")+"!";
-            }
-            mb.setEmbed(eb.appendDescription("\nHosted by: <@" + userId + ">").build());
-            restJDA.editMessage(channelId, messageId, mb.build()).queue(m->{}, f->{});
-            restJDA.sendMessage(channelId, toSend + messageLink()).queue(m->{}, f->{});
+           restJDA.getReactionUsers(channelId, messageId, EncodingUtil.encodeUTF8(Constants.TADA)).submit().thenAcceptAsync(ids -> {
+                List<Long> wins = GiveawayUtil.selectWinners(ids.stream().map(ISnowflake::getIdLong).distinct().collect(Collectors.toList()), winners);
+                String toSend;
+                if(wins.isEmpty())
+                {
+                    eb.setDescription("Could not determine a winner!");
+                    toSend = "A winner could not be determined!";
+                }
+                else if(wins.size()==1)
+                {
+                    eb.setDescription("Winner: <@" + wins.get(0) + ">");
+                    toSend = "Congratulations <@" + wins.get(0) + ">! You won" + (prize==null ? "" : " the **" + prize + "**") + "!";
+                }
+                else
+                {
+                    eb.setDescription("Winners:");
+                    wins.forEach(w -> eb.appendDescription("\n").appendDescription("<@"+w+">"));
+                    toSend = "Congratulations <@"+wins.get(0)+">";
+                    for(int i=1; i<wins.size(); i++)
+                        toSend +=", <@"+wins.get(i)+">";
+                    toSend+="! You won"+(prize==null ? "" : " the **"+prize+"**")+"!";
+                }
+                mb.setEmbed(eb.appendDescription("\nHosted by: <@" + userId + ">").build());
+                restJDA.editMessage(channelId, messageId, mb.build()).queue(m->{}, f->{});
+                restJDA.sendMessage(channelId, toSend + messageLink()).queue(m->{}, f->{});
+            });
+
         } 
         catch(Exception e) 
         {

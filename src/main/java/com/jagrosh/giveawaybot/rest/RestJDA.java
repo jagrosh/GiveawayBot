@@ -29,6 +29,8 @@ import net.dv8tion.jda.internal.utils.config.MetaConfig;
 import net.dv8tion.jda.internal.utils.config.SessionConfig;
 import net.dv8tion.jda.internal.utils.config.ThreadingConfig;
 
+import java.util.concurrent.Executors;
+
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
@@ -42,6 +44,7 @@ public class RestJDA
         AuthorizationConfig authConfig = new AuthorizationConfig(AccountType.BOT, token);
         SessionConfig sessConfig = SessionConfig.getDefault();
         ThreadingConfig threConfig = ThreadingConfig.getDefault();
+        threConfig.setRateLimitPool(Executors.newScheduledThreadPool(5, r -> { return new Thread(r, "Giveaway Message Update"); }), true);
         MetaConfig metaConfig = MetaConfig.getDefault();
         
         internalJDA = new JDAImpl(authConfig, sessConfig, threConfig, metaConfig);
