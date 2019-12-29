@@ -22,7 +22,7 @@ repositories {
 }
 
 dependencies {
-    implementation (group: 'net.dv8tion', name: 'JDA', version: '4.1.0_87') {
+    implementation (group: 'net.dv8tion', name: 'JDA', version: '4.1.0_88') {
         exclude module: 'opus-java'
     }
     implementation group: 'club.minnced', name: 'discord-webhooks', version: '0.1.8'

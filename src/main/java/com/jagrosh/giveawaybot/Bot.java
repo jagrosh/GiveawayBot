@@ -183,7 +183,7 @@ public class Bot extends ListenerAdapter
     {
         webhook.send(Constants.TADA + " Shard `"+(event.getJDA().getShardInfo().getShardId()+1)+"/"
                 +event.getJDA().getShardInfo().getShardTotal()+"` has connected. Guilds: `"
-                +event.getJDA().getGuilds().size()+"` Users: `"+event.getJDA().getUsers().size()+"`");
+                +event.getJDA().getGuilds().size() + "`");// + " Users: `"+event.getJDA().getUsers().size()+"`");
     }
     
     /**
@@ -208,18 +208,16 @@ public class Bot extends ListenerAdapter
         
         // build the client to deal with commands
         CommandClient client = new CommandClientBuilder()
-                .setPrefix("!g")
-                .setAlternativePrefix("g!")
+                .setPrefix(config.getString("prefix"))
+                .setAlternativePrefix(config.getString("altprefix"))
                 .setOwnerId("113156185389092864")
                 .setActivity(Activity.playing(Constants.TADA+" "+Constants.WEBSITE+" "+Constants.TADA+" Type !ghelp "+Constants.TADA))
                 .setEmojis(Constants.TADA, Constants.WARNING, Constants.ERROR)
-                //.setServerInvite("https://discordapp.com/invite/0p9LSGoRLu6Pet0k")
                 .setHelpConsumer(event -> event.replyInDm(FormatUtil.formatHelp(event), 
                         m-> event.getMessage().addReaction(Constants.REACTION).queue(s->{},f->{}), 
                         f-> event.replyWarning("Help could not be sent because you are blocking Direct Messages")))
                 .setDiscordBotsKey(config.getString("listing.discord-bots"))
                 .setCarbonitexKey(config.getString("listing.carbon"))
-                //.setDiscordBotListKey(tokens.get(6))
                 .addCommands(
                         new AboutCommand(bot),
                         new InviteCommand(),

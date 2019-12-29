@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.jagrosh</groupId>
     <artifactId>GiveawayBot</artifactId>
-    <version>2.4</version>
+    <version>3.0</version>
     <packaging>jar</packaging>
     
     <properties>
@@ -24,7 +24,7 @@
         <dependency>
 	    <groupId>net.dv8tion</groupId>
 	    <artifactId>JDA</artifactId>
-	    <version>4.1.0_81</version>
+	    <version>4.1.0_88</version>
 	</dependency>
         <dependency>
             <groupId>com.jagrosh</groupId> 

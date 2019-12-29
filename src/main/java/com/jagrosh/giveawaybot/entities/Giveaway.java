@@ -155,32 +155,35 @@ public class Giveaway
             eb.setAuthor(prize, null, null);
         try 
         {
-           restJDA.getReactionUsers(channelId, messageId, EncodingUtil.encodeUTF8(Constants.TADA)).submit().thenAcceptAsync(ids -> {
-                List<Long> wins = GiveawayUtil.selectWinners(ids.stream().map(ISnowflake::getIdLong).distinct().collect(Collectors.toList()), winners);
-                String toSend;
-                if(wins.isEmpty())
-                {
-                    eb.setDescription("Could not determine a winner!");
-                    toSend = "A winner could not be determined!";
-                }
-                else if(wins.size()==1)
-                {
-                    eb.setDescription("Winner: <@" + wins.get(0) + ">");
-                    toSend = "Congratulations <@" + wins.get(0) + ">! You won" + (prize==null ? "" : " the **" + prize + "**") + "!";
-                }
-                else
-                {
-                    eb.setDescription("Winners:");
-                    wins.forEach(w -> eb.appendDescription("\n").appendDescription("<@"+w+">"));
-                    toSend = "Congratulations <@"+wins.get(0)+">";
-                    for(int i=1; i<wins.size(); i++)
-                        toSend +=", <@"+wins.get(i)+">";
-                    toSend+="! You won"+(prize==null ? "" : " the **"+prize+"**")+"!";
-                }
-                mb.setEmbed(eb.appendDescription("\nHosted by: <@" + userId + ">").build());
-                restJDA.editMessage(channelId, messageId, mb.build()).queue(m->{}, f->{});
-                restJDA.sendMessage(channelId, toSend + messageLink()).queue(m->{}, f->{});
-            });
+            // stream over all the users that reacted (paginating as necessary
+            List<Long> ids = restJDA.getReactionUsers(channelId, messageId, EncodingUtil.encodeUTF8(Constants.TADA))
+                    .stream().map(u -> u.getIdLong()).distinct().collect(Collectors.toList());
+           //restJDA.getReactionUsers(channelId, messageId, EncodingUtil.encodeUTF8(Constants.TADA))..submit().thenAcceptAsync(ids -> {
+            List<Long> wins = GiveawayUtil.selectWinners(ids, winners);
+            String toSend;
+            if(wins.isEmpty())
+            {
+                eb.setDescription("Could not determine a winner!");
+                toSend = "A winner could not be determined!";
+            }
+            else if(wins.size()==1)
+            {
+                eb.setDescription("Winner: <@" + wins.get(0) + ">");
+                toSend = "Congratulations <@" + wins.get(0) + ">! You won" + (prize==null ? "" : " the **" + prize + "**") + "!";
+            }
+            else
+            {
+                eb.setDescription("Winners:");
+                wins.forEach(w -> eb.appendDescription("\n").appendDescription("<@"+w+">"));
+                toSend = "Congratulations <@"+wins.get(0)+">";
+                for(int i=1; i<wins.size(); i++)
+                    toSend +=", <@"+wins.get(i)+">";
+                toSend+="! You won"+(prize==null ? "" : " the **"+prize+"**")+"!";
+            }
+            mb.setEmbed(eb.appendDescription("\nHosted by: <@" + userId + ">").build());
+            restJDA.editMessage(channelId, messageId, mb.build()).queue(m->{}, f->{});
+            restJDA.sendMessage(channelId, toSend + messageLink()).queue(m->{}, f->{});
+            //});
 
         } 
         catch(Exception e) 
