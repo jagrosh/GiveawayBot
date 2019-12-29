@@ -42,7 +42,7 @@ public class PremiumManager extends DataManager
     
     public PremiumLevel getPremiumLevel(Guild guild)
     {
-        if(guild==null || guild.getOwner()==null)
+        if(guild==null)
             return PremiumLevel.NONE;
         return read(selectAll(USER_ID.is(guild.getOwnerIdLong())), rs -> rs.next() 
                 ? PremiumLevel.get(PREMIUM_LEVEL.getValue(rs)) 
@@ -51,7 +51,7 @@ public class PremiumManager extends DataManager
     
     public void updatePremiumLevels(Guild premiumGuild)
     {
-        if(premiumGuild == null || !premiumGuild.isAvailable() || premiumGuild.getMemberCache().size()==0)
+        if(premiumGuild == null || !premiumGuild.isLoaded() || premiumGuild.getMemberCache().size()==0)
             return;
         // make a map of all users that have premium levels
         Map<Long, PremiumLevel> map = new HashMap<>();

@@ -54,9 +54,6 @@ public class Updater
         
         webhook.send(Constants.TADA + " Starting updater...");
         
-        // migrate the old giveaways if the file exists
-        //migrateGiveaways(database);
-        
         // end any giveaways that didn't get deleted before last restart
         database.giveaways.getGiveaways(Status.ENDING).forEach(giveaway -> database.giveaways.setStatus(giveaway.messageId, Status.ENDNOW));
         

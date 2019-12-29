@@ -67,7 +67,6 @@ public class Bot extends ListenerAdapter
         webhook = new WebhookClientBuilder(webhookUrl).build();
         
         threadpool.scheduleWithFixedDelay(()-> databaseCheck(), 5, 5, TimeUnit.MINUTES);
-        threadpool.scheduleWithFixedDelay(()-> premiumUpdate(), 5, 5, TimeUnit.MINUTES);
     }
     
     // scheduled processes
@@ -86,13 +85,6 @@ public class Bot extends ListenerAdapter
         }
         else
             dbfailures[0] = 0;
-    }
-    
-    private void premiumUpdate()
-    {
-        if(shards == null)
-            return;
-        database.premium.updatePremiumLevels(shards.getGuildById(Constants.SERVER_ID));
     }
     
     
