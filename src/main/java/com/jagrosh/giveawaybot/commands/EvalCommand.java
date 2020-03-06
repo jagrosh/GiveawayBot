@@ -20,6 +20,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import net.dv8tion.jda.api.entities.ChannelType;
 
 /**
  *
@@ -43,7 +44,7 @@ public class EvalCommand extends Command {
         ScriptEngine se = new ScriptEngineManager().getEngineByName("Nashorn");
         se.put("event", event);
         se.put("jda", event.getJDA());
-        se.put("guild", event.getGuild());
+        se.put("guild", event.isFromType(ChannelType.TEXT) ? event.getGuild() : null);
         se.put("channel", event.getChannel());
         se.put("bot", bot);
         try

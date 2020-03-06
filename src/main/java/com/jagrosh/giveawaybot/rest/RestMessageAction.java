@@ -15,41 +15,44 @@
  */
 package com.jagrosh.giveawaybot.rest;
 
+import com.jagrosh.giveawaybot.util.FormatUtil;
 import java.util.List;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageChannel;
-import net.dv8tion.jda.core.entities.MessageEmbed;
-import net.dv8tion.jda.core.entities.MessageType;
-import net.dv8tion.jda.core.requests.Request;
-import net.dv8tion.jda.core.requests.Response;
-import net.dv8tion.jda.core.requests.Route;
-import net.dv8tion.jda.core.requests.restaction.MessageAction;
+import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnull;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.MessageType;
+import net.dv8tion.jda.api.requests.Request;
+import net.dv8tion.jda.api.requests.Response;
+import net.dv8tion.jda.internal.requests.Route;
+import net.dv8tion.jda.internal.requests.restaction.MessageActionImpl;
 
 /**
- *
+ * Changes the MessageActionImpl to filter outgoing messages, and not try to build incoming message entities
+ * 
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class EditedMessageAction extends MessageAction
+public class RestMessageAction extends MessageActionImpl
 {
     private static final String CONTENT_TOO_BIG = String.format("A message may not exceed %d characters. Please limit your input!", Message.MAX_CONTENT_LENGTH);
     
-    public EditedMessageAction(JDA api, Route.CompiledRoute route, MessageChannel channel)
+    public RestMessageAction(JDA api, Route.CompiledRoute route, MessageChannel channel)
     {
         super(api, route, channel);
     }
-    
+
     @Override
-    protected void handleResponse(Response response, Request<Message> request)
+    protected void handleSuccess(Response response, Request<Message> request) 
     {
-        if (response.isOk())
-            request.onSuccess(null);
-        else
-            request.onFailure(response);
+        request.onSuccess(null);
     }
     
+    @Nonnull
     @Override
-    public EditedMessageAction apply(final Message message)
+    @CheckReturnValue
+    public RestMessageAction apply(final Message message)
     {
         if (message == null || message.getType() != MessageType.DEFAULT)
             return this;
@@ -58,18 +61,22 @@ public class EditedMessageAction extends MessageAction
             embed(embeds.get(0));
         files.clear();
 
-        return content(message.getContentRaw()).tts(message.isTTS());
+        return content(FormatUtil.filter(message.getContentRaw())).tts(message.isTTS());
     }
     
+    @Nonnull
     @Override
-    public EditedMessageAction tts(final boolean isTTS)
+    @CheckReturnValue
+    public RestMessageAction tts(final boolean isTTS)
     {
         this.tts = isTTS;
         return this;
     }
     
+    @Nonnull
     @Override
-    public EditedMessageAction content(final String content)
+    @CheckReturnValue
+    public RestMessageAction content(final String content)
     {
         if (content == null || content.isEmpty())
             this.content.setLength(0);

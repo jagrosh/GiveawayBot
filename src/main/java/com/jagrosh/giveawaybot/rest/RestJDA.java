@@ -15,21 +15,21 @@
  */
 package com.jagrosh.giveawaybot.rest;
 
-import java.util.EnumSet;
 import javax.annotation.CheckReturnValue;
-import net.dv8tion.jda.core.AccountType;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.impl.GuildImpl;
-import net.dv8tion.jda.core.entities.impl.JDAImpl;
-import net.dv8tion.jda.core.entities.impl.TextChannelImpl;
-import net.dv8tion.jda.core.requests.Request;
-import net.dv8tion.jda.core.requests.Response;
-import net.dv8tion.jda.core.requests.RestAction;
-import net.dv8tion.jda.core.requests.Route;
-import net.dv8tion.jda.core.utils.Checks;
-import net.dv8tion.jda.core.utils.cache.CacheFlag;
-import okhttp3.OkHttpClient;
+import net.dv8tion.jda.api.AccountType;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.internal.JDAImpl;
+import net.dv8tion.jda.internal.entities.GuildImpl;
+import net.dv8tion.jda.internal.entities.TextChannelImpl;
+import net.dv8tion.jda.internal.requests.Route;
+import net.dv8tion.jda.internal.utils.Checks;
+import net.dv8tion.jda.internal.utils.config.AuthorizationConfig;
+import net.dv8tion.jda.internal.utils.config.MetaConfig;
+import net.dv8tion.jda.internal.utils.config.SessionConfig;
+import net.dv8tion.jda.internal.utils.config.ThreadingConfig;
+
+import java.util.concurrent.Executors;
 
 /**
  *
@@ -37,75 +37,44 @@ import okhttp3.OkHttpClient;
  */
 public class RestJDA 
 {
-    private final JDAImpl fakeJDA;
+    private final JDAImpl internalJDA;
     
     public RestJDA(String token)
     {
-        fakeJDA = new JDAImpl(AccountType.BOT, // AccountType accountType
-                token, // String token
-                null, // SessionController controller
-                new OkHttpClient.Builder().build(), // OkHttpClient httpClient
-                null, // WebSocketFactory wsFactory
-                null, // ScheduledThreadPoolExecutor rateLimitPool
-                null, // ScheduledExecutorService gatewayPool
-                null, // ExecutorService callbackPool
-                false, // boolean autoReconnect
-                false, // boolean audioEnabled
-                false, // boolean useShutdownHook
-                false, // boolean bulkDeleteSplittingEnabled
-                true, // boolean retryOnTimeout
-                false, // boolean enableMDC
-                true, // boolean shutdownRateLimitPool
-                true, // boolean shutdownGatewayPool
-                true, // boolean shutdownCallbackPool
-                5, // int poolSize
-                900, // int maxReconnectDelay
-                null, // ConcurrentMap<String, String> contextMap
-                EnumSet.allOf(CacheFlag.class)); // EnumSet<CacheFlag> cacheFlags
+        AuthorizationConfig authConfig = new AuthorizationConfig(AccountType.BOT, token);
+        SessionConfig sessConfig = SessionConfig.getDefault();
+        ThreadingConfig threConfig = ThreadingConfig.getDefault();
+        threConfig.setRateLimitPool(Executors.newScheduledThreadPool(5, r -> { return new Thread(r, "Giveaway Message Update"); }), true);
+        MetaConfig metaConfig = MetaConfig.getDefault();
+        
+        internalJDA = new JDAImpl(authConfig, sessConfig, threConfig, metaConfig);
     }
     
     @CheckReturnValue
-    public EditedMessageAction editMessage(long channelId, long messageId, Message newContent)
+    public RestMessageAction editMessage(long channelId, long messageId, Message newContent)
     {
         Checks.notNull(newContent, "message");
         Route.CompiledRoute route = Route.Messages.EDIT_MESSAGE.compile(Long.toString(channelId), Long.toString(messageId));
-        return new EditedMessageAction(fakeJDA, route, new TextChannelImpl(channelId, new GuildImpl(fakeJDA, 0))).apply(newContent);
+        return new RestMessageAction(internalJDA, route, new TextChannelImpl(channelId, new GuildImpl(internalJDA, 0))).apply(newContent);
     }
     
     @CheckReturnValue
-    public EditedMessageAction sendMessage(long channelId, String msg)
+    public RestMessageAction sendMessage(long channelId, String msg)
     {
         return sendMessage(channelId, new MessageBuilder().append(msg).build());
     }
     
     @CheckReturnValue
-    public EditedMessageAction sendMessage(long channelId, Message msg)
+    public RestMessageAction sendMessage(long channelId, Message msg)
     {
         Checks.notNull(msg, "Message");
         Route.CompiledRoute route = Route.Messages.SEND_MESSAGE.compile(Long.toString(channelId));
-        return new EditedMessageAction(fakeJDA, route, new TextChannelImpl(channelId, new GuildImpl(fakeJDA, 0))).apply(msg);
+        return new RestMessageAction(internalJDA, route, new TextChannelImpl(channelId, new GuildImpl(internalJDA, 0))).apply(msg);
     }
     
     @CheckReturnValue
-    public RestAction<MessageJson> getMessageById(long channelId, long messageId)
+    public RestReactionPaginationAction getReactionUsers(long channelId, long messageId, String code)
     {
-        Route.CompiledRoute route = Route.Messages.GET_MESSAGE.compile(Long.toString(channelId), Long.toString(messageId));
-        return new RestAction<MessageJson>(fakeJDA, route)
-        {
-            @Override
-            protected void handleResponse(Response response, Request<MessageJson> request)
-            {
-                if (response.isOk())
-                    request.onSuccess(new MessageJson(response.getObject()));
-                else
-                    request.onFailure(response);
-            }
-        };
-    }
-    
-    @CheckReturnValue
-    public EditedReactionPaginationAction getReactionUsers(String channelId, String messageId, String code)
-    {
-        return new EditedReactionPaginationAction(fakeJDA, code, channelId, messageId);
+        return new RestReactionPaginationAction(new RestMessage(internalJDA, messageId, channelId), code);
     }
 }

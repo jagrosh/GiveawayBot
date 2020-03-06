@@ -22,8 +22,8 @@ import com.jagrosh.giveawaybot.entities.Status;
 import com.jagrosh.giveawaybot.util.GiveawayUtil;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import java.util.List;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
 
 /**
  *
@@ -61,8 +61,12 @@ public class EndCommand extends GiveawayCommand
                     event.reactError();
                 return;
             }
-            event.getChannel().getHistory().retrievePast(100).queue(messages -> {
-                Message m = messages.stream().filter(msg -> msg.getAuthor().equals(event.getSelfUser()) && !msg.getEmbeds().isEmpty() && msg.getEmbeds().get(0).getColor().getRGB()!=1
+            event.getChannel().getHistory().retrievePast(100).queue(messages -> 
+            {
+                Message m = messages.stream().filter(msg -> 
+                        msg.getAuthor().equals(event.getSelfUser()) 
+                        && !msg.getEmbeds().isEmpty()
+                        && msg.getEmbeds().get(0).getColorRaw() > 1 
                         && msg.getReactions().stream().anyMatch(mr -> mr.getReactionEmote().getName().equals(Constants.TADA) && mr.getCount()>0)).findFirst().orElse(null);
                 if(m==null)
                     event.replyWarning("I couldn't find any recent giveaways in this channel.");
@@ -78,7 +82,7 @@ public class EndCommand extends GiveawayCommand
             Giveaway giveaway = bot.getDatabase().giveaways.getGiveaway(Long.parseLong(event.getArgs()), event.getGuild().getIdLong());
             if(giveaway==null)
             {
-                event.getChannel().getMessageById(event.getArgs()).queue(m -> {
+                event.getChannel().retrieveMessageById(event.getArgs()).queue(m -> {
                     GiveawayUtil.getSingleWinner(m, wins -> event.replySuccess("The new winner is "+wins.getAsMention()+"! Congratulations!"), 
                         () -> event.replyWarning("I couldn't determine a winner for that giveaway."), bot.getThreadpool());
                 }, v -> event.replyError("I failed to retrieve that message."));

@@ -22,7 +22,7 @@ import com.jagrosh.jdautilities.command.Command.Category;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import java.util.Collection;
 import java.util.HashMap;
-import net.dv8tion.jda.core.JDA;
+import net.dv8tion.jda.api.JDA;
 
 /**
  *
@@ -32,18 +32,21 @@ import net.dv8tion.jda.core.JDA;
  */
 public class FormatUtil 
 {
+    public static String filter(String input)
+    {
+        return input.replace("\u202E","") // RTL override
+                .replace("@everyone","@\u0435veryone") // cyrillic e
+                .replace("@here","@h\u0435re") // cyrillic e
+                .trim();
+    }
+    
     public static String formatShardStatuses(Collection<JDA> shards)
     {
         HashMap<JDA.Status, String> map = new HashMap<>();
         shards.forEach(jda -> map.put(jda.getStatus(), map.getOrDefault(jda.getStatus(), "") + " " + jda.getShardInfo().getShardId()));
         StringBuilder sb = new StringBuilder("```diff");
-        map.entrySet().forEach(entry -> sb.append("\n").append(entry.getKey()==JDA.Status.CONNECTED ? "+ " : "- ").append(entry.getKey()).append(":").append(entry.getValue()));
-        /*shards.forEach(jda -> sb.append("\n")
-                .append(jda.getStatus()==JDA.Status.CONNECTED ? "+ " : "- ")
-                .append(jda.getShardInfo().getShardId() < 10 ? "0" : "")
-                .append(jda.getShardInfo().getShardId())
-                .append(": ").append(jda.getStatus()).append(" ~ ")
-                .append(jda.getGuildCache().size()).append(" guilds"));*/
+        map.entrySet().forEach(entry -> sb.append("\n").append(entry.getKey()==JDA.Status.CONNECTED ? "+ " : "- ")
+                .append(entry.getKey()).append(":").append(entry.getValue()));
         return sb.append(" ```").toString();
     }
     

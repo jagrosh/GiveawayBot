@@ -22,10 +22,10 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.JDAUtilitiesInfo;
 import java.util.List;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.JDAInfo;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDAInfo;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.Permission;
 
 /**
  *
@@ -54,14 +54,14 @@ public class AboutCommand extends Command
         //eb.setThumbnail("http://i.imgur.com/sCEbmKa.png");
         eb.setTitle("Hold giveaways quickly and easily!");
         eb.setDescription("Hello! I'm **GiveawayBot**, and I'm here to make it as easy as possible to hold "
-                + "giveaways on your Discord server! I was created by [**jagrosh**#4824](http://jagrosh.com) "
+                + "giveaways on your Discord server! I was created by [**jagrosh**#4824](https://jagrosh.com) "
                 + "(<@113156185389092864>) using the [JDA]("+JDAInfo.GITHUB+") library ("+JDAInfo.VERSION+") and "
                 + "[JDA-Utilities]("+JDAUtilitiesInfo.GITHUB+") ("+JDAUtilitiesInfo.VERSION+"). Check out my "
-                + "commands by typing `!ghelp`, and checkout my website at **http://giveawaybot.party**.");
-        eb.addField(STATS + " Stats", event.getClient().getTotalGuilds()+" servers\n"+event.getJDA().getShardInfo().getShardTotal()+" shards", true);
+                + "commands by typing `" + event.getClient().getPrefix() + "help`, and checkout my website at **https://giveawaybot.party**.");
+        eb.addField(STATS + " Stats", event.getClient().getTotalGuilds() + " servers\n" + event.getJDA().getShardInfo().getShardTotal() + " shards", true);
         List<Giveaway> current = bot.getDatabase().giveaways.getGiveaways();
         eb.addField(Constants.TADA + " Giveaways", current==null ? "?" : current.size()+" right now!", true);
-        eb.addField(LINKS + " Links", "[Website]("+Constants.WEBSITE+")\n[Invite]("+Constants.INVITE+")\n[Support](https://discord.gg/0p9LSGoRLu6Pet0k)", true);
+        eb.addField(LINKS + " Links", "[Website](" + Constants.WEBSITE + ")\n[Invite](" + Constants.INVITE + ")\n[Support](https://giveawaybot.party/support)", true);
         eb.setFooter("Last restart", null);
         eb.setTimestamp(Constants.STARTUP);
         eb.setColor(Constants.BLURPLE);

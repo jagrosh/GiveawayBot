@@ -17,7 +17,6 @@ package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Bot;
 import com.jagrosh.giveawaybot.Constants;
-import com.jagrosh.giveawaybot.database.managers.GuildSettingsManager.GuildSettings;
 import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.entities.PremiumLevel;
 import com.jagrosh.giveawaybot.util.FormatUtil;
@@ -25,8 +24,8 @@ import com.jagrosh.giveawaybot.util.OtherUtil;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import java.time.Instant;
 import java.util.List;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.exceptions.PermissionException;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.exceptions.PermissionException;
 
 /**
  *
@@ -125,7 +124,7 @@ public class StartCommand extends GiveawayCommand
         catch(PermissionException ignore) {}
         
         // start the giveaway
-        Instant now = event.getMessage().getCreationTime().toInstant();
+        Instant now = event.getMessage().getTimeCreated().toInstant();
         bot.startGiveaway(event.getTextChannel(), event.getAuthor(), now, seconds, winners, item);
     }
     

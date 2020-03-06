@@ -51,8 +51,8 @@ public class GiveawayBot {
                 case "bot":
                     Bot.main(Integer.parseInt(args[1]), Integer.parseInt(args[2]), args.length>3 ? Integer.parseInt(args[3]) : 32);
                     break;
-                case "website":
-                    Website.main(new String[0]);
+                case "checker":
+                    Checker.main();
                     break;
                 case "none":
                     break;

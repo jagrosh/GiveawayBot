@@ -20,9 +20,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageReaction;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageReaction;
+import net.dv8tion.jda.api.entities.User;
 
 /**
  *
@@ -47,7 +47,7 @@ public class GiveawayUtil
             try {
                 MessageReaction mr = message.getReactions().stream().filter(r -> r.getReactionEmote().getName().equals(Constants.TADA)).findAny().orElse(null);
                 List<User> users = new LinkedList<>();
-                mr.getUsers().stream().distinct().filter(u -> !u.isBot()).forEach(u -> users.add(u));
+                mr.retrieveUsers().stream().distinct().filter(u -> !u.isBot()).forEach(u -> users.add(u));
                 if(users.isEmpty())
                     failure.run();
                 else

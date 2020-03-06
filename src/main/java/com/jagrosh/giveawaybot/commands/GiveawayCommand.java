@@ -17,7 +17,8 @@ package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Bot;
 import com.jagrosh.jdautilities.command.Command;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.ChannelType;
 
 /**
  *
@@ -33,7 +34,7 @@ public abstract class GiveawayCommand extends Command
         this.guildOnly = true;
         this.category = new Command.Category("Giveaway", event -> 
         {
-            if(event.getGuild()==null)
+            if(!event.isFromType(ChannelType.TEXT))
             {
                 event.replyError("This command cannot be used in Direct Messages!");
                 return false;

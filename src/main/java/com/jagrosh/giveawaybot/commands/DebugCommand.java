@@ -22,7 +22,6 @@ import java.time.OffsetDateTime;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import java.time.temporal.ChronoUnit;
-import net.dv8tion.jda.core.JDA;
 
 /**
  *
@@ -51,7 +50,7 @@ public class DebugCommand extends Command
                 + "\nLast Startup: "+FormatUtil.secondsToTime(Constants.STARTUP.until(OffsetDateTime.now(), ChronoUnit.SECONDS))+" ago"
                 + "\nGuilds: **"+bot.getShardManager().getGuildCache().size()+"**"
                 + "\nMemory: **"+usedMb+"**Mb / **"+totalMb+"**Mb"
-                + "\nAverage Ping: **"+bot.getShardManager().getAveragePing()+"**ms"
+                + "\nAverage Ping: **"+bot.getShardManager().getAverageGatewayPing()+"**ms"
                 + "\nShard Total: **"+bot.getShardManager().getShardsTotal()+"**"
                 + "\nShard Connectivity: " + FormatUtil.formatShardStatuses(bot.getShardManager().getShards()));
     }
