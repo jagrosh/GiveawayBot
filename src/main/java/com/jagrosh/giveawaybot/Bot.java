@@ -21,11 +21,9 @@ import com.jagrosh.giveawaybot.commands.*;
 import com.jagrosh.giveawaybot.database.Database;
 import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.entities.Status;
-import com.jagrosh.giveawaybot.util.BlockingSessionController;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
-import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -40,6 +38,7 @@ import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.role.update.RoleUpdateColorEvent;
+import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
@@ -66,7 +65,7 @@ public class Bot extends ListenerAdapter
         threadpool = Executors.newScheduledThreadPool(20);
         webhook = new WebhookClientBuilder(webhookUrl).build();
         
-        threadpool.scheduleWithFixedDelay(()-> databaseCheck(), 5, 5, TimeUnit.MINUTES);
+        threadpool.scheduleWithFixedDelay(()-> databaseCheck(), 2, 2, TimeUnit.MINUTES);
     }
     
     // scheduled processes
@@ -195,9 +194,6 @@ public class Bot extends ListenerAdapter
                                        config.getString("database.password")), 
                           config.getString("webhook"));
         
-        // instantiate an event waiter
-        EventWaiter waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(), false);
-        
         // build the client to deal with commands
         CommandClient client = new CommandClientBuilder()
                 .setPrefix(config.getString("prefix"))
@@ -206,7 +202,7 @@ public class Bot extends ListenerAdapter
                 .setActivity(Activity.playing(Constants.TADA+" "+Constants.WEBSITE+" "+Constants.TADA+" Type !ghelp "+Constants.TADA))
                 .setEmojis(Constants.TADA, Constants.WARNING, Constants.ERROR)
                 .setHelpConsumer(event -> event.replyInDm(FormatUtil.formatHelp(event), 
-                        m-> event.getMessage().addReaction(Constants.REACTION).queue(s->{},f->{}), 
+                        m-> {try{event.getMessage().addReaction(Constants.REACTION).queue(s->{},f->{});}catch(PermissionException ex){}}, 
                         f-> event.replyWarning("Help could not be sent because you are blocking Direct Messages")))
                 .setDiscordBotsKey(config.getString("listing.discord-bots"))
                 .setCarbonitexKey(config.getString("listing.carbon"))
@@ -215,7 +211,7 @@ public class Bot extends ListenerAdapter
                         new InviteCommand(),
                         new PingCommand(),
                         
-                        new CreateCommand(bot,waiter),
+                        new CreateCommand(bot),
                         new StartCommand(bot),
                         new EndCommand(bot),
                         new RerollCommand(bot),
@@ -236,7 +232,7 @@ public class Bot extends ListenerAdapter
                 .setToken(config.getString("bot-token"))
                 .setActivity(Activity.playing("loading..."))
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
-                .addEventListeners(client, waiter, bot)
+                .addEventListeners(client, bot)
                 //.setSessionController(new BlockingSessionController())
                 .setDisabledCacheFlags(EnumSet.of(CacheFlag.VOICE_STATE, CacheFlag.ACTIVITY, CacheFlag.EMOTE))
                 .setGuildSubscriptionsEnabled(false)

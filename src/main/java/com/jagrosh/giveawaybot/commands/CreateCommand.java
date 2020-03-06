@@ -25,12 +25,11 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
@@ -48,14 +47,14 @@ public class CreateCommand extends GiveawayCommand
     
     private final static List<String> CANCEL_WORDS = Arrays.asList("cancel", "!gcancel", "g!cancel");
     
-    private final EventWaiter waiter;
+    private final ShardedEventWaiter waiter;
     private final Set<Long> current;
     
-    public CreateCommand(Bot bot, EventWaiter waiter) 
+    public CreateCommand(Bot bot) 
     {
         super(bot);
-        this.waiter = waiter;
         this.current = new HashSet<>();
+        this.waiter = new ShardedEventWaiter();
         name = "create";
         help = "creates a giveaway (interactive setup)";
     }
@@ -241,7 +240,7 @@ public class CreateCommand extends GiveawayCommand
     
     private void wait(CommandEvent event, long lastMessage, Consumer<GuildMessageReceivedEvent> action)
     {
-        waiter.waitForEvent(GuildMessageReceivedEvent.class, 
+        waiter.get(event).waitForEvent(GuildMessageReceivedEvent.class, 
                 e -> e.getAuthor().equals(event.getAuthor()) && e.getChannel().equals(event.getChannel()) && e.getMessageIdLong() != lastMessage, 
                 e -> 
                 {
@@ -275,6 +274,26 @@ public class CreateCommand extends GiveawayCommand
             ran = true;
             event.replyWarning("Uh oh! You took longer than 2 minutes to respond, "+event.getAuthor().getAsMention()+"!"+CANCEL);
             current.remove(event.getChannel().getIdLong());
+        }
+    }
+    
+    private class ShardedEventWaiter
+    {
+        private EventWaiter get(CommandEvent event)
+        {
+            return get(event.getJDA());
+        }
+        
+        private synchronized EventWaiter get(JDA jda)
+        {
+            // tries to find an existing event waiter
+            for(Object listener: jda.getEventManager().getRegisteredListeners())
+                if(listener instanceof EventWaiter)
+                    return (EventWaiter) listener;
+            // makes a new one if none exist
+            EventWaiter ev = new EventWaiter(Executors.newSingleThreadScheduledExecutor(), false);
+            jda.addEventListener(ev);
+            return ev;
         }
     }
 }
