@@ -16,6 +16,7 @@
 package com.jagrosh.giveawaybot.rest;
 
 import java.time.OffsetDateTime;
+import java.util.EnumSet;
 import java.util.Formatter;
 import java.util.List;
 import net.dv8tion.jda.api.JDA;
@@ -252,5 +253,19 @@ public class RestMessage implements Message
 
     @Override
     public void formatTo(Formatter formatter, int flags, int width, int precision) { throw new UnsupportedOperationException(UNSUPPORTED); }
-    
+
+    @Override
+    public RestAction<Void> clearReactions(String arg0) { throw new UnsupportedOperationException(UNSUPPORTED); }
+
+    @Override
+    public RestAction<Void> clearReactions(Emote arg0) { throw new UnsupportedOperationException(UNSUPPORTED); }
+
+    @Override
+    public AuditableRestAction<Void> suppressEmbeds(boolean arg0) { throw new UnsupportedOperationException(UNSUPPORTED); }
+
+    @Override
+    public boolean isSuppressedEmbeds() { throw new UnsupportedOperationException(UNSUPPORTED); }
+
+    @Override
+    public EnumSet<MessageFlag> getFlags() { throw new UnsupportedOperationException(UNSUPPORTED); }
 }

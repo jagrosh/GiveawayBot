@@ -20,6 +20,7 @@ import club.minnced.discord.webhook.WebhookClientBuilder;
 import com.jagrosh.giveawaybot.commands.*;
 import com.jagrosh.giveawaybot.database.Database;
 import com.jagrosh.giveawaybot.entities.Giveaway;
+import com.jagrosh.giveawaybot.entities.MessageWaiter;
 import com.jagrosh.giveawaybot.entities.Status;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.jdautilities.command.CommandClient;
@@ -29,6 +30,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.time.Instant;
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +39,7 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.role.update.RoleUpdateColorEvent;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -53,6 +56,7 @@ import org.slf4j.LoggerFactory;
 public class Bot extends ListenerAdapter
 {
     private ShardManager shards; // list of all logins the bot has
+    
     private final ScheduledExecutorService threadpool; // threadpool to use for timings
     private final Database database; // database
     private final WebhookClient webhook;
@@ -232,7 +236,7 @@ public class Bot extends ListenerAdapter
                 .setToken(config.getString("bot-token"))
                 .setActivity(Activity.playing("loading..."))
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
-                .addEventListeners(client, bot)
+                .addEventListeners(client, bot, new MessageWaiter())
                 //.setSessionController(new BlockingSessionController())
                 .setDisabledCacheFlags(EnumSet.of(CacheFlag.VOICE_STATE, CacheFlag.ACTIVITY, CacheFlag.EMOTE))
                 .setGuildSubscriptionsEnabled(false)
