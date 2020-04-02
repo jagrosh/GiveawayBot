@@ -16,7 +16,6 @@
 package com.jagrosh.giveawaybot.rest;
 
 import javax.annotation.CheckReturnValue;
-import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.internal.JDAImpl;
@@ -41,7 +40,7 @@ public class RestJDA
     
     public RestJDA(String token)
     {
-        AuthorizationConfig authConfig = new AuthorizationConfig(AccountType.BOT, token);
+        AuthorizationConfig authConfig = new AuthorizationConfig(token);
         SessionConfig sessConfig = SessionConfig.getDefault();
         ThreadingConfig threConfig = ThreadingConfig.getDefault();
         threConfig.setRateLimitPool(Executors.newScheduledThreadPool(5, r -> { return new Thread(r, "Giveaway Message Update"); }), true);
