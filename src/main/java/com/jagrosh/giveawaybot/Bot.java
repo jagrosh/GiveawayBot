@@ -43,8 +43,10 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.role.update.RoleUpdateColorEvent;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
+import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -230,16 +232,15 @@ public class Bot extends ListenerAdapter
         bot.getWebhook().send(Constants.TADA + " Starting shards `"+(shardSetId*shardSetSize + 1) + " - " + ((shardSetId+1)*shardSetSize) + "` of `"+shardTotal+"`...");
         
         // start logging in
-        bot.setShardManager(new DefaultShardManagerBuilder()
+        bot.setShardManager(DefaultShardManagerBuilder
+                .createLight(config.getString("bot-token"), GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS)
                 .setShardsTotal(shardTotal)
                 .setShards(shardSetId*shardSetSize, (shardSetId+1)*shardSetSize-1)
-                .setToken(config.getString("bot-token"))
                 .setActivity(Activity.playing("loading..."))
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .addEventListeners(client, bot, new MessageWaiter())
-                //.setSessionController(new BlockingSessionController())
-                .setDisabledCacheFlags(EnumSet.of(CacheFlag.VOICE_STATE, CacheFlag.ACTIVITY, CacheFlag.EMOTE))
-                .setGuildSubscriptionsEnabled(false)
+                .enableCache(CacheFlag.MEMBER_OVERRIDES)
+                .setChunkingFilter(ChunkingFilter.NONE)
                 .build());
     }
 }
