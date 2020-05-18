@@ -233,7 +233,7 @@ public class Bot extends ListenerAdapter
         
         // start logging in
         bot.setShardManager(DefaultShardManagerBuilder
-                .createLight(config.getString("bot-token"), GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES/*, GatewayIntent.GUILD_MEMBERS*/) // I guess we just dont get role changes? what the heck discord
+                .createLight(config.getString("NzA3ODk2MzIxODcyMjMyNTAw.XsHp0A.g0VjmfItk0YnFJea015_e_bfAS0"), GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES/*, GatewayIntent.GUILD_MEMBERS*/) // I guess we just dont get role changes? what the heck discord
                 .setShardsTotal(shardTotal)
                 .setShards(shardSetId*shardSetSize, (shardSetId+1)*shardSetSize-1)
                 .setActivity(Activity.playing("loading..."))
