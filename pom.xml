@@ -24,18 +24,18 @@
         <dependency>
 	    <groupId>net.dv8tion</groupId>
 	    <artifactId>JDA</artifactId>
-	    <version>4.1.1_127</version>
+	    <version>4.2.0_182</version>
 	</dependency>
         <dependency>
             <groupId>com.jagrosh</groupId> 
             <artifactId>jda-utilities</artifactId> 
-            <version>3.0.3</version>
+            <version>3.0.4</version>
             <type>pom</type>
         </dependency>
         <dependency>
             <groupId>club.minnced</groupId>
             <artifactId>discord-webhooks</artifactId>
-            <version>0.1.8</version>
+            <version>0.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
