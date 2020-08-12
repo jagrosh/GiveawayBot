@@ -30,18 +30,16 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.Message.MentionType;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.role.update.RoleUpdateColorEvent;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -61,7 +59,9 @@ import org.slf4j.LoggerFactory;
 public class Bot extends ListenerAdapter
 {
     private ShardManager shards; // list of all logins the bot has
+    private BotStatus status = BotStatus.LOADING;
     
+    private final String logname;
     private final ScheduledExecutorService threadpool; // threadpool to use for timings
     private final Database database; // database
     private final WebhookClient webhook;
@@ -71,28 +71,56 @@ public class Bot extends ListenerAdapter
     private Bot(Database database, String webhookUrl)
     {
         this.database = database;
-        threadpool = Executors.newScheduledThreadPool(20);
-        webhook = new WebhookClientBuilder(webhookUrl).build();
+        this.threadpool = Executors.newScheduledThreadPool(20);
+        this.webhook = new WebhookClientBuilder(webhookUrl).build();
+        this.logname = System.getProperty("logname");
         
         threadpool.scheduleWithFixedDelay(()-> databaseCheck(), 2, 2, TimeUnit.MINUTES);
+        threadpool.scheduleWithFixedDelay(() -> statusCheck(), 20, 10, TimeUnit.SECONDS);
     }
     
     // scheduled processes
+    
     private void databaseCheck()
     {
         if(!database.databaseCheck())
         {
             dbfailures[0]++;
             if(dbfailures[0] < 3)
-                webhook.send("\uD83D\uDE31 `"+System.getProperty("logname")+"` has failed a database check ("+dbfailures[0]+")!"); // 😱
+                webhook.send("\uD83D\uDE31 `"+logname+"` has failed a database check ("+dbfailures[0]+")!"); // 😱
             else
             {
-                webhook.send("\uD83D\uDE31 `"+System.getProperty("logname")+"` has failed a database check ("+dbfailures[0]+")! Restarting..."); // 😱
+                webhook.send("\uD83D\uDE31 `"+logname+"` has failed a database check ("+dbfailures[0]+")! Restarting..."); // 😱
                 System.exit(0);
             }
         }
         else
             dbfailures[0] = 0;
+    }
+    
+    private void statusCheck()
+    {
+        long onlineCount = this.shards.getShardCache().stream().filter(jda -> jda.getStatus() == JDA.Status.CONNECTED).count();
+        if(onlineCount == this.shards.getShardCache().size())
+            setStatus(BotStatus.ONLINE);
+        else if(status != BotStatus.LOADING)
+            setStatus(onlineCount == 0 ? BotStatus.OFFLINE : BotStatus.PARTIAL_OUTAGE);
+    }
+    
+    private void setStatus(BotStatus status)
+    {
+        if(this.status == status)
+            return;
+        switch(status)
+        {
+            case LOADING:
+                break;
+            default:
+                webhook.send("\u2139 `" + logname + "` has changed from `" + this.status + "` to `" + status + "`: " // ℹ
+                        + FormatUtil.formatShardStatuses(getShardManager().getShards()));
+                break;
+        }
+        this.status = status;
     }
     
     
@@ -178,13 +206,13 @@ public class Bot extends ListenerAdapter
             database.settings.updateColor(event.getGuild());
     }
 
-    @Override
+    /*@Override
     public void onReady(ReadyEvent event)
     {
         webhook.send(Constants.TADA + " Shard `"+(event.getJDA().getShardInfo().getShardId()+1)+"/"
                 +event.getJDA().getShardInfo().getShardTotal()+"` has connected. Guilds: `"
                 +event.getJDA().getGuilds().size() + "`");// + " Users: `"+event.getJDA().getUsers().size()+"`");
-    }
+    }//*/
     
     /**
      * Starts the application in Bot mode
@@ -247,5 +275,8 @@ public class Bot extends ListenerAdapter
                 .enableCache(CacheFlag.MEMBER_OVERRIDES)
                 .setChunkingFilter(ChunkingFilter.NONE)
                 .build());
+        
     }
+    
+    private enum BotStatus { LOADING, ONLINE, PARTIAL_OUTAGE, OFFLINE }
 }

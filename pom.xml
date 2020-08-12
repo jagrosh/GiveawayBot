@@ -24,7 +24,7 @@
         <dependency>
 	    <groupId>net.dv8tion</groupId>
 	    <artifactId>JDA</artifactId>
-	    <version>4.2.0_182</version>
+	    <version>4.2.0_189</version>
 	</dependency>
         <dependency>
             <groupId>com.jagrosh</groupId> 
@@ -45,7 +45,7 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>1.4.196</version>
+            <version>1.4.200</version>
         </dependency>
         <dependency>
             <groupId>com.jagrosh</groupId>
