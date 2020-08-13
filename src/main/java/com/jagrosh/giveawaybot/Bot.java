@@ -15,13 +15,9 @@
  */
 package com.jagrosh.giveawaybot;
 
-import club.minnced.discord.webhook.WebhookClient;
-import club.minnced.discord.webhook.WebhookClientBuilder;
 import com.jagrosh.giveawaybot.commands.*;
 import com.jagrosh.giveawaybot.database.Database;
-import com.jagrosh.giveawaybot.entities.Giveaway;
-import com.jagrosh.giveawaybot.entities.MessageWaiter;
-import com.jagrosh.giveawaybot.entities.Status;
+import com.jagrosh.giveawaybot.entities.*;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
@@ -29,15 +25,14 @@ import com.jagrosh.jdautilities.examples.command.PingCommand;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.Message.MentionType;
-import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.role.update.RoleUpdateColorEvent;
@@ -59,75 +54,20 @@ import org.slf4j.LoggerFactory;
 public class Bot extends ListenerAdapter
 {
     private ShardManager shards; // list of all logins the bot has
-    private BotStatus status = BotStatus.LOADING;
     
-    private final String logname;
+    private final WebhookLog webhook;
     private final ScheduledExecutorService threadpool; // threadpool to use for timings
     private final Database database; // database
-    private final WebhookClient webhook;
     private final Logger LOG = LoggerFactory.getLogger("Bot");
-    private final int[] dbfailures = {0};
     
     private Bot(Database database, String webhookUrl)
     {
         this.database = database;
         this.threadpool = Executors.newScheduledThreadPool(20);
-        this.webhook = new WebhookClientBuilder(webhookUrl).build();
-        this.logname = System.getProperty("logname");
+        this.webhook = new WebhookLog(webhookUrl, System.getProperty("logname"));
         
-        threadpool.scheduleWithFixedDelay(()-> databaseCheck(), 2, 2, TimeUnit.MINUTES);
-        threadpool.scheduleWithFixedDelay(() -> statusCheck(), 20, 10, TimeUnit.SECONDS);
-    }
-    
-    // scheduled processes
-    
-    private void databaseCheck()
-    {
-        if(!database.databaseCheck())
-        {
-            dbfailures[0]++;
-            if(dbfailures[0] < 3)
-                webhook.send("\uD83D\uDE31 `"+logname+"` has failed a database check ("+dbfailures[0]+")!"); // 😱
-            else
-            {
-                webhook.send("\uD83D\uDE31 `"+logname+"` has failed a database check ("+dbfailures[0]+")! Restarting..."); // 😱
-                System.exit(0);
-            }
-        }
-        else
-            dbfailures[0] = 0;
-    }
-    
-    private void statusCheck()
-    {
-        long onlineCount = this.shards.getShardCache().stream().filter(jda -> jda.getStatus() == JDA.Status.CONNECTED).count();
-        if(onlineCount == this.shards.getShardCache().size())
-            setStatus(BotStatus.ONLINE);
-        else if(status != BotStatus.LOADING)
-            setStatus(onlineCount == 0 ? BotStatus.OFFLINE : BotStatus.PARTIAL_OUTAGE);
-    }
-    
-    private void setStatus(BotStatus status)
-    {
-        if(this.status == status)
-            return;
-        switch(status)
-        {
-            case LOADING:
-                break;
-            default:
-                webhook.send("\u2139 `" + logname + "` has changed from `" + this.status + "` to `" + status + "`: " // ℹ
-                        + FormatUtil.formatShardStatuses(getShardManager().getShards()));
-                break;
-        }
-        this.status = status;
-    }
-    
-    
-    // protected methods
-    protected void setShardManager(ShardManager shards)
-    {
-        this.shards = shards;
+        new Uptimer.DatabaseUptimer(this).start(this.threadpool);
+        new Uptimer.StatusUptimer(this).start(this.threadpool);
     }
     
     // public getters
@@ -141,7 +81,7 @@ public class Bot extends ListenerAdapter
         return threadpool;
     }
     
-    public WebhookClient getWebhook()
+    public WebhookLog getWebhookLog()
     {
         return webhook;
     }
@@ -260,12 +200,12 @@ public class Bot extends ListenerAdapter
                         new ShutdownCommand(bot)
                 ).build();
         
-        bot.getWebhook().send(Constants.TADA + " Starting shards `"+(shardSetId*shardSetSize + 1) + " - " + ((shardSetId+1)*shardSetSize) + "` of `"+shardTotal+"`...");
+        bot.webhook.send(WebhookLog.Level.INFO, "Starting shards `"+(shardSetId*shardSetSize + 1) + " - " + ((shardSetId+1)*shardSetSize) + "` of `"+shardTotal+"`...");
         
         MessageAction.setDefaultMentions(Arrays.asList(MentionType.CHANNEL, MentionType.EMOTE, MentionType.USER));
         
         // start logging in
-        bot.setShardManager(DefaultShardManagerBuilder
+        bot.shards = DefaultShardManagerBuilder
                 .createLight(config.getString("bot-token"), GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES/*, GatewayIntent.GUILD_MEMBERS*/) // I guess we just dont get role changes? what the heck discord
                 .setShardsTotal(shardTotal)
                 .setShards(shardSetId*shardSetSize, (shardSetId+1)*shardSetSize-1)
@@ -274,9 +214,7 @@ public class Bot extends ListenerAdapter
                 .addEventListeners(client, bot, new MessageWaiter())
                 .enableCache(CacheFlag.MEMBER_OVERRIDES)
                 .setChunkingFilter(ChunkingFilter.NONE)
-                .build());
+                .build();
         
     }
-    
-    private enum BotStatus { LOADING, ONLINE, PARTIAL_OUTAGE, OFFLINE }
 }
