@@ -117,6 +117,12 @@ public class CreateCommand extends GiveawayCommand
                 return;
             }
             TextChannel tchan = list.get(0);
+            if(tchan.isNews())
+            {
+                event.replyWarning("Giveaways cannot be created in announcements channels! Please try a different channel!" + CHANNEL);
+                waitForChannel(event, e.getMessageIdLong());
+                return;
+            }
 
             // check perms
             if(!Constants.canSendGiveaway(tchan))

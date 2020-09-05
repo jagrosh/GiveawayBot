@@ -54,6 +54,13 @@ public class StartCommand extends GiveawayCommand
             return;
         }
         
+        // check channel type
+        if(event.getTextChannel().isNews())
+        {
+            event.replyError("Giveaways cannot be created in announcements channels!");
+            return;
+        }
+        
         // check for arguments
         if(event.getArgs().isEmpty())
         {

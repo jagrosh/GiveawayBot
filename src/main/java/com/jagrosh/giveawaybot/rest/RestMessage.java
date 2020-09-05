@@ -268,4 +268,7 @@ public class RestMessage implements Message
 
     @Override
     public EnumSet<MessageFlag> getFlags() { throw new UnsupportedOperationException(UNSUPPORTED); }
+
+    @Override
+    public RestAction<Message> crosspost() { throw new UnsupportedOperationException(UNSUPPORTED); }
 }
