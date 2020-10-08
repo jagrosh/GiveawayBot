@@ -14,8 +14,7 @@ Hold giveaways quickly and easily on your Discord server! GiveawayBot is powered
 ![Example](http://i.imgur.com/bMjO8UA.png)
 
 ## Invite
-If you'd like to add **GiveawayBot** to your server, use the following link:<br>
-🔗 **https://giveawaybot.party/invite**
+The invite is no longer available due to Discord's verification requirements. Trying will result in this error: ![462c3df1e132f55d04336f6daa62b14e](https://user-images.githubusercontent.com/57580668/95401392-12ba6e80-08db-11eb-9d5f-8402a9548f21.png)
 
 ## Usage
 * **!ghelp** - Provides the bot's commands via Direct Message
