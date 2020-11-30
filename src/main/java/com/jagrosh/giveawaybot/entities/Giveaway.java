@@ -24,7 +24,10 @@ import com.jagrosh.giveawaybot.util.GiveawayUtil;
 import java.awt.Color;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
@@ -49,8 +52,9 @@ public class Giveaway
     public final int winners;
     public final String prize;
     public final Status status;
+    public final boolean expanded;
     
-    public Giveaway(long messageId, long channelId, long guildId, long userId, Instant end, int winners, String prize, Status status)
+    public Giveaway(long messageId, long channelId, long guildId, long userId, Instant end, int winners, String prize, Status status, boolean expanded)
     {
         this.messageId = messageId;
         this.channelId = channelId;
@@ -60,6 +64,7 @@ public class Giveaway
         this.winners = winners;
         this.prize = prize==null ? null : prize.isEmpty() ? null : prize;
         this.status = status;
+        this.expanded = expanded;
     }
     
     public Message render(Color color, Instant now)
@@ -94,9 +99,16 @@ public class Giveaway
     
     public void update(RestJDA restJDA, Database database, Instant now, boolean queue)
     {
-        RestMessageAction ra = restJDA.editMessage(channelId, messageId, render(database.settings.getSettings(guildId).color, now));
+        Message rendered = render(database.settings.getSettings(guildId).color, now);
+        RestMessageAction ra = restJDA.editMessage(channelId, messageId, rendered);
+        List<RestMessageAction> additional = expanded ? database.expanded.getExpanded(messageId).entrySet()
+                .stream().map(e -> restJDA.editMessage(e.getKey(), e.getValue(), rendered))
+                .collect(Collectors.toList()) : Collections.EMPTY_LIST;
         if(queue)
+        {
             ra.queue(m -> {}, t -> handleThrowable(t, database));
+            additional.forEach(a -> a.queue(m -> {}, t -> {}));
+        }
         else
         {
             try
@@ -106,6 +118,14 @@ public class Giveaway
             catch(Exception t)
             {
                 handleThrowable(t, database);
+            }
+            for(RestMessageAction rma: additional)
+            {
+                try
+                {
+                    rma.complete(false);
+                }
+                catch(Exception ignored) {}
             }
         }
     }
@@ -142,8 +162,9 @@ public class Giveaway
         return String.format("\n<https://discordapp.com/channels/%d/%d/%d>", guildId, channelId, messageId);
     }
     
-    public void end(RestJDA restJDA)
+    public void end(RestJDA restJDA, Map<Long,Long> additional)
     {
+        String emoji = EncodingUtil.encodeUTF8(Constants.TADA);
         MessageBuilder mb = new MessageBuilder();
         mb.append(Constants.YAY).append(" **GIVEAWAY ENDED** ").append(Constants.YAY);
         EmbedBuilder eb = new EmbedBuilder();
@@ -152,14 +173,17 @@ public class Giveaway
         eb.setTimestamp(end);
         if(prize!=null)
             eb.setAuthor(prize, null, null);
+        String toSend;
         try 
         {
             // stream over all the users that reacted (paginating as necessary
-            List<Long> ids = restJDA.getReactionUsers(channelId, messageId, EncodingUtil.encodeUTF8(Constants.TADA))
-                    .stream().map(u -> u.getIdLong()).distinct().collect(Collectors.toList());
-           //restJDA.getReactionUsers(channelId, messageId, EncodingUtil.encodeUTF8(Constants.TADA))..submit().thenAcceptAsync(ids -> {
+            Set<Long> ids = restJDA.getReactionUsers(channelId, messageId, emoji)
+                    .stream().map(u -> u.getIdLong()).distinct().collect(Collectors.toSet());
+            additional.entrySet().stream()
+                    .flatMap(e -> restJDA.getReactionUsers(e.getKey(), e.getValue(), emoji).stream())
+                    .map(u -> u.getIdLong()).forEach(id -> ids.add(id));
+            
             List<Long> wins = GiveawayUtil.selectWinners(ids, winners);
-            String toSend;
             if(wins.isEmpty())
             {
                 eb.setDescription("Could not determine a winner!");
@@ -176,20 +200,25 @@ public class Giveaway
                 wins.forEach(w -> eb.appendDescription("\n").appendDescription("<@"+w+">"));
                 toSend = "Congratulations <@"+wins.get(0)+">";
                 for(int i=1; i<wins.size(); i++)
-                    toSend +=", <@"+wins.get(i)+">";
-                toSend+="! You won"+(prize==null ? "" : " the **"+prize+"**")+"!";
+                    toSend += ", <@"+wins.get(i)+">";
+                toSend += "! You won" + (prize == null ? "" : " the **" + prize + "**") + "!";
             }
             mb.setEmbed(eb.appendDescription("\nHosted by: <@" + userId + ">").build());
-            restJDA.editMessage(channelId, messageId, mb.build()).queue(m->{}, f->{});
-            restJDA.sendMessage(channelId, toSend + messageLink()).queue(m->{}, f->{});
-            //});
 
         } 
         catch(Exception e) 
         {
             mb.setEmbed(eb.setDescription("Could not determine a winner!\nHosted by: <@" + userId + ">").build());
-            restJDA.editMessage(channelId, messageId, mb.build()).queue(m->{}, f->{});
-            restJDA.sendMessage(channelId, "A winner could not be determined!" + messageLink()).queue(m->{}, f->{});
+            toSend = "A winner could not be determined!";
         }
+        Message msg = mb.build();
+        String toSendF = toSend;
+        restJDA.editMessage(channelId, messageId, msg).queue(m->{}, f->{});
+        restJDA.sendMessage(channelId, toSendF + messageLink()).queue(m->{}, f->{});
+        additional.forEach((chid, msgid) -> 
+        {
+            restJDA.editMessage(chid, msgid, msg).queue(m -> {}, f -> {});
+            restJDA.sendMessage(chid, toSendF).queue(m -> {}, f -> {});
+        });
     }
 }

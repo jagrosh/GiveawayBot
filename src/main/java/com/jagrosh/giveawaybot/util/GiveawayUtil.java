@@ -16,8 +16,10 @@
 package com.jagrosh.giveawaybot.util;
 
 import com.jagrosh.giveawaybot.Constants;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import net.dv8tion.jda.api.entities.Message;
@@ -30,6 +32,11 @@ import net.dv8tion.jda.api.entities.User;
  */
 public class GiveawayUtil
 {
+    public static <T> List<T> selectWinners(Set<T> set, int winners)
+    {
+        return selectWinners(new ArrayList<>(set), winners);
+    }
+    
     public static <T> List<T> selectWinners(List<T> list, int winners)
     {
         List<T> winlist = new LinkedList<>();

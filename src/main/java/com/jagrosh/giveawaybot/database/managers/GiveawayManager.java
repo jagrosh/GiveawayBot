@@ -45,6 +45,7 @@ public class GiveawayManager extends DataManager
     public final static SQLColumn<String>  PRIZE       = new StringColumn ("PRIZE",       true,  null, 250);
     public final static SQLColumn<Integer> STATUS      = new IntegerColumn("STATUS",      false, Status.RUN.ordinal());
     public final static SQLColumn<Long>    USER_ID     = new LongColumn   ("USER_ID",     false, 0L);
+    public final static SQLColumn<Boolean> EXPANDED    = new BooleanColumn("EXPANDED",    false, false);
     
     public GiveawayManager(Database connector)
     {
@@ -168,6 +169,7 @@ public class GiveawayManager extends DataManager
     private static Giveaway giveaway(ResultSet results) throws SQLException
     {
         return new Giveaway(MESSAGE_ID.getValue(results), CHANNEL_ID.getValue(results), GUILD_ID.getValue(results), USER_ID.getValue(results),
-                        END_TIME.getValue(results), NUM_WINNERS.getValue(results), PRIZE.getValue(results), Status.values()[STATUS.getValue(results)]);
+                END_TIME.getValue(results), NUM_WINNERS.getValue(results), PRIZE.getValue(results), Status.values()[STATUS.getValue(results)], 
+                EXPANDED.getValue(results));
     }
 }
