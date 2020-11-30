@@ -98,12 +98,12 @@ public class GiveawayManager extends DataManager
         return getGiveaways(selectAll(END_TIME.isLessThan(end.getEpochSecond()) + " AND " + STATUS.is(Status.RUN.ordinal())));
     }
     
-    public boolean createGiveaway(Message message, User creator, Instant end, int winners, String prize)
+    public boolean createGiveaway(Message message, User creator, Instant end, int winners, String prize, boolean expanded)
     {
-        return createGiveaway(message.getGuild().getIdLong(), message.getTextChannel().getIdLong(), message.getIdLong(), creator.getIdLong(), end, winners, prize);
+        return createGiveaway(message.getGuild().getIdLong(), message.getTextChannel().getIdLong(), message.getIdLong(), creator.getIdLong(), end, winners, prize, expanded);
     }
     
-    public boolean createGiveaway(long guildid, long channelid, long messageid, long userid, Instant end, int winners, String prize)
+    public boolean createGiveaway(long guildid, long channelid, long messageid, long userid, Instant end, int winners, String prize, boolean expanded)
     {
         return readWrite(selectAll(MESSAGE_ID.is(messageid)), results -> 
         {
@@ -117,6 +117,7 @@ public class GiveawayManager extends DataManager
                 NUM_WINNERS.updateValue(results, winners);
                 PRIZE.updateValue(results, prize);
                 STATUS.updateValue(results, Status.RUN.ordinal());
+                EXPANDED.updateValue(results, expanded);
                 results.updateRow();
                 return true;
             }
@@ -131,6 +132,7 @@ public class GiveawayManager extends DataManager
                 NUM_WINNERS.updateValue(results, winners);
                 PRIZE.updateValue(results, prize);
                 STATUS.updateValue(results, Status.RUN.ordinal());
+                EXPANDED.updateValue(results, expanded);
                 results.insertRow();
                 return true;
             }

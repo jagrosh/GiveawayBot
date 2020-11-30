@@ -48,6 +48,7 @@ public class DistributeCommand extends GiveawayCommand
         arguments = "<channels> <time> [winners]w [prize]";
         botPermissions = new Permission[]{Permission.MESSAGE_HISTORY,Permission.MESSAGE_ADD_REACTION,Permission.MESSAGE_EMBED_LINKS};
         hidden = true;
+        cooldown = 10;
     }
     
     @Override
@@ -56,14 +57,18 @@ public class DistributeCommand extends GiveawayCommand
         // get all channels
         Matcher m = CHANNEL.matcher(event.getArgs());
         List<Long> list = new ArrayList<>();
+        int index = 0;
         while(m.find())
+        {
             list.add(Long.parseLong(m.group(1)));
+            index = m.end();
+        }
         if(list.isEmpty())
         {
             event.replyError("Please include at least one text channel!");
             return;
         }
-        String args = event.getArgs().substring(m.end());
+        String args = event.getArgs().substring(index);
         
         // check for valid text channels
         List<TextChannel> tcs = new ArrayList<>();

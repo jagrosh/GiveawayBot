@@ -112,7 +112,7 @@ public class Bot extends ListenerAdapter
         channel.sendMessage(msg).queue(m -> 
         {
             m.addReaction(Constants.TADA).queue();
-            database.giveaways.createGiveaway(m, creator, end, winners, prize);
+            database.giveaways.createGiveaway(m, creator, end, winners, prize, false);
         }, v -> LOG.warn("Unable to start giveaway: "+v));
         return true;
     }
@@ -128,13 +128,18 @@ public class Bot extends ListenerAdapter
         Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, Status.RUN, false)
                 .render(channel.getGuild().getSelfMember().getColor(), now);
         Map<Long,Long> map = additional.stream()
-                .map(c -> c.sendMessage(msg).complete())
+                .map(c -> 
+                { 
+                    Message m = c.sendMessage(msg).complete();
+                    m.addReaction(Constants.TADA).queue();
+                    return m;
+                })
                 .collect(Collectors.toMap(m -> m.getChannel().getIdLong(), m -> m.getIdLong()));
         channel.sendMessage(msg).queue(m -> 
         {
             m.addReaction(Constants.TADA).queue();
             database.expanded.createExpanded(m.getIdLong(), map);
-            database.giveaways.createGiveaway(m, creator, end, winners, prize);
+            database.giveaways.createGiveaway(m, creator, end, winners, prize, true);
         }, v -> LOG.warn("Unable to start giveaway: "+v));
         return true;
     }
@@ -205,6 +210,7 @@ public class Bot extends ListenerAdapter
                         
                         new CreateCommand(bot),
                         new StartCommand(bot),
+                        new DistributeCommand(bot),
                         new EndCommand(bot),
                         new RerollCommand(bot),
                         new ListCommand(bot),
