@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 
@@ -46,7 +45,6 @@ public class DistributeCommand extends GiveawayCommand
         name = "start-distributed";
         help = "starts a giveaway, distributed across channels";
         arguments = "<channels> <time> [winners]w [prize]";
-        botPermissions = new Permission[]{Permission.MESSAGE_HISTORY,Permission.MESSAGE_ADD_REACTION,Permission.MESSAGE_EMBED_LINKS};
         hidden = true;
         cooldown = 10;
     }
