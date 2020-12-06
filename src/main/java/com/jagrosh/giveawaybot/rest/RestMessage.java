@@ -271,4 +271,7 @@ public class RestMessage implements Message
 
     @Override
     public RestAction<Message> crosspost() { throw new UnsupportedOperationException(UNSUPPORTED); }
+
+    @Override
+    public Message getReferencedMessage() { throw new UnsupportedOperationException(UNSUPPORTED); }
 }

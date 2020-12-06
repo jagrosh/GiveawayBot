@@ -24,12 +24,12 @@
         <dependency>
 	    <groupId>net.dv8tion</groupId>
 	    <artifactId>JDA</artifactId>
-	    <version>4.2.0_204</version>
+	    <version>4.2.0_219</version>
 	</dependency>
         <dependency>
             <groupId>com.jagrosh</groupId> 
             <artifactId>jda-utilities</artifactId> 
-            <version>3.0.4</version>
+            <version>3.0.5</version>
             <type>pom</type>
         </dependency>
         <dependency>

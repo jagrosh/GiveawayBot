@@ -25,6 +25,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.LoggerFactory;
@@ -80,8 +81,10 @@ public class Updater
                 database.giveaways.setStatus(giveaway.messageId, Status.ENDING);
                 pool.submit(() -> 
                 {
-                    giveaway.end(restJDA);
+                    giveaway.end(restJDA, giveaway.expanded ? database.expanded.getExpanded(giveaway.messageId) : Collections.EMPTY_MAP);
                     database.giveaways.deleteGiveaway(giveaway.messageId);
+                    if(giveaway.expanded)
+                        database.expanded.deleteExpanded(giveaway.messageId);
                 });
             });
             
@@ -91,8 +94,10 @@ public class Updater
                 database.giveaways.setStatus(giveaway.messageId, Status.ENDING);
                 pool.submit(() -> 
                 {
-                    giveaway.end(restJDA);
+                    giveaway.end(restJDA, giveaway.expanded ? database.expanded.getExpanded(giveaway.messageId) : Collections.EMPTY_MAP);
                     database.giveaways.deleteGiveaway(giveaway.messageId);
+                    if(giveaway.expanded)
+                        database.expanded.deleteExpanded(giveaway.messageId);
                 });
             });
             

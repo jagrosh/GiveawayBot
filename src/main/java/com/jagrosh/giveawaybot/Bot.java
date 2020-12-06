@@ -25,11 +25,13 @@ import com.jagrosh.jdautilities.examples.command.PingCommand;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import net.dv8tion.jda.api.JDA;
+import java.util.stream.Collectors;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.Message.MentionType;
@@ -105,23 +107,41 @@ public class Bot extends ListenerAdapter
             return false;
         database.settings.updateColor(channel.getGuild());
         Instant end = now.plusSeconds(seconds);
-        Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, Status.RUN).render(channel.getGuild().getSelfMember().getColor(), now);
-        channel.sendMessage(msg).queue(m -> {
+        Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, Status.RUN, false)
+                .render(channel.getGuild().getSelfMember().getColor(), now);
+        channel.sendMessage(msg).queue(m -> 
+        {
             m.addReaction(Constants.TADA).queue();
-            database.giveaways.createGiveaway(m, creator, end, winners, prize);
+            database.giveaways.createGiveaway(m, creator, end, winners, prize, false);
         }, v -> LOG.warn("Unable to start giveaway: "+v));
         return true;
     }
     
-    public boolean deleteGiveaway(long channelId, long messageId)
+    public boolean startGiveaway(TextChannel channel, List<TextChannel> additional, User creator, Instant now, int seconds, int winners, String prize)
     {
-        TextChannel channel = shards.getTextChannelById(channelId);
-        try 
+        if(!Constants.canSendGiveaway(channel))
+            return false;
+        if(additional.stream().anyMatch(c -> !Constants.canSendGiveaway(c)))
+            return false;
+        database.settings.updateColor(channel.getGuild());
+        Instant end = now.plusSeconds(seconds);
+        Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, Status.RUN, false)
+                .render(channel.getGuild().getSelfMember().getColor(), now);
+        Map<Long,Long> map = additional.stream()
+                .map(c -> 
+                { 
+                    Message m = c.sendMessage(msg).complete();
+                    m.addReaction(Constants.TADA).queue();
+                    return m;
+                })
+                .collect(Collectors.toMap(m -> m.getChannel().getIdLong(), m -> m.getIdLong()));
+        channel.sendMessage(msg).queue(m -> 
         {
-            channel.deleteMessageById(messageId).queue();
-        } 
-        catch(Exception ignore) {}
-        return database.giveaways.deleteGiveaway(messageId);
+            m.addReaction(Constants.TADA).queue();
+            database.expanded.createExpanded(m.getIdLong(), map);
+            database.giveaways.createGiveaway(m, creator, end, winners, prize, true);
+        }, v -> LOG.warn("Unable to start giveaway: "+v));
+        return true;
     }
     
     // events
@@ -190,6 +210,7 @@ public class Bot extends ListenerAdapter
                         
                         new CreateCommand(bot),
                         new StartCommand(bot),
+                        new DistributeCommand(bot),
                         new EndCommand(bot),
                         new RerollCommand(bot),
                         new ListCommand(bot),
