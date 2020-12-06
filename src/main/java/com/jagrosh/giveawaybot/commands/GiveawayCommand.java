@@ -16,6 +16,7 @@
 package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Bot;
+import com.jagrosh.giveawaybot.entities.PremiumLevel;
 import com.jagrosh.jdautilities.command.Command;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -27,6 +28,7 @@ import net.dv8tion.jda.api.entities.ChannelType;
 public abstract class GiveawayCommand extends Command
 {
     protected final Bot bot;
+    protected boolean needsPremium = false;
     
     protected GiveawayCommand(Bot bot)
     {
@@ -39,10 +41,19 @@ public abstract class GiveawayCommand extends Command
                 event.replyError("This command cannot be used in Direct Messages!");
                 return false;
             }
+            if(needsPremium)
+            {
+                PremiumLevel level = bot.getDatabase().premium.getPremiumLevel(event.getGuild());
+                if(level == null || level == PremiumLevel.NONE)
+                {
+                    event.replyError("This server must have a premium level to use this command!");
+                    return false;
+                }
+            }
             if(event.getMember().hasPermission(Permission.MANAGE_SERVER) || 
                event.getMember().getRoles().stream().anyMatch(r -> r.getName().equalsIgnoreCase("giveaways")))
                 return true;
-            event.reply(event.getClient().getError()+" You must have the Manage Server permission, or a role called \"Giveaways\", to use this command!");
+            event.replyError("You must have the Manage Server permission, or a role called \"Giveaways\", to use this command!");
             return false;
         });
     }

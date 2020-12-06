@@ -27,7 +27,7 @@ public enum PremiumLevel
         BOOST  (1, "Nitro Booster", 60*60*24*7*5, 30, 25, true,  585981877396045826L),
         PATRON (2, "Patron",        60*60*24*7*5, 30, 25, true,  585689274565918721L),
         DONATOR(3, "Donator",       60*60*24*7*5, 30, 25, true,  585708901270421504L),
-        DISCORD(4, "Discord",       60*60*24*7*5, 30, 25, true,  778420722673778748L);
+        DISCORD(4, "Discord",       60*60*24*7*5, 50, 25, true,  778420722673778748L);
         
         public final int level;
         public final String name;

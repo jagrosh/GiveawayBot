@@ -47,6 +47,7 @@ public class DistributeCommand extends GiveawayCommand
         arguments = "<channels> <time> [winners]w [prize]";
         hidden = true;
         cooldown = 10;
+        needsPremium = true;
     }
     
     @Override
