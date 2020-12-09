@@ -25,6 +25,8 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.ChunkingFilter;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.slf4j.LoggerFactory;
 
@@ -54,14 +56,16 @@ public class Checker
         WebhookClient webhook = new WebhookClientBuilder(config.getString("webhook")).build();
         webhook.send(Constants.TADA + " Starting checker...");
         
-        JDA jda = JDABuilder.create(config.getString("checker-token"), GatewayIntent.GUILD_MEMBERS)
+        JDA jda = JDABuilder.createDefault(config.getString("checker-token"), GatewayIntent.GUILD_MEMBERS)
                 .setStatus(OnlineStatus.IDLE)
-                .setMemberCachePolicy(m -> !m.getRoles().isEmpty())
+                .setMemberCachePolicy(MemberCachePolicy.ALL)
+                .setChunkingFilter(ChunkingFilter.ALL)
                 .disableCache(EnumSet.of(CacheFlag.ACTIVITY, CacheFlag.CLIENT_STATUS, 
                         CacheFlag.MEMBER_OVERRIDES, CacheFlag.EMOTE, CacheFlag.VOICE_STATE))
                 .build().awaitReady();
         
-        webhook.send(Constants.TADA + " Checker ready! `" + premiumServerId + "`");
+        webhook.send(Constants.TADA + " Checker ready! `" + premiumServerId + "` ~ `" 
+                + jda.getGuildById(premiumServerId).getMemberCache().size() + "`");
         
         // main checker loop
         while(true)
