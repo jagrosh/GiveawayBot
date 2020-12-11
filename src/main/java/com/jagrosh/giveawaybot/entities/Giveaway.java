@@ -159,7 +159,7 @@ public class Giveaway
     
     private String messageLink()
     {
-        return String.format("\n<https://discordapp.com/channels/%d/%d/%d>", guildId, channelId, messageId);
+        return String.format("\n<https://discord.com/channels/%d/%d/%d>", guildId, channelId, messageId);
     }
     
     public void end(RestJDA restJDA, Map<Long,Long> additional)
