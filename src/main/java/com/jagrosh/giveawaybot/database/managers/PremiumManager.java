@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.internal.utils.tuple.Pair;
 
 /**
  *
@@ -49,10 +50,10 @@ public class PremiumManager extends DataManager
                 : PremiumLevel.NONE, PremiumLevel.NONE);
     }
     
-    public void updatePremiumLevels(Guild premiumGuild)
+    public Summary updatePremiumLevels(Guild premiumGuild)
     {
         if(premiumGuild == null || !premiumGuild.isLoaded() || premiumGuild.getMemberCache().size()==0)
-            return;
+            return new Summary();
         // make a map of all users that have premium levels
         Map<Long, PremiumLevel> map = new HashMap<>();
         for(PremiumLevel p: PremiumLevel.values())
@@ -64,19 +65,25 @@ public class PremiumManager extends DataManager
         }
         
         // select all existing entries
-        readWrite(selectAll(), rs -> 
+        return readWrite(selectAll(), rs -> 
         {
+            Summary sum = new Summary();
             while(rs.next())
             {
                 long userId = USER_ID.getValue(rs);
+                PremiumLevel current = PremiumLevel.get(PREMIUM_LEVEL.getValue(rs));
                 
                 // remove users that no longer have premium
                 if(!map.containsKey(userId))
+                {
+                    sum.removed.put(userId, current);
                     rs.deleteRow();
+                }
                 
                 // update users if necessary
                 else if(map.get(userId).level != PREMIUM_LEVEL.getValue(rs))
                 {
+                    sum.changed.put(userId, Pair.of(current, map.get(userId)));
                     PREMIUM_LEVEL.updateValue(rs, map.get(userId).level);
                     rs.updateRow();
                 }
@@ -88,11 +95,35 @@ public class PremiumManager extends DataManager
             // add new users
             for(Entry<Long, PremiumLevel> entry: map.entrySet())
             {
+                sum.added.put(entry.getKey(), entry.getValue());
                 rs.moveToInsertRow();
                 USER_ID.updateValue(rs, entry.getKey());
                 PREMIUM_LEVEL.updateValue(rs, entry.getValue().level);
                 rs.insertRow();
             }
+            return sum;
         });
+    }
+    
+    public class Summary
+    {
+        private final Map<Long,PremiumLevel> removed = new HashMap<>();
+        private final Map<Long,Pair<PremiumLevel,PremiumLevel>> changed = new HashMap<>();
+        private final Map<Long,PremiumLevel> added = new HashMap<>();
+        
+        public boolean isEmpty()
+        {
+            return removed.isEmpty() && changed.isEmpty() && added.isEmpty();
+        }
+        
+        @Override
+        public String toString()
+        {
+            StringBuilder sb = new StringBuilder("```diff");
+            added.forEach((u,l) -> sb.append("\n+ ").append(u).append(" ").append(l));
+            changed.forEach((u,p) -> sb.append("\n# ").append(u).append(" ").append(p.getLeft()).append(" -> ").append(p.getRight()));
+            removed.forEach((u,l) -> sb.append("\n- ").append(u).append(" ").append(l));
+            return sb.append("\n```").toString();
+        }
     }
 }

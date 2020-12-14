@@ -51,6 +51,7 @@ public class RerolldistCommand extends GiveawayCommand
     @Override
     protected void execute(CommandEvent event)
     {
+        event.getChannel().sendTyping().queue();
         Matcher m = ARGS_PATTERN.matcher(event.getArgs());
         Map<TextChannel,Long> ids = new HashMap<>();
         while(m.find())
@@ -72,25 +73,33 @@ public class RerolldistCommand extends GiveawayCommand
         // do this async
         bot.getThreadpool().submit(() -> 
         {
-            // get all the users
-            Set<User> set = new HashSet<>();
-            ids.forEach((tc,mid) -> 
+            try
             {
-                Message msg = tc.retrieveMessageById(mid).complete();
-                if(msg != null)
+                // get all the users
+                Set<User> set = new HashSet<>();
+                ids.forEach((tc,mid) -> 
                 {
-                    MessageReaction mr = msg.getReactions().stream()
-                            .filter(r -> Constants.TADA.equals(r.getReactionEmote().getName())).findFirst().orElse(null);
-                    if(mr != null)
-                        mr.retrieveUsers().stream().filter(u -> !u.isBot()).forEach(u -> set.add(u));
-                }
-            });
-            
-            List<User> winner = GiveawayUtil.selectWinners(set, 1);
-            if(winner.isEmpty())
-                event.replyWarning("A winner could not be determined!");
-            else
-                event.replySuccess("From " + ids.size() + " channels and " + set.size() + "entrants... the new winner is " + winner.get(0).getAsMention() + "! Congratulations!");
+                    Message msg = tc.retrieveMessageById(mid).complete();
+                    if(msg != null)
+                    {
+                        MessageReaction mr = msg.getReactions().stream()
+                                .filter(r -> Constants.TADA.equals(r.getReactionEmote().getName())).findFirst().orElse(null);
+                        if(mr != null)
+                            mr.retrieveUsers().stream().filter(u -> !u.isBot()).forEach(u -> set.add(u));
+                    }
+                });
+
+                List<User> winner = GiveawayUtil.selectWinners(set, 1);
+                if(winner.isEmpty())
+                    event.replyWarning("A winner could not be determined!");
+                else
+                    event.replySuccess("From " + ids.size() + " channels and " + set.size() + " entrants... the new winner is " + winner.get(0).getAsMention() + "! Congratulations!");
+            } 
+            catch(Exception ex)
+            {
+                ex.printStackTrace();
+                event.replyError("Something went wrong...");
+            }
         });
     }
 }

@@ -18,6 +18,7 @@ package com.jagrosh.giveawaybot;
 import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.WebhookClientBuilder;
 import com.jagrosh.giveawaybot.database.Database;
+import com.jagrosh.giveawaybot.database.managers.PremiumManager.Summary;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.util.EnumSet;
@@ -61,7 +62,7 @@ public class Checker
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
                 .setChunkingFilter(ChunkingFilter.ALL)
                 .disableCache(EnumSet.of(CacheFlag.ACTIVITY, CacheFlag.CLIENT_STATUS, 
-                        CacheFlag.MEMBER_OVERRIDES, CacheFlag.EMOTE, CacheFlag.VOICE_STATE))
+                        CacheFlag.EMOTE, CacheFlag.VOICE_STATE))
                 .build().awaitReady();
         
         webhook.send(Constants.TADA + " Checker ready! `" + premiumServerId + "` ~ `" 
@@ -73,7 +74,9 @@ public class Checker
             Thread.sleep(1000 * 60);
             
             // update premium levels
-            database.premium.updatePremiumLevels(jda.getGuildById(premiumServerId));
+            Summary sum = database.premium.updatePremiumLevels(jda.getGuildById(premiumServerId));
+            if(!sum.isEmpty())
+                webhook.send("**Premium Update** " + sum.toString());
         }
     }
 }
