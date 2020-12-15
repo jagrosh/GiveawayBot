@@ -107,6 +107,12 @@ public class StartCommand extends GiveawayCommand
             return;
         }
         
+        if(item.length()>250)
+        {
+            event.replyWarning("Ack! That prize is too long. Can you shorten it a bit?");
+            return;
+        }
+        
         // check for too many giveaways runnning
         List<Giveaway> list = level.perChannelMaxGiveaways 
                 ? bot.getDatabase().giveaways.getGiveaways(event.getTextChannel()) 
