@@ -17,6 +17,7 @@ package com.jagrosh.giveawaybot.entities;
 
 import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.WebhookClientBuilder;
+import java.util.concurrent.ExecutionException;
 
 /**
  *
@@ -48,5 +49,10 @@ public class WebhookLog
     public void send(Level level, String message)
     {
         client.send(level.emoji + " `[" + logname + "]` " + message);
+    }
+    
+    public void sendBlocking(Level level, String message) throws InterruptedException, ExecutionException
+    {
+        client.send(level.emoji + " `[" + logname + "]` " + message).get();
     }
 }

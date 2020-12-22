@@ -20,6 +20,7 @@ import com.jagrosh.giveawaybot.util.FormatUtil;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -128,8 +129,12 @@ public abstract class Uptimer
                     }
                     else if(minutes > 30)
                     {
-                        bot.getWebhookLog().send(WebhookLog.Level.ERROR, "Extended outage, restarting...");
-                        System.exit(0);
+                        try
+                        {
+                            bot.getWebhookLog().sendBlocking(WebhookLog.Level.ERROR, "Extended outage, restarting...");
+                        }
+                        catch(InterruptedException | ExecutionException ex) {}
+                        Runtime.getRuntime().halt(0);
                     }
                 }
             }
