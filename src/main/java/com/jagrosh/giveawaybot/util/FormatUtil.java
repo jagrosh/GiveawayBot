@@ -65,7 +65,7 @@ public class FormatUtil
                 continue;
             if(command.isOwnerCommand() && !event.getAuthor().getId().equals(event.getClient().getOwnerId()))
                 continue;
-            if(!Objects.equals(category, command.getCategory()))
+            if(!isCategoryEqual(category, command.getCategory()))
             {
                 category = command.getCategory();
                 builder.append("\n\n  __").append(category==null ? "No Category" : category.getName()).append("__:\n");
@@ -77,6 +77,15 @@ public class FormatUtil
         builder.append("\n\nDo not include <> nor [] - <> means required and [] means optional."
                     + "\nFor additional help, contact "+Constants.OWNER+" or check out "+Constants.WEBSITE);
         return builder.toString();
+    }
+    
+    public static boolean isCategoryEqual(Category first, Category second)
+    {
+        if(first == null)
+            return second == null;
+        if(second == null)
+            return false;
+        return first.getName().equals(second.getName());
     }
     
     public static String secondsToTime(long timeseconds)

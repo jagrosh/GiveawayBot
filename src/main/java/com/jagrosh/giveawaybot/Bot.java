@@ -209,12 +209,13 @@ public class Bot extends ListenerAdapter
                         
                         new CreateCommand(bot),
                         new StartCommand(bot),
-                        new DistributeCommand(bot),
                         new EndCommand(bot),
                         new RerollCommand(bot),
-                        new RerolldistCommand(bot),
                         new ListCommand(bot),
                         new SettingsCommand(bot),
+                        
+                        new DistributeCommand(bot),
+                        new RerolldistCommand(bot),
                         
                         new DebugCommand(bot),
                         new EvalCommand(bot),
