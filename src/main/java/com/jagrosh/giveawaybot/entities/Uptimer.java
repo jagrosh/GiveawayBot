@@ -59,7 +59,7 @@ public abstract class Uptimer
     
         public DatabaseUptimer(Bot bot)
         {
-            super(bot, 120);
+            super(bot, 60);
         }
         
         @Override

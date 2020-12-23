@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.*;
@@ -227,7 +226,7 @@ public class Bot extends ListenerAdapter
         MessageAction.setDefaultMentions(Arrays.asList(MentionType.CHANNEL, MentionType.EMOTE, MentionType.USER));
         
         // start logging in
-        ScheduledExecutorService combinedPool = Executors.newScheduledThreadPool(100, r -> new Thread(r, "giveawaybot"));
+        ScheduledExecutorService combinedPool = Executors.newScheduledThreadPool(200, r -> new Thread(r, "giveawaybot"));
         bot.shards = DefaultShardManagerBuilder
                 .createLight(config.getString("bot-token"), GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES/*, GatewayIntent.GUILD_MEMBERS*/) // I guess we just dont get role changes? what the heck discord
                 .setCallbackPool(combinedPool)
