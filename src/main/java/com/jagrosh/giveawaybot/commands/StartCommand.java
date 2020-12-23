@@ -107,7 +107,7 @@ public class StartCommand extends GiveawayCommand
             return;
         }
         
-        if(item.length()>250)
+        if(item != null && item.length()>250)
         {
             event.replyWarning("Ack! That prize is too long. Can you shorten it a bit?");
             return;
