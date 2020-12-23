@@ -227,12 +227,13 @@ public class Bot extends ListenerAdapter
         MessageAction.setDefaultMentions(Arrays.asList(MentionType.CHANNEL, MentionType.EMOTE, MentionType.USER));
         
         // start logging in
+        ScheduledExecutorService combinedPool = Executors.newScheduledThreadPool(200, r -> new Thread(r, "giveawaybot"));
         bot.shards = DefaultShardManagerBuilder
                 .createLight(config.getString("bot-token"), GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES/*, GatewayIntent.GUILD_MEMBERS*/) // I guess we just dont get role changes? what the heck discord
-                .setCallbackPool(Executors.newScheduledThreadPool(50, r -> new Thread("gb-callback")))
-                .setRateLimitPool(Executors.newScheduledThreadPool(50, r -> new Thread("gb-ratelimit")))
-                .setEventPool(Executors.newScheduledThreadPool(50, r -> new Thread("gb-event")))
-                .setGatewayPool(Executors.newScheduledThreadPool(50, r -> new Thread("gb-gateway")))
+                .setCallbackPool(combinedPool)
+                .setRateLimitPool(combinedPool)
+                .setEventPool(combinedPool)
+                .setGatewayPool(Executors.newScheduledThreadPool(50, r -> new Thread("gbgateway")))
                 .setShardsTotal(shardTotal)
                 .setShards(shardSetId*shardSetSize, (shardSetId+1)*shardSetSize-1)
                 .setActivity(Activity.playing("loading..."))
@@ -241,6 +242,5 @@ public class Bot extends ListenerAdapter
                 .enableCache(CacheFlag.MEMBER_OVERRIDES)
                 .setChunkingFilter(ChunkingFilter.NONE)
                 .build();
-        
     }
 }
