@@ -233,7 +233,7 @@ public class Bot extends ListenerAdapter
                 .setCallbackPool(combinedPool)
                 .setRateLimitPool(combinedPool)
                 .setEventPool(combinedPool)
-                .setGatewayPool(Executors.newScheduledThreadPool(50, r -> new Thread("gbgateway")))
+                .setGatewayPool(Executors.newScheduledThreadPool(100, r -> new Thread("gbgateway")))
                 .setShardsTotal(shardTotal)
                 .setShards(shardSetId*shardSetSize, (shardSetId+1)*shardSetSize-1)
                 .setActivity(Activity.playing("loading..."))
