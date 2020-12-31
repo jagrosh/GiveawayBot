@@ -22,12 +22,12 @@ repositories {
 }
 
 dependencies {
-    implementation (group: 'net.dv8tion', name: 'JDA', version: '4.1.0_88') {
+    implementation (group: 'net.dv8tion', name: 'JDA', version: '4.2.0_219') {
         exclude module: 'opus-java'
     }
-    implementation group: 'club.minnced', name: 'discord-webhooks', version: '0.1.8'
+    implementation group: 'club.minnced', name: 'discord-webhooks', version: '0.3.0'
 //    implementation group: 'com.github.GiveawayBot', name: 'JDA-Lite', version: 'lite-edits-SNAPSHOT'
-    implementation group: 'com.jagrosh', name: 'jda-utilities', version: '3.0.2'
+    implementation group: 'com.jagrosh', name: 'jda-utilities', version: '3.0.5'
     implementation group: 'com.jagrosh', name: 'EasySQL', version: '0.3'
     implementation group: 'com.typesafe', name: 'config', version: '1.3.2'
     implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.1'

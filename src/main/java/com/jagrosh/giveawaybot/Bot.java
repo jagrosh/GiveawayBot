@@ -219,7 +219,9 @@ public class Bot extends ListenerAdapter
                         
                         new DebugCommand(bot),
                         new EvalCommand(bot),
-                        new ShutdownCommand(bot)
+                        new ShutdownCommand(bot),
+
+                        new UserphoneCommand(bot)
                 ).build();
         
         bot.webhook.send(WebhookLog.Level.INFO, "Starting shards `"+(shardSetId*shardSetSize + 1) + " - " + ((shardSetId+1)*shardSetSize) + "` of `"+shardTotal+"`...");
