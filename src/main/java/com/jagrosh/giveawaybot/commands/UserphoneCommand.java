@@ -37,11 +37,12 @@ public class UserphoneCommand extends Command
     public UserphoneCommand(Bot bot)
     {
         this.bot = bot;
-        name = "about";
-        aliases = new String[]{"info"};
-        help = "shows info about the bot";
-        guildOnly = false;
-        botPermissions = new Permission[]{Permission.MESSAGE_EMBED_LINKS};
+        name = "userphone";
+        aliases = new String[]{"phonecats"};
+        help = "no";
+        guildOnly = true;
+        hidden = true;
+        botPermissions = new Permission[]{Permission.MESSAGE_WRITE};
     }
 
     @Override
