@@ -114,7 +114,7 @@ public abstract class Uptimer
             }
             else // if it didn't change, maybe take action
             {
-                if(status == BotStatus.PARTIAL_OUTAGE)
+                if(status == BotStatus.PARTIAL_OUTAGE || status == BotStatus.OFFLINE)
                 {
                     int minutes = (int) lastChange.until(Instant.now(), ChronoUnit.MINUTES);
                     if(minutes > 10 && !attemptedFix)
@@ -127,7 +127,7 @@ public abstract class Uptimer
                         down.forEach(i -> bot.getShardManager().restart(i));
                         attemptedFix = true;
                     }
-                    else if(minutes > 30)
+                    else if(minutes > 20)
                     {
                         try
                         {

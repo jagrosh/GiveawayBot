@@ -229,9 +229,9 @@ public class Bot extends ListenerAdapter
         // start logging in
         bot.shards = DefaultShardManagerBuilder
                 .createLight(config.getString("bot-token"), GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES/*, GatewayIntent.GUILD_MEMBERS*/) // I guess we just dont get role changes? what the heck discord
-                .setCallbackPool(Executors.newScheduledThreadPool(50, r -> new Thread(r, "gbcallback")))
-                .setRateLimitPool(Executors.newScheduledThreadPool(50, r -> new Thread(r, "gbratelimit")))
-                .setEventPool(Executors.newScheduledThreadPool(50, r -> new Thread(r, "gbevent")))
+                .setCallbackPool(Executors.newScheduledThreadPool(100, r -> new Thread(r, "gbcallback")))
+                .setRateLimitPool(Executors.newScheduledThreadPool(100, r -> new Thread(r, "gbratelimit")))
+                .setEventPool(Executors.newScheduledThreadPool(100, r -> new Thread(r, "gbevent")))
                 //.setGatewayPool(Executors.newScheduledThreadPool(100, r -> new Thread("gbgateway")))
                 .setShardsTotal(shardTotal)
                 .setShards(shardSetId*shardSetSize, (shardSetId+1)*shardSetSize-1)
