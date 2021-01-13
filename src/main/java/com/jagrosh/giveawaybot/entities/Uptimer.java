@@ -87,6 +87,7 @@ public abstract class Uptimer
         
         private BotStatus status = BotStatus.LOADING;
         private Instant lastChange = Instant.now();
+        private Instant lastOnline = Instant.MIN;
         private boolean attemptedFix = false;
     
         public StatusUptimer(Bot bot)
@@ -110,14 +111,18 @@ public abstract class Uptimer
                 lastChange = Instant.now();
                 status = curr;
                 if(status == BotStatus.ONLINE)
-                    attemptedFix = false; // if we're fully online, reset status of an outage
+                {
+                    // if we're fully online, reset status of an outage
+                    attemptedFix = false; 
+                    lastOnline = lastChange;
+                }
             }
             else // if it didn't change, maybe take action
             {
                 if(status == BotStatus.PARTIAL_OUTAGE || status == BotStatus.OFFLINE)
                 {
-                    int minutes = (int) lastChange.until(Instant.now(), ChronoUnit.MINUTES);
-                    if(minutes > 10 && !attemptedFix)
+                    int minutes = (int) lastOnline.until(Instant.now(), ChronoUnit.MINUTES);
+                    if(minutes > 8 && !attemptedFix)
                     {
                         List<Integer> down = bot.getShardManager().getShardCache().stream()
                                 .filter(jda -> jda.getStatus() != JDA.Status.CONNECTED)
@@ -127,7 +132,7 @@ public abstract class Uptimer
                         down.forEach(i -> bot.getShardManager().restart(i));
                         attemptedFix = true;
                     }
-                    else if(minutes > 20)
+                    else if(minutes > 15)
                     {
                         try
                         {

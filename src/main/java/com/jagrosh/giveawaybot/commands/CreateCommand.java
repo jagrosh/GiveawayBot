@@ -65,19 +65,19 @@ public class CreateCommand extends GiveawayCommand
         // preliminary giveaway count check
         // we use current text channel as a basis, even though this may not be the final giveaway channel
         // this might need to be changed at some point
-        if(tooManyGiveaways(event, null))
+        PremiumLevel level = bot.getDatabase().premium.getPremiumLevel(event.getGuild());
+        if(tooManyGiveaways(event, null, level))
             return;
         
         // get started
         current.add(event.getChannel().getIdLong());
         event.replySuccess("Alright! Let's set up your giveaway! First, what channel do you want the giveaway in?\n"
                 + "You can type `cancel` at any time to cancel creation."+CHANNEL);
-        waitForChannel(event, event.getMessage().getIdLong());
+        waitForChannel(event, level, event.getMessage().getIdLong());
     }
     
-    private boolean tooManyGiveaways(CommandEvent event, TextChannel tchannel)
+    private boolean tooManyGiveaways(CommandEvent event, TextChannel tchannel, PremiumLevel level)
     {
-        PremiumLevel level = bot.getDatabase().premium.getPremiumLevel(event.getGuild());
         List<Giveaway> list = level.perChannelMaxGiveaways 
                 ? bot.getDatabase().giveaways.getGiveaways(tchannel==null ? event.getTextChannel() : tchannel) 
                 : bot.getDatabase().giveaways.getGiveaways(event.getGuild());
@@ -97,7 +97,7 @@ public class CreateCommand extends GiveawayCommand
         return false;
     }
     
-    private void waitForChannel(CommandEvent event, long lastMessage)
+    private void waitForChannel(CommandEvent event, PremiumLevel level, long lastMessage)
     {
         wait(event, lastMessage, e -> 
         {
@@ -107,20 +107,20 @@ public class CreateCommand extends GiveawayCommand
             if(list.isEmpty())
             {
                 event.replyWarning("Uh oh, I couldn't find any channels called '"+query+"'! Try again!" + CHANNEL);
-                waitForChannel(event, e.getMessageIdLong());
+                waitForChannel(event, level, e.getMessageIdLong());
                 return;
             }
             if(list.size()>1)
             {
                 event.replyWarning("Oh... there are multiple channels with that name. Please be more specific!" + CHANNEL);
-                waitForChannel(event, e.getMessageIdLong());
+                waitForChannel(event, level, e.getMessageIdLong());
                 return;
             }
             TextChannel tchan = list.get(0);
             if(tchan.isNews())
             {
                 event.replyWarning("Giveaways cannot be created in announcements channels! Please try a different channel!" + CHANNEL);
-                waitForChannel(event, e.getMessageIdLong());
+                waitForChannel(event, level, e.getMessageIdLong());
                 return;
             }
 
@@ -134,16 +134,16 @@ public class CreateCommand extends GiveawayCommand
             }
 
             // check giveaway count again
-            if(tooManyGiveaways(event, tchan))
+            if(tooManyGiveaways(event, tchan, level))
                 return;
 
             // channel selection successful
             event.replySuccess("Sweet! The giveaway will be in "+tchan.getAsMention()+"! Next, how long should the giveaway last?"+TIME);
-            waitForTime(event, tchan, e.getMessageIdLong());
+            waitForTime(event, tchan, level, e.getMessageIdLong());
         });
     }
     
-    private void waitForTime(CommandEvent event, TextChannel tchan, long lastMessage)
+    private void waitForTime(CommandEvent event, TextChannel tchan, PremiumLevel level, long lastMessage)
     {
         wait(event, lastMessage, e -> 
         {
@@ -152,17 +152,16 @@ public class CreateCommand extends GiveawayCommand
             if(seconds==-1)
             {
                 event.replyWarning("Hm. I can't seem to get a number from that. Can you try again?"+TIME);
-                waitForTime(event, tchan, e.getMessageIdLong());
+                waitForTime(event, tchan, level, e.getMessageIdLong());
                 return;
             }
 
             // check for valid time
-            PremiumLevel level = bot.getDatabase().premium.getPremiumLevel(event.getGuild());
             if(!level.isValidTime(seconds))
             {
                 event.replyWarning("Oh! Sorry! Giveaway time must not be shorter than " + FormatUtil.secondsToTime(Constants.MIN_TIME) 
                         + " and no longer than " + FormatUtil.secondsToTime(level.maxTime) + " Mind trying again?" + TIME);
-                waitForTime(event, tchan, e.getMessageIdLong());
+                waitForTime(event, tchan, level, e.getMessageIdLong());
                 return;
             }
 
@@ -192,7 +191,7 @@ public class CreateCommand extends GiveawayCommand
                     event.replySuccess("Ok! "+num+" "
                         + FormatUtil.pluralise(num, "winner", "winners")
                         + " it is! Finally, what do you want to give away?" + PRIZE);
-                    waitForPrize(event, tchan, seconds, num, e.getMessageIdLong());
+                    waitForPrize(event, tchan, seconds, num, level, e.getMessageIdLong());
                 }
             } 
             catch(NumberFormatException ex) 
@@ -203,7 +202,7 @@ public class CreateCommand extends GiveawayCommand
         });
     }
     
-    private void waitForPrize(CommandEvent event, TextChannel tchan, int seconds, int winners, long lastMessage)
+    private void waitForPrize(CommandEvent event, TextChannel tchan, int seconds, int winners, PremiumLevel level, long lastMessage)
     {
         wait(event, lastMessage, e -> 
         {
@@ -211,7 +210,7 @@ public class CreateCommand extends GiveawayCommand
             if(prize.length()>250)
             {
                 event.replyWarning("Ack! That prize is too long. Can you shorten it a bit?"+PRIZE);
-                waitForPrize(event, tchan, seconds, winners, e.getMessageIdLong());
+                waitForPrize(event, tchan, seconds, winners, level, e.getMessageIdLong());
                 return;
             }
 
@@ -219,9 +218,8 @@ public class CreateCommand extends GiveawayCommand
             current.remove(event.getChannel().getIdLong());
 
             // final checks
-            if(tooManyGiveaways(event, tchan))
+            if(tooManyGiveaways(event, tchan, level))
                 return;
-            PremiumLevel level = bot.getDatabase().premium.getPremiumLevel(event.getGuild());
             if(!level.isValidTime(seconds) || !level.isValidWinners(winners))
             {
                 event.replyError("An invalid amount of time or number of winners was chosen." + CANCEL);
