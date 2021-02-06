@@ -186,8 +186,8 @@ public class Giveaway
             List<Long> wins = GiveawayUtil.selectWinners(ids, winners);
             if(wins.isEmpty())
             {
-                eb.setDescription("Could not determine a winner!");
-                toSend = "A winner could not be determined!";
+                eb.setDescription("Not enough entrants to determine a winner!");
+                toSend = "No valid entrants, so a winner could not be determined!";
             }
             else if(wins.size()==1)
             {
@@ -206,6 +206,11 @@ public class Giveaway
             mb.setEmbed(eb.appendDescription("\nHosted by: <@" + userId + ">").build());
 
         } 
+        catch(ErrorResponseException e)
+        {
+            mb.setEmbed(eb.setDescription("Could not determine a winner!\nHosted by: <@" + userId + ">").build());
+            toSend = "A winner could not be determined! (" + e.getMeaning() + ")";
+        }
         catch(Exception e) 
         {
             mb.setEmbed(eb.setDescription("Could not determine a winner!\nHosted by: <@" + userId + ">").build());
