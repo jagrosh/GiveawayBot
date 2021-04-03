@@ -33,6 +33,10 @@ dependencies {
     implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.1'
     implementation group: 'com.h2database', name: 'h2', version: '1.4.200'
     implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+
+    // might write own stuff, but for now i'm lazy until testing
+    implementation group: 'com.vdurmont', name: 'emoji-java', version: '5.1.1'
+
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 

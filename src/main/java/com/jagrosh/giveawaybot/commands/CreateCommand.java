@@ -17,6 +17,7 @@ package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Bot;
 import com.jagrosh.giveawaybot.Constants;
+import com.jagrosh.giveawaybot.database.managers.GuildSettingsManager;
 import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.entities.MessageWaiter;
 import com.jagrosh.giveawaybot.entities.PremiumLevel;
@@ -224,6 +225,13 @@ public class CreateCommand extends GiveawayCommand
             {
                 event.replyError("An invalid amount of time or number of winners was chosen." + CANCEL);
                 return;
+            }
+
+            GuildSettingsManager.GuildSettings settings = bot.getDatabase().settings.getSettings(event.getGuild().getIdLong());
+            if (!level.canSetEmoji() && !settings.getEmojiDisplay().equals(Constants.TADA))
+            {
+                bot.getDatabase().settings.updateEmoji(event.getGuild(), null);
+                event.reply("Your custom emoji has been reset, because your premium status expired.");
             }
 
             Instant now = Instant.now();

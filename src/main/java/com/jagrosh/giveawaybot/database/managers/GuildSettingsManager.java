@@ -114,7 +114,11 @@ public class GuildSettingsManager extends DataManager
         {
             this(COLOR.getValue(rs), DEFAULT_CHANNEL.getValue(rs), MANAGER_ROLE.getValue(rs), EMOJI.getValue(rs));
         }
-        
+
+        /**
+         *
+         * @return never-null raw string of the custom emoji as unicode or pattern `(a:)?name:id`
+         */
         public String getEmojiDisplay()
         {
             return emoji;

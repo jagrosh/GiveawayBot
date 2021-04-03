@@ -108,13 +108,15 @@ public class Bot extends ListenerAdapter
             return false;
         database.settings.updateColor(channel.getGuild());
         Instant end = now.plusSeconds(seconds);
-        GuildSettingsManager.GuildSettings settings = database.settings.getSettings(channel.getGuild().getIdLong());
-        String emoji = (settings.getEmojiDisplay() == null) ? Constants.TADA : settings.getEmojiDisplay();
+        String emoji = database.settings.getSettings(channel.getGuild().getIdLong()).getEmojiDisplay();
         Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, Status.RUN, false)
                 .render(channel.getGuild().getSelfMember().getColor(), now);
-        channel.sendMessage(msg).queue(m -> 
-        {
-            m.addReaction(emoji).queue();
+
+        channel.sendMessage(msg).queue(m -> {
+            m.addReaction(emoji).onErrorFlatMap(ignored -> { // this might be perms error or because we can't add that emoji
+                database.settings.updateEmoji(channel.getGuild(), null);
+                return m.addReaction(Constants.TADA);
+            }).queue();
             database.giveaways.createGiveaway(m, creator, end, winners, prize, false);
         }, v -> LOG.warn("Unable to start giveaway: "+v));
         return true;
@@ -128,21 +130,26 @@ public class Bot extends ListenerAdapter
             return false;
         database.settings.updateColor(channel.getGuild());
         Instant end = now.plusSeconds(seconds);
-        GuildSettingsManager.GuildSettings settings = database.settings.getSettings(channel.getGuild().getIdLong());
-        String emoji = (settings.getEmojiDisplay() == null) ? Constants.TADA : settings.getEmojiDisplay();
+        String emoji = database.settings.getSettings(channel.getGuild().getIdLong()).getEmojiDisplay();
         Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, Status.RUN, false)
                 .render(channel.getGuild().getSelfMember().getColor(), now);
         Map<Long,Long> map = additional.stream()
                 .map(c -> 
                 { 
                     Message m = c.sendMessage(msg).complete();
-                    m.addReaction(emoji).queue();
+                    m.addReaction(emoji).onErrorFlatMap(ignored -> { // this might be perms error or because we can't add that emoji
+                        // don't need to reset the emoji here, we can do that on the main channel instead of each additional one
+                        return m.addReaction(Constants.TADA);
+                    }).queue();
                     return m;
                 })
-                .collect(Collectors.toMap(m -> m.getChannel().getIdLong(), m -> m.getIdLong()));
+                .collect(Collectors.toMap(m -> m.getChannel().getIdLong(), Message::getIdLong));
         channel.sendMessage(msg).queue(m -> 
         {
-            m.addReaction(emoji).queue();
+            m.addReaction(emoji).onErrorFlatMap(ignored -> { // this might be perms error or because we can't add that emoji
+                database.settings.updateEmoji(channel.getGuild(), null);
+                return m.addReaction(Constants.TADA);
+            }).queue();
             database.expanded.createExpanded(m.getIdLong(), map);
             database.giveaways.createGiveaway(m, creator, end, winners, prize, true);
         }, v -> LOG.warn("Unable to start giveaway: "+v));
