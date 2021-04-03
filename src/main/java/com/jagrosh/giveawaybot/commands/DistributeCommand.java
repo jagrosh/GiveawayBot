@@ -97,7 +97,7 @@ public class DistributeCommand extends GiveawayCommand
         }
         
         // check channel type
-        TextChannel isnews = tcs.stream().filter(tc -> tc.isNews()).findFirst().orElse(null);
+        TextChannel isnews = tcs.stream().filter(TextChannel::isNews).findFirst().orElse(null);
         if(isnews != null)
         {
             event.replyError("Giveaways cannot be created in announcements channels (" + isnews.getAsMention() + ")!");

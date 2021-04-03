@@ -49,10 +49,56 @@ public class SettingsCommand extends Command
     {
         EmbedBuilder eb = new EmbedBuilder();
         GuildSettings settings = bot.getDatabase().settings.getSettings(event.getGuild().getIdLong());
-        PremiumLevel premium = bot.getDatabase().premium.getPremiumLevel(event.getGuild());
-        
+        PremiumLevel level = bot.getDatabase().premium.getPremiumLevel(event.getGuild());
+
+        String[] args = event.getArgs().split("\\s+", 2);
+
+        switch (args[0])
+        {
+            case "emoji":
+            {
+                if (args.length == 2)
+                {
+                    if (!level.canSetEmoji())
+                    {
+                        event.replyError("Sorry you must have a premium level for setting a custom emoji.");
+                        return;
+                    }
+                    if (args[1].length() > 60)
+                    {
+                        event.replyError("Emoji too long");
+                        return;
+                    }
+
+                    event.getMessage().addReaction(args[1])
+                            .map((success) -> {
+                                bot.getDatabase().settings.updateEmoji(event.getGuild(), args[1]);
+                                event.reply("new emoji set");
+                                return null;
+                            })
+                            .onErrorMap((error) -> {
+                                event.replyError("The provided emoji is invalid or not accessible for me. Please use a different one.");
+                                return null;
+                            }).queue();
+                }
+            }
+            case "":
+            default:
+                defaultBlock(event, eb, settings, level);
+        }
+
+
+    }
+
+    private void emojiBlock()
+    {
+        // TODO Tidy switch up and move stuff here
+    }
+
+    private void defaultBlock(CommandEvent event, EmbedBuilder eb, GuildSettings settings, PremiumLevel level)
+    {
         eb.setColor(settings.color);
-        eb.appendDescription("Premium Level: **"+ premium.name + "**\n");
+        eb.appendDescription("Premium Level: **" + level.name + "**\n");
         eb.appendDescription("\nReaction: " + settings.getEmojiDisplay());
         eb.setAuthor(event.getGuild().getName(), null, event.getGuild().getIconUrl());
         event.reply(new MessageBuilder()

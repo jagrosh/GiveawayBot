@@ -43,7 +43,7 @@ public enum PremiumLevel
             this.maxTime = maxTime;
             this.maxWinners = maxWinners;
             this.maxGiveaways = maxGiveaways;
-            this.perChannelMaxGiveaways = perChannelMaxGiveaways;
+            this.perChannelMaxGiveaways = perChannelMaxGiveaways;   // reusing for emojis because no need to add another one yet
             this.roleId = roleId;
         }
         
@@ -55,6 +55,11 @@ public enum PremiumLevel
         public boolean isValidWinners(int winners)
         {
             return winners >= 1 && winners <= maxWinners;
+        }
+
+        public boolean canSetEmoji()
+        {
+            return perChannelMaxGiveaways;
         }
         
         // static methods

@@ -17,6 +17,7 @@ package com.jagrosh.giveawaybot;
 
 import com.jagrosh.giveawaybot.commands.*;
 import com.jagrosh.giveawaybot.database.Database;
+import com.jagrosh.giveawaybot.database.managers.GuildSettingsManager;
 import com.jagrosh.giveawaybot.entities.*;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.jdautilities.command.CommandClient;
@@ -107,11 +108,13 @@ public class Bot extends ListenerAdapter
             return false;
         database.settings.updateColor(channel.getGuild());
         Instant end = now.plusSeconds(seconds);
+        GuildSettingsManager.GuildSettings settings = database.settings.getSettings(channel.getGuild().getIdLong());
+        String emoji = (settings.getEmojiDisplay() == null) ? Constants.TADA : settings.getEmojiDisplay();
         Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, Status.RUN, false)
                 .render(channel.getGuild().getSelfMember().getColor(), now);
         channel.sendMessage(msg).queue(m -> 
         {
-            m.addReaction(Constants.TADA).queue();
+            m.addReaction(emoji).queue();
             database.giveaways.createGiveaway(m, creator, end, winners, prize, false);
         }, v -> LOG.warn("Unable to start giveaway: "+v));
         return true;
@@ -125,19 +128,21 @@ public class Bot extends ListenerAdapter
             return false;
         database.settings.updateColor(channel.getGuild());
         Instant end = now.plusSeconds(seconds);
+        GuildSettingsManager.GuildSettings settings = database.settings.getSettings(channel.getGuild().getIdLong());
+        String emoji = (settings.getEmojiDisplay() == null) ? Constants.TADA : settings.getEmojiDisplay();
         Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, Status.RUN, false)
                 .render(channel.getGuild().getSelfMember().getColor(), now);
         Map<Long,Long> map = additional.stream()
                 .map(c -> 
                 { 
                     Message m = c.sendMessage(msg).complete();
-                    m.addReaction(Constants.TADA).queue();
+                    m.addReaction(emoji).queue();
                     return m;
                 })
                 .collect(Collectors.toMap(m -> m.getChannel().getIdLong(), m -> m.getIdLong()));
         channel.sendMessage(msg).queue(m -> 
         {
-            m.addReaction(Constants.TADA).queue();
+            m.addReaction(emoji).queue();
             database.expanded.createExpanded(m.getIdLong(), map);
             database.giveaways.createGiveaway(m, creator, end, winners, prize, true);
         }, v -> LOG.warn("Unable to start giveaway: "+v));
