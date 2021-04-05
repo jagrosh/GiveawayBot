@@ -160,7 +160,7 @@ public class SettingsCommand extends Command
             event.replyError("An error occurred when trying to start giveaway.");
             return;
         }
-        else if(list.size() >= level.maxGiveaways)
+        else if(!list.isEmpty())
         {
             event.replyError("There are already " + level.maxGiveaways + " giveaways running in this "
                     + (level.perChannelMaxGiveaways ? "channel" : "server") + "!");
