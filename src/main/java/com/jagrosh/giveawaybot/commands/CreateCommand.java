@@ -230,18 +230,49 @@ public class CreateCommand extends GiveawayCommand
             GuildSettingsManager.GuildSettings settings = bot.getDatabase().settings.getSettings(event.getGuild().getIdLong());
             if (!level.canSetEmoji() && !settings.getEmojiDisplay().equals(Constants.TADA))
             {
-                bot.getDatabase().settings.updateEmoji(event.getGuild(), null);
-                event.reply("Your custom emoji has been reset, because your premium status expired.");
-            }
-
-            Instant now = Instant.now();
-            if(bot.startGiveaway(tchan, event.getAuthor(), now, seconds, winners, prize))
-            {
-                event.replySuccess("Done! The giveaway for the `"+e.getMessage().getContentRaw()+"` is starting in "+tchan.getAsMention()+"!");
+                event.reply("That is weird. Your custom emoji could not be used.\n\nWould you still like to continue using the `" + Constants.TADA + "` emoji?");
+                waitForEmoji(event, tchan, seconds, winners, prize, lastMessage);
             }
             else
             {
-                event.replyError("Uh oh. Something went wrong and I wasn't able to start the giveaway."+CANCEL);
+                Instant now = Instant.now();
+                if (bot.startGiveaway(tchan, event.getAuthor(), now, seconds, winners, prize)) {
+                    event.replySuccess("Done! The giveaway for the `" + e.getMessage().getContentRaw() + "` is starting in " + tchan.getAsMention() + "!");
+                } else {
+                    event.replyError("Uh oh. Something went wrong and I wasn't able to start the giveaway." + CANCEL);
+                }
+            }
+        });
+    }
+
+    private void waitForEmoji(CommandEvent event, TextChannel tchan, int seconds, int winners, String prize, long lastMessage)
+    {
+        wait(event, lastMessage, e ->
+        {
+            String content = e.getMessage().getContentRaw();
+
+            if (content.equalsIgnoreCase("yes"))
+            {
+                bot.getDatabase().settings.updateEmoji(event.getGuild(), null);
+
+                Instant now = Instant.now();
+                if(bot.startGiveaway(tchan, event.getAuthor(), now, seconds, winners, prize))
+                {
+                    event.replySuccess("Done! The giveaway for the `"+e.getMessage().getContentRaw()+"` is starting in "+tchan.getAsMention()+"!");
+                }
+                else
+                {
+                    event.replyError("Uh oh. Something went wrong and I wasn't able to start the giveaway."+CANCEL);
+                }
+            }
+            else if (content.equalsIgnoreCase("no"))
+            {
+                event.replyWarning("Alright, I guess we're not having a giveaway after all..."+CANCEL);
+            }
+            else
+            {
+                event.replyWarning("I couldn't get what you want me to do.\nTry again with a `Yes` or `No` answer please.");
+                waitForEmoji(event, tchan, seconds, winners, prize, lastMessage);
             }
         });
     }

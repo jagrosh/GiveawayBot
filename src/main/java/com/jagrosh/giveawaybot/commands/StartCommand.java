@@ -134,7 +134,7 @@ public class StartCommand extends GiveawayCommand
         if (!level.canSetEmoji() && !settings.getEmojiDisplay().equals(Constants.TADA))
         {
             bot.getDatabase().settings.updateEmoji(event.getGuild(), null);
-            event.reply("Your custom emoji has been reset, because your premium status expired.");
+            event.replyWarning("Your custom emoji has been reset, continuing with the giveaway.");
         }
         
         // try to delete the command if possible

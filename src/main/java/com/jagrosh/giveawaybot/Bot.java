@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.*;
@@ -114,6 +115,7 @@ public class Bot extends ListenerAdapter
 
         channel.sendMessage(msg).queue(m -> {
             m.addReaction(emoji).onErrorFlatMap(ignored -> { // this might be perms error or because we can't add that emoji
+                channel.sendMessageFormat("%s Failed to use your custom emoji. It's been automatically reset.", Constants.WARNING).delay(20, TimeUnit.SECONDS).flatMap(Message::delete).queue(s->{},f->{});
                 database.settings.updateEmoji(channel.getGuild(), null);
                 return m.addReaction(Constants.TADA);
             }).queue();
@@ -147,6 +149,7 @@ public class Bot extends ListenerAdapter
         channel.sendMessage(msg).queue(m -> 
         {
             m.addReaction(emoji).onErrorFlatMap(ignored -> { // this might be perms error or because we can't add that emoji
+                channel.sendMessageFormat("%s Failed to use your custom emoji. It's been automatically reset.", Constants.WARNING).delay(20, TimeUnit.SECONDS).flatMap(Message::delete).queue(s->{},f->{});
                 database.settings.updateEmoji(channel.getGuild(), null);
                 return m.addReaction(Constants.TADA);
             }).queue();

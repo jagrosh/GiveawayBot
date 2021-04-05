@@ -108,13 +108,13 @@ public class SettingsCommand extends Command
 
         if (!level.canSetEmoji())
         {
-            event.replyError("Sorry you must have a premium level for setting a custom emoji.");
+            event.replyError("This server must have a premium level to set a custom emoji!");
             return;
         }
 
         if (args[1].length() > 60)
         {
-            event.replyError("Emoji too long");
+            event.replyWarning("It seems like you entered multiple emojis. Please enter only one valid emoji.");
             return;
         }
 
@@ -131,7 +131,7 @@ public class SettingsCommand extends Command
         }
         else
         {
-            event.replyError("The provided emoji is invalid.");
+            event.replyError("The provided emoji seems to be invalid.");
             return;
         }
 
@@ -144,7 +144,7 @@ public class SettingsCommand extends Command
                     return null;
                 })
                 .onErrorMap((error) -> {
-                    event.replyError("The provided emoji is not accessible for me. Please use a different one.");
+                    event.replyWarning("The provided emoji is not accessible for me. Please use a different one.");
                     return null;
                 }).queue();
     }
@@ -172,7 +172,7 @@ public class SettingsCommand extends Command
 
     private void defaultBlock(CommandEvent event, EmbedBuilder eb, GuildSettings settings, PremiumLevel level)
     {
-        // next line basically prints emotes as mention or uses its unicode
+        // next line basically prints emotes as mention or uses its unicode (will fail for animated once)
         String displayedEmoji = (settings.getEmojiDisplay().contains(":")) ? ("<" + settings.getEmojiDisplay() + ">") : settings.getEmojiDisplay();
         eb.setColor(settings.color);
         eb.appendDescription("Premium Level: **" + level.name + "**\n");
