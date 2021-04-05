@@ -91,7 +91,7 @@ public class SettingsCommand extends Command
                 : bot.getDatabase().giveaways.getGiveaways(event.getGuild());
         if(list == null)
         {
-            event.replyError("An error occurred when trying to start giveaway.");
+            event.replyError("An error occurred when trying to change settings.");
             return;
         }
         else if(!list.isEmpty())
