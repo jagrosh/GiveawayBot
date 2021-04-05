@@ -59,7 +59,6 @@ public class GuildSettingsManager extends DataManager
                 results.moveToInsertRow();
                 GUILD_ID.updateValue(results, guild.getIdLong());
                 COLOR.updateValue(results, color);
-                EMOJI.updateValue(results, null);
                 results.insertRow();
             }
         });
