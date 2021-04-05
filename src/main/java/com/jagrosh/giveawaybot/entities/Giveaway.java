@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.RateLimitedException;
 import net.dv8tion.jda.internal.utils.EncodingUtil;
@@ -162,9 +163,9 @@ public class Giveaway
         return String.format("\n<https://discordapp.com/channels/%d/%d/%d>", guildId, channelId, messageId);
     }
     
-    public void end(RestJDA restJDA, Map<Long,Long> additional)
+    public void end(RestJDA restJDA, String reactionEmoji, Map<Long,Long> additional)
     {
-        String emoji = EncodingUtil.encodeUTF8(Constants.TADA);
+        String emoji = EncodingUtil.encodeUTF8(reactionEmoji);
         MessageBuilder mb = new MessageBuilder();
         mb.append(Constants.YAY).append(" **GIVEAWAY ENDED** ").append(Constants.YAY);
         EmbedBuilder eb = new EmbedBuilder();
@@ -178,10 +179,10 @@ public class Giveaway
         {
             // stream over all the users that reacted (paginating as necessary
             Set<Long> ids = restJDA.getReactionUsers(channelId, messageId, emoji)
-                    .stream().map(u -> u.getIdLong()).distinct().collect(Collectors.toSet());
+                    .stream().map(User::getIdLong).collect(Collectors.toSet()); // distinct() not needed when using Set
             additional.entrySet().stream()
                     .flatMap(e -> restJDA.getReactionUsers(e.getKey(), e.getValue(), emoji).stream())
-                    .map(u -> u.getIdLong()).forEach(id -> ids.add(id));
+                    .map(User::getIdLong).forEach(ids::add);
             
             List<Long> wins = GiveawayUtil.selectWinners(ids, winners);
             if(wins.isEmpty())

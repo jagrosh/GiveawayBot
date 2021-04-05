@@ -25,7 +25,7 @@ dependencies {
     implementation (group: 'net.dv8tion', name: 'JDA', version: '4.2.0_227') {
         exclude module: 'opus-java'
     }
-    implementation group: 'club.minnced', name: 'discord-webhooks', version: '0.3.0'
+    implementation group: 'club.minnced', name: 'discord-webhooks', version: '0.5.6' // 0.3.0 broke with my webhook
 //    implementation group: 'com.github.GiveawayBot', name: 'JDA-Lite', version: 'lite-edits-SNAPSHOT'
     implementation group: 'com.jagrosh', name: 'jda-utilities', version: '3.0.5'
     implementation group: 'com.jagrosh', name: 'EasySQL', version: '0.3'
@@ -42,6 +42,9 @@ dependencies {
 
 shadowJar {
     mainClassName = 'com.jagrosh.giveawaybot.GiveawayBot'
+    classifier     = ''
+    version        = ''
+    destinationDir = new File('./shadowjar/')
 }
 
 compileJava.options.encoding = 'UTF-8'

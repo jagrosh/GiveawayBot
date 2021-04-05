@@ -18,6 +18,7 @@ package com.jagrosh.giveawaybot.commands;
 import com.jagrosh.giveawaybot.Bot;
 import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.giveawaybot.database.managers.GuildSettingsManager.GuildSettings;
+import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.entities.PremiumLevel;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
@@ -26,8 +27,10 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  *
@@ -65,7 +68,7 @@ public class SettingsCommand extends Command
                 break;
             case "clear":
             case "reset":
-                resetBlock(event.getGuild());
+                resetBlock(event, level);
                 break;
             case "":
             default:
@@ -82,9 +85,25 @@ public class SettingsCommand extends Command
             defaultBlock(event, new EmbedBuilder(), bot.getDatabase().settings.getSettings(event.getGuild().getIdLong()), level);
             return;
         }
+
+        // check for running giveaways
+        List<Giveaway> list = level.perChannelMaxGiveaways
+                ? bot.getDatabase().giveaways.getGiveaways(event.getTextChannel())
+                : bot.getDatabase().giveaways.getGiveaways(event.getGuild());
+        if(list == null)
+        {
+            event.replyError("An error occurred when trying to start giveaway.");
+            return;
+        }
+        else if(!list.isEmpty())
+        {
+            event.replyError("You can not change the emoji while giveaways are running! Please end them first.");
+            return;
+        }
+
         if (Arrays.stream(CLEAR_ALIAS).anyMatch(it -> args[1].equalsIgnoreCase(it)))
         {
-            resetBlock(event.getGuild());
+            resetBlock(event, level);
             return;
         }
 
@@ -104,7 +123,8 @@ public class SettingsCommand extends Command
 
         if (args[1].matches(EMOTE_REGEX))
         {
-            extracted = args[1].substring(2, args[1].length() - 1);
+            int startOffset = (args[1].charAt(2) == 'a') ? 3 : 2; // "<a:name:id>" and "<:name:id>"
+            extracted = args[1].substring(startOffset, args[1].length() - 1);
         }
         else if (EmojiManager.isEmoji(args[1]))
         {
@@ -130,17 +150,34 @@ public class SettingsCommand extends Command
                 }).queue();
     }
 
-    private void resetBlock(Guild guild) {
-        if (bot.getDatabase().settings.getSettings(guild.getIdLong()).getEmojiDisplay().equals(Constants.TADA))
+    private void resetBlock(CommandEvent event, PremiumLevel level) {
+        // check for too many giveaways runnning
+        List<Giveaway> list = level.perChannelMaxGiveaways
+                ? bot.getDatabase().giveaways.getGiveaways(event.getTextChannel())
+                : bot.getDatabase().giveaways.getGiveaways(event.getGuild());
+        if(list == null)
+        {
+            event.replyError("An error occurred when trying to start giveaway.");
+            return;
+        }
+        else if(list.size() >= level.maxGiveaways)
+        {
+            event.replyError("There are already " + level.maxGiveaways + " giveaways running in this "
+                    + (level.perChannelMaxGiveaways ? "channel" : "server") + "!");
+            return;
+        }
+        if (bot.getDatabase().settings.getSettings(event.getGuild().getIdLong()).getEmojiDisplay().equals(Constants.TADA))
             return; // might be redundant check, will remove if desired
-        bot.getDatabase().settings.updateEmoji(guild, null);
+        bot.getDatabase().settings.updateEmoji(event.getGuild(), null);
     }
 
     private void defaultBlock(CommandEvent event, EmbedBuilder eb, GuildSettings settings, PremiumLevel level)
     {
+        // next line basically prints emotes as mention or uses its unicode
+        String displayedEmoji = (settings.getEmojiDisplay().contains(":")) ? ("<" + settings.getEmojiDisplay() + ">") : settings.getEmojiDisplay();
         eb.setColor(settings.color);
         eb.appendDescription("Premium Level: **" + level.name + "**\n");
-        eb.appendDescription("\nReaction: " + settings.getEmojiDisplay());
+        eb.appendDescription("\nReaction: " + displayedEmoji);
         eb.setAuthor(event.getGuild().getName(), null, event.getGuild().getIconUrl());
         event.reply(new MessageBuilder()
                 .setContent(Constants.YAY + " **" + event.getSelfUser().getName() + "** settings: ")
