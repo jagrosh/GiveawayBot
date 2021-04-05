@@ -70,7 +70,6 @@ public class SettingsCommand extends Command
             case "reset":
                 resetBlock(event, level);
                 break;
-            case "":
             default:
                 defaultBlock(event, new EmbedBuilder(), settings, level);
         }
