@@ -122,8 +122,7 @@ public class SettingsCommand extends Command
 
         if (args[1].matches(EMOTE_REGEX))
         {
-            int startOffset = (args[1].charAt(2) == 'a') ? 3 : 2; // "<a:name:id>" and "<:name:id>"
-            extracted = args[1].substring(startOffset, args[1].length() - 1);
+            extracted = args[1].substring(1, args[1].length() - 1);
         }
         else if (EmojiManager.isEmoji(args[1]))
         {
@@ -150,7 +149,7 @@ public class SettingsCommand extends Command
     }
 
     private void resetBlock(CommandEvent event, PremiumLevel level) {
-        // check for too many giveaways runnning
+        // check for running giveaways
         List<Giveaway> list = level.perChannelMaxGiveaways
                 ? bot.getDatabase().giveaways.getGiveaways(event.getTextChannel())
                 : bot.getDatabase().giveaways.getGiveaways(event.getGuild());
@@ -172,7 +171,6 @@ public class SettingsCommand extends Command
 
     private void defaultBlock(CommandEvent event, EmbedBuilder eb, GuildSettings settings, PremiumLevel level)
     {
-        // next line basically prints emotes as mention or uses its unicode (will fail for animated once)
         String displayedEmoji = (settings.getEmojiDisplay().contains(":")) ? ("<" + settings.getEmojiDisplay() + ">") : settings.getEmojiDisplay();
         eb.setColor(settings.color);
         eb.appendDescription("Premium Level: **" + level.name + "**\n");

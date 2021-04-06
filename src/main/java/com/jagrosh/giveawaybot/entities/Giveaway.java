@@ -17,6 +17,7 @@ package com.jagrosh.giveawaybot.entities;
 
 import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.giveawaybot.database.Database;
+import com.jagrosh.giveawaybot.database.managers.GuildSettingsManager;
 import com.jagrosh.giveawaybot.rest.RestMessageAction;
 import com.jagrosh.giveawaybot.rest.RestJDA;
 import com.jagrosh.giveawaybot.util.FormatUtil;
@@ -68,7 +69,7 @@ public class Giveaway
         this.expanded = expanded;
     }
     
-    public Message render(Color color, Instant now)
+    public Message render(Color color, String emoji, Instant now)
     {
         MessageBuilder mb = new MessageBuilder();
         boolean close = now.plusSeconds(9).isAfter(end);
@@ -80,9 +81,11 @@ public class Giveaway
             eb.setColor(Constants.BLURPLE);
         else
             eb.setColor(color);
+        if(emoji.contains(":"))
+            emoji = "<"+emoji+">";
         eb.setFooter((winners==1 ? "" : winners+" winners | ")+"Ends at",null);
         eb.setTimestamp(end);
-        eb.setDescription("React with " + Constants.TADA + " to enter!"
+        eb.setDescription("React with " + emoji + " to enter!"
                 + "\nTime remaining: " + FormatUtil.secondsToTime(now.until(end, ChronoUnit.SECONDS))
                 + "\nHosted by: <@" + userId + ">");
         if(prize!=null)
@@ -100,7 +103,8 @@ public class Giveaway
     
     public void update(RestJDA restJDA, Database database, Instant now, boolean queue)
     {
-        Message rendered = render(database.settings.getSettings(guildId).color, now);
+        GuildSettingsManager.GuildSettings settings = database.settings.getSettings(guildId);
+        Message rendered = render(settings.color, settings.emoji, now);
         RestMessageAction ra = restJDA.editMessage(channelId, messageId, rendered);
         List<RestMessageAction> additional = expanded ? database.expanded.getExpanded(messageId).entrySet()
                 .stream().map(e -> restJDA.editMessage(e.getKey(), e.getValue(), rendered))

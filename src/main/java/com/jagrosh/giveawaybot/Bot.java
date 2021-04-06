@@ -111,7 +111,7 @@ public class Bot extends ListenerAdapter
         Instant end = now.plusSeconds(seconds);
         String emoji = database.settings.getSettings(channel.getGuild().getIdLong()).getEmojiDisplay();
         Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, Status.RUN, false)
-                .render(channel.getGuild().getSelfMember().getColor(), now);
+                .render(channel.getGuild().getSelfMember().getColor(), emoji, now);
 
         channel.sendMessage(msg).queue(m -> {
             m.addReaction(emoji).onErrorFlatMap(ignored -> { // this might be perms error or because we can't add that emoji
@@ -134,7 +134,7 @@ public class Bot extends ListenerAdapter
         Instant end = now.plusSeconds(seconds);
         String emoji = database.settings.getSettings(channel.getGuild().getIdLong()).getEmojiDisplay();
         Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, Status.RUN, false)
-                .render(channel.getGuild().getSelfMember().getColor(), now);
+                .render(channel.getGuild().getSelfMember().getColor(), emoji, now);
         Map<Long,Long> map = additional.stream()
                 .map(c -> 
                 { 
