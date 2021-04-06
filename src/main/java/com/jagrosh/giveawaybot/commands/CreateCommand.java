@@ -230,7 +230,7 @@ public class CreateCommand extends GiveawayCommand
             GuildSettingsManager.GuildSettings settings = bot.getDatabase().settings.getSettings(event.getGuild().getIdLong());
             if (!level.canSetEmoji() && !settings.getEmojiDisplay().equals(Constants.TADA))
             {
-                event.reply("That is weird. Your custom emoji could not be used.\n\nWould you still like to continue using the `" + Constants.TADA + "` emoji?");
+                event.reply("Hmm... Your custom emoji could not be used.\n\nWould you still like to continue using the `" + Constants.TADA + "` emoji?");
                 waitForEmoji(event, tchan, seconds, winners, prize, lastMessage);
             }
             else
