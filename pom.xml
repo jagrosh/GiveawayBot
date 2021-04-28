@@ -18,14 +18,19 @@
             <name>bintray</name>
             <url>https://jcenter.bintray.com</url>
         </repository>
+        <repository>
+            <id>dv8tion</id>
+            <name>m2-dv8tion</name>
+            <url>https://m2.dv8tion.net/releases</url>
+        </repository>
     </repositories>
-    
+
     <dependencies>
         <dependency>
-	    <groupId>net.dv8tion</groupId>
-	    <artifactId>JDA</artifactId>
-	    <version>4.2.0_227</version>
-	</dependency>
+            <groupId>net.dv8tion</groupId>
+            <artifactId>JDA</artifactId>
+            <version>4.2.1_253</version>
+        </dependency>
         <dependency>
             <groupId>com.jagrosh</groupId> 
             <artifactId>jda-utilities</artifactId> 
