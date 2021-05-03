@@ -109,9 +109,9 @@ public class Bot extends ListenerAdapter
             return false;
         database.settings.updateColor(channel.getGuild());
         Instant end = now.plusSeconds(seconds);
-        String emoji = database.settings.getSettings(channel.getGuild().getIdLong()).getEmojiDisplay();
-        Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, Status.RUN, false)
-                .render(channel.getGuild().getSelfMember().getColor(), emoji, now);
+        String emoji = database.settings.getSettings(channel.getGuild().getIdLong()).getEmojiRaw();
+        Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, emoji, Status.RUN, false)
+                .render(channel.getGuild().getSelfMember().getColor(), now);
 
         channel.sendMessage(msg).queue(m -> {
             m.addReaction(emoji).onErrorFlatMap(ignored -> { // this might be perms error or because we can't add that emoji
@@ -119,7 +119,7 @@ public class Bot extends ListenerAdapter
                 database.settings.updateEmoji(channel.getGuild(), null);
                 return m.addReaction(Constants.TADA);
             }).queue();
-            database.giveaways.createGiveaway(m, creator, end, winners, prize, false);
+            database.giveaways.createGiveaway(m, creator, end, winners, prize, emoji, false);
         }, v -> LOG.warn("Unable to start giveaway: "+v));
         return true;
     }
@@ -132,9 +132,9 @@ public class Bot extends ListenerAdapter
             return false;
         database.settings.updateColor(channel.getGuild());
         Instant end = now.plusSeconds(seconds);
-        String emoji = database.settings.getSettings(channel.getGuild().getIdLong()).getEmojiDisplay();
-        Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, Status.RUN, false)
-                .render(channel.getGuild().getSelfMember().getColor(), emoji, now);
+        String emoji = database.settings.getSettings(channel.getGuild().getIdLong()).getEmojiRaw();
+        Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, emoji, Status.RUN, false)
+                .render(channel.getGuild().getSelfMember().getColor(), now);
         Map<Long,Long> map = additional.stream()
                 .map(c -> 
                 { 
@@ -154,7 +154,7 @@ public class Bot extends ListenerAdapter
                 return m.addReaction(Constants.TADA);
             }).queue();
             database.expanded.createExpanded(m.getIdLong(), map);
-            database.giveaways.createGiveaway(m, creator, end, winners, prize, true);
+            database.giveaways.createGiveaway(m, creator, end, winners, prize, emoji, true);
         }, v -> LOG.warn("Unable to start giveaway: "+v));
         return true;
     }

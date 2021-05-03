@@ -131,10 +131,9 @@ public class StartCommand extends GiveawayCommand
         }
 
         GuildSettings settings = bot.getDatabase().settings.getSettings(event.getGuild().getIdLong());
-        if (!level.canSetEmoji() && !settings.getEmojiDisplay().equals(Constants.TADA))
+        if (!level.customEmoji && settings.getEmojiRaw() != null)
         {
             bot.getDatabase().settings.updateEmoji(event.getGuild(), null);
-            event.replyWarning("Your custom emoji has been reset, continuing with the giveaway.");
         }
         
         // try to delete the command if possible

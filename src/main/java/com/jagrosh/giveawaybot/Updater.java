@@ -81,7 +81,7 @@ public class Updater
                 database.giveaways.setStatus(giveaway.messageId, Status.ENDING);
                 pool.submit(() -> 
                 {
-                    giveaway.end(restJDA, database.settings.getSettings(giveaway.guildId).getEmojiDisplay(), giveaway.expanded ? database.expanded.getExpanded(giveaway.messageId) : Collections.EMPTY_MAP);
+                    giveaway.end(restJDA, giveaway.expanded ? database.expanded.getExpanded(giveaway.messageId) : Collections.EMPTY_MAP);
                     database.giveaways.deleteGiveaway(giveaway.messageId);
                     if(giveaway.expanded)
                         database.expanded.deleteExpanded(giveaway.messageId);
@@ -94,7 +94,7 @@ public class Updater
                 database.giveaways.setStatus(giveaway.messageId, Status.ENDING);
                 pool.submit(() -> 
                 {
-                    giveaway.end(restJDA, database.settings.getSettings(giveaway.guildId).getEmojiDisplay(), giveaway.expanded ? database.expanded.getExpanded(giveaway.messageId) : Collections.EMPTY_MAP);
+                    giveaway.end(restJDA, giveaway.expanded ? database.expanded.getExpanded(giveaway.messageId) : Collections.EMPTY_MAP);
                     database.giveaways.deleteGiveaway(giveaway.messageId);
                     if(giveaway.expanded)
                         database.expanded.deleteExpanded(giveaway.messageId);

@@ -101,7 +101,7 @@ public class GuildSettingsManager extends DataManager
             this.color = new Color(color);
             this.defaultChannel = defaultChannel;
             this.managerRole = managerRole;
-            this.emoji = emoji == null ? Constants.TADA : emoji;
+            this.emoji = emoji;
         }
         
         private GuildSettings()
@@ -118,9 +118,16 @@ public class GuildSettingsManager extends DataManager
          *
          * @return never-null raw string of the custom emoji as unicode or pattern `(a:)?name:id`
          */
-        public String getEmojiDisplay()
+        public String getEmojiRaw()
         {
             return emoji;
+        }
+
+        public String getEmojiDisplay()
+        {
+            if (emoji == null)
+                return Constants.TADA;
+            return (emoji.contains(":")) ? ("<" + emoji + ">") : emoji;
         }
         
         public TextChannel getDefaultChannel(Guild guild)

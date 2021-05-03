@@ -53,10 +53,11 @@ public class Giveaway
     public final Instant end;
     public final int winners;
     public final String prize;
+    public final String emoji;
     public final Status status;
     public final boolean expanded;
     
-    public Giveaway(long messageId, long channelId, long guildId, long userId, Instant end, int winners, String prize, Status status, boolean expanded)
+    public Giveaway(long messageId, long channelId, long guildId, long userId, Instant end, int winners, String prize, String emoji, Status status, boolean expanded)
     {
         this.messageId = messageId;
         this.channelId = channelId;
@@ -65,14 +66,16 @@ public class Giveaway
         this.end = end;
         this.winners = winners;
         this.prize = prize==null ? null : prize.isEmpty() ? null : prize;
+        this.emoji = emoji==null ? null : emoji.isEmpty() ? null : emoji;
         this.status = status;
         this.expanded = expanded;
     }
     
-    public Message render(Color color, String emoji, Instant now)
+    public Message render(Color color, Instant now)
     {
         MessageBuilder mb = new MessageBuilder();
         boolean close = now.plusSeconds(9).isAfter(end);
+        String displayedEmoji = (emoji == null) ? Constants.TADA : emoji;
         mb.append(Constants.YAY).append(close ? " **G I V E A W A Y** " : "   **GIVEAWAY**   ").append(Constants.YAY);
         EmbedBuilder eb = new EmbedBuilder();
         if(close)
@@ -82,10 +85,10 @@ public class Giveaway
         else
             eb.setColor(color);
         if(emoji.contains(":"))
-            emoji = "<"+emoji+">";
+            displayedEmoji = "<"+emoji+">";
         eb.setFooter((winners==1 ? "" : winners+" winners | ")+"Ends at",null);
         eb.setTimestamp(end);
-        eb.setDescription("React with " + emoji + " to enter!"
+        eb.setDescription("React with " + displayedEmoji + " to enter!"
                 + "\nTime remaining: " + FormatUtil.secondsToTime(now.until(end, ChronoUnit.SECONDS))
                 + "\nHosted by: <@" + userId + ">");
         if(prize!=null)
@@ -104,7 +107,7 @@ public class Giveaway
     public void update(RestJDA restJDA, Database database, Instant now, boolean queue)
     {
         GuildSettingsManager.GuildSettings settings = database.settings.getSettings(guildId);
-        Message rendered = render(settings.color, settings.emoji, now);
+        Message rendered = render(settings.color, now);
         RestMessageAction ra = restJDA.editMessage(channelId, messageId, rendered);
         List<RestMessageAction> additional = expanded ? database.expanded.getExpanded(messageId).entrySet()
                 .stream().map(e -> restJDA.editMessage(e.getKey(), e.getValue(), rendered))
@@ -167,9 +170,11 @@ public class Giveaway
         return String.format("\n<https://discordapp.com/channels/%d/%d/%d>", guildId, channelId, messageId);
     }
     
-    public void end(RestJDA restJDA, String reactionEmoji, Map<Long,Long> additional)
+    public void end(RestJDA restJDA, Map<Long,Long> additional)
     {
-        String emoji = EncodingUtil.encodeUTF8(reactionEmoji);
+        String copyEmoji = emoji;
+        if (copyEmoji == null) copyEmoji = Constants.TADA;
+        final String encodedEmoji = EncodingUtil.encodeUTF8(copyEmoji);
         MessageBuilder mb = new MessageBuilder();
         mb.append(Constants.YAY).append(" **GIVEAWAY ENDED** ").append(Constants.YAY);
         EmbedBuilder eb = new EmbedBuilder();
@@ -182,10 +187,10 @@ public class Giveaway
         try 
         {
             // stream over all the users that reacted (paginating as necessary
-            Set<Long> ids = restJDA.getReactionUsers(channelId, messageId, emoji)
+            Set<Long> ids = restJDA.getReactionUsers(channelId, messageId, encodedEmoji)
                     .stream().map(User::getIdLong).collect(Collectors.toSet()); // distinct() not needed when using Set
             additional.entrySet().stream()
-                    .flatMap(e -> restJDA.getReactionUsers(e.getKey(), e.getValue(), emoji).stream())
+                    .flatMap(e -> restJDA.getReactionUsers(e.getKey(), e.getValue(), encodedEmoji).stream())
                     .map(User::getIdLong).forEach(ids::add);
             
             List<Long> wins = GiveawayUtil.selectWinners(ids, winners);

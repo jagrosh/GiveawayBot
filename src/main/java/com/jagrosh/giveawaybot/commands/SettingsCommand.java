@@ -68,7 +68,7 @@ public class SettingsCommand extends Command
                 break;
             case "clear":
             case "reset":
-                resetBlock(event, level);
+                resetBlock(event);
                 break;
             default:
                 defaultBlock(event, new EmbedBuilder(), settings, level);
@@ -85,28 +85,13 @@ public class SettingsCommand extends Command
             return;
         }
 
-        // check for running giveaways
-        List<Giveaway> list = level.perChannelMaxGiveaways
-                ? bot.getDatabase().giveaways.getGiveaways(event.getTextChannel())
-                : bot.getDatabase().giveaways.getGiveaways(event.getGuild());
-        if(list == null)
-        {
-            event.replyError("An error occurred when trying to change settings.");
-            return;
-        }
-        else if(!list.isEmpty())
-        {
-            event.replyError("You can not change the emoji while giveaways are running! Please end them first.");
-            return;
-        }
-
         if (Arrays.stream(CLEAR_ALIAS).anyMatch(it -> args[1].equalsIgnoreCase(it)))
         {
-            resetBlock(event, level);
+            resetBlock(event);
             return;
         }
 
-        if (!level.canSetEmoji())
+        if (!level.customEmoji)
         {
             event.replyError("This server must have a premium level to set a custom emoji!");
             return;
@@ -148,33 +133,17 @@ public class SettingsCommand extends Command
                 }).queue();
     }
 
-    private void resetBlock(CommandEvent event, PremiumLevel level) {
-        // check for running giveaways
-        List<Giveaway> list = level.perChannelMaxGiveaways
-                ? bot.getDatabase().giveaways.getGiveaways(event.getTextChannel())
-                : bot.getDatabase().giveaways.getGiveaways(event.getGuild());
-        if(list == null)
-        {
-            event.replyError("An error occurred when trying to change settings.");
-            return;
-        }
-        else if(!list.isEmpty())
-        {
-            event.replyError("There are already " + level.maxGiveaways + " giveaways running in this "
-                    + (level.perChannelMaxGiveaways ? "channel" : "server") + "!");
-            return;
-        }
-        if (bot.getDatabase().settings.getSettings(event.getGuild().getIdLong()).getEmojiDisplay().equals(Constants.TADA))
+    private void resetBlock(CommandEvent event) {
+        if (bot.getDatabase().settings.getSettings(event.getGuild().getIdLong()).getEmojiRaw() == null)
             return; // might be redundant check, will remove if desired
         bot.getDatabase().settings.updateEmoji(event.getGuild(), null);
     }
 
     private void defaultBlock(CommandEvent event, EmbedBuilder eb, GuildSettings settings, PremiumLevel level)
     {
-        String displayedEmoji = (settings.getEmojiDisplay().contains(":")) ? ("<" + settings.getEmojiDisplay() + ">") : settings.getEmojiDisplay();
         eb.setColor(settings.color);
         eb.appendDescription("Premium Level: **" + level.name + "**\n");
-        eb.appendDescription("\nReaction: " + displayedEmoji);
+        eb.appendDescription("\nReaction: " + settings.getEmojiDisplay());
         eb.setAuthor(event.getGuild().getName(), null, event.getGuild().getIconUrl());
         event.reply(new MessageBuilder()
                 .setContent(Constants.YAY + " **" + event.getSelfUser().getName() + "** settings: ")

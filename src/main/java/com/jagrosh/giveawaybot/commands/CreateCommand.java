@@ -57,23 +57,30 @@ public class CreateCommand extends GiveawayCommand
     }
     
     @Override
-    protected void execute(CommandEvent event) 
-    {
+    protected void execute(CommandEvent event) {
         // ignore if there's already creation running here
-        if(current.contains(event.getChannel().getIdLong()))
+        if (current.contains(event.getChannel().getIdLong()))
             return;
-        
+
         // preliminary giveaway count check
         // we use current text channel as a basis, even though this may not be the final giveaway channel
         // this might need to be changed at some point
         PremiumLevel level = bot.getDatabase().premium.getPremiumLevel(event.getGuild());
-        if(tooManyGiveaways(event, null, level))
+        if (tooManyGiveaways(event, null, level))
             return;
-        
+
         // get started
         current.add(event.getChannel().getIdLong());
-        event.replySuccess("Alright! Let's set up your giveaway! First, what channel do you want the giveaway in?\n"
-                + "You can type `cancel` at any time to cancel creation."+CHANNEL);
+        String toSend = "Alright! Let's set up your giveaway! First, what channel do you want the giveaway in?\n"
+                + "You can type `cancel` at any time to cancel creation.";
+
+        GuildSettingsManager.GuildSettings settings = bot.getDatabase().settings.getSettings(event.getGuild().getIdLong());
+        if (!level.customEmoji && settings.getEmojiRaw() != null) {
+            toSend += "\nNote: Your giveaway emoji has been reset since your last giveaway creation.";
+            bot.getDatabase().settings.updateEmoji(event.getGuild(), null);
+        }
+
+        event.replySuccess(toSend+CHANNEL);
         waitForChannel(event, level, event.getMessage().getIdLong());
     }
     
@@ -227,52 +234,11 @@ public class CreateCommand extends GiveawayCommand
                 return;
             }
 
-            GuildSettingsManager.GuildSettings settings = bot.getDatabase().settings.getSettings(event.getGuild().getIdLong());
-            if (!level.canSetEmoji() && !settings.getEmojiDisplay().equals(Constants.TADA))
-            {
-                event.reply("Hmm... Your custom emoji could not be used.\n\nWould you still like to continue using the `" + Constants.TADA + "` emoji?");
-                waitForEmoji(event, tchan, seconds, winners, prize, lastMessage);
-            }
-            else
-            {
-                Instant now = Instant.now();
-                if (bot.startGiveaway(tchan, event.getAuthor(), now, seconds, winners, prize)) {
-                    event.replySuccess("Done! The giveaway for the `" + e.getMessage().getContentRaw() + "` is starting in " + tchan.getAsMention() + "!");
-                } else {
-                    event.replyError("Uh oh. Something went wrong and I wasn't able to start the giveaway." + CANCEL);
-                }
-            }
-        });
-    }
-
-    private void waitForEmoji(CommandEvent event, TextChannel tchan, int seconds, int winners, String prize, long lastMessage)
-    {
-        wait(event, lastMessage, e ->
-        {
-            String content = e.getMessage().getContentRaw();
-
-            if (content.equalsIgnoreCase("yes"))
-            {
-                bot.getDatabase().settings.updateEmoji(event.getGuild(), null);
-
-                Instant now = Instant.now();
-                if(bot.startGiveaway(tchan, event.getAuthor(), now, seconds, winners, prize))
-                {
-                    event.replySuccess("Done! The giveaway for the `"+e.getMessage().getContentRaw()+"` is starting in "+tchan.getAsMention()+"!");
-                }
-                else
-                {
-                    event.replyError("Uh oh. Something went wrong and I wasn't able to start the giveaway."+CANCEL);
-                }
-            }
-            else if (content.equalsIgnoreCase("no"))
-            {
-                event.replyWarning("Alright, I guess we're not having a giveaway after all..."+CANCEL);
-            }
-            else
-            {
-                event.replyWarning("I couldn't get what you want me to do.\nTry again with a `Yes` or `No` answer please.");
-                waitForEmoji(event, tchan, seconds, winners, prize, lastMessage);
+            Instant now = Instant.now();
+            if (bot.startGiveaway(tchan, event.getAuthor(), now, seconds, winners, prize)) {
+                event.replySuccess("Done! The giveaway for the `" + e.getMessage().getContentRaw() + "` is starting in " + tchan.getAsMention() + "!");
+            } else {
+                event.replyError("Uh oh. Something went wrong and I wasn't able to start the giveaway." + CANCEL);
             }
         });
     }
