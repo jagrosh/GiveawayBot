@@ -85,9 +85,9 @@ public class Giveaway
                 + "\nTime remaining: " + FormatUtil.secondsToTime(now.until(end, ChronoUnit.SECONDS))
                 + "\nHosted by: <@" + userId + ">");
         if(prize!=null)
-            eb.setAuthor(prize, null, null);
+            eb.setTitle(prize, null);
         if(close)
-            eb.setTitle("Last chance to enter!!!", null);
+            eb.setAuthor("Last chance to enter!!!", null, null);
         mb.setEmbed(eb.build());
         return mb.build();
     }
