@@ -39,7 +39,7 @@ import java.util.List;
 public class SettingsCommand extends Command
 {
     private final Bot bot;
-    private final String EMOTE_REGEX = "<a?:([a-zA-Z0-9_]+):([0-9]+)>";
+    private final String EMOTE_REGEX = "<a?:\\w{2,32}:\\d{1,20}>";
     private final String[] CLEAR_ALIAS = new String[]{"reset", "clear"};
     
     public SettingsCommand(Bot bot)

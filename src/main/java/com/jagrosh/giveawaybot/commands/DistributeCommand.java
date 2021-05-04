@@ -25,8 +25,11 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 
@@ -165,7 +168,15 @@ public class DistributeCommand extends GiveawayCommand
                     + (level.perChannelMaxGiveaways ? "channel" : "server") + "!");
             return;
         }
-        
+
+        String emoji = bot.getDatabase().settings.getSettings(event.getGuild().getIdLong()).getEmojiRaw();
+        // try to validate emoji
+        if (!OtherUtil.validateEmoji(event.getMessage(), emoji))
+        {
+            event.getTextChannel().sendMessageFormat("%s Failed to use your custom emoji. It's been automatically reset.\nThis message self destructs in 20 seconds.", Constants.WARNING).delay(20, TimeUnit.SECONDS).flatMap(Message::delete).queue(s->{},f->{});
+            bot.getDatabase().settings.updateEmoji(event.getGuild(), null);
+        }
+
         // try to delete the command if possible
         try
         { 
