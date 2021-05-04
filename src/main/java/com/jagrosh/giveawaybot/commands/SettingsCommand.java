@@ -137,6 +137,7 @@ public class SettingsCommand extends Command
         if (bot.getDatabase().settings.getSettings(event.getGuild().getIdLong()).getEmojiRaw() == null)
             return; // might be redundant check, will remove if desired
         bot.getDatabase().settings.updateEmoji(event.getGuild(), null);
+        event.replySuccess("Reaction has been reset to default " + Constants.TADA + ".");
     }
 
     private void defaultBlock(CommandEvent event, EmbedBuilder eb, GuildSettings settings, PremiumLevel level)

@@ -17,14 +17,12 @@ package com.jagrosh.giveawaybot;
 
 import com.jagrosh.giveawaybot.commands.*;
 import com.jagrosh.giveawaybot.database.Database;
-import com.jagrosh.giveawaybot.database.managers.GuildSettingsManager;
 import com.jagrosh.giveawaybot.entities.*;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
 import com.typesafe.config.Config;
-import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
 import java.time.Instant;
 import java.util.Arrays;
@@ -50,7 +48,6 @@ import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
-import net.dv8tion.jda.internal.utils.EncodingUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,7 +114,7 @@ public class Bot extends ListenerAdapter
                 .render(channel.getGuild().getSelfMember().getColor(), now);
 
         if (emoji == null || emoji.isEmpty())
-            emoji = EncodingUtil.encodeReaction(Constants.TADA);
+            emoji = Constants.TADA;
 
         final AtomicReference<String> finalEmoji = new AtomicReference<>(emoji);
         channel.sendMessage(msg).queue(m -> {
@@ -145,7 +142,7 @@ public class Bot extends ListenerAdapter
                 .render(channel.getGuild().getSelfMember().getColor(), now);
 
         if (emoji == null || emoji.isEmpty())
-            emoji = EncodingUtil.encodeReaction(Constants.TADA);
+            emoji = Constants.TADA;
 
         final String finalEmoji = emoji;
         Map<Long,Long> map = additional.stream()
