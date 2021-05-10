@@ -242,7 +242,6 @@ public class Bot extends ListenerAdapter
                 .addEventListeners(client, bot, new MessageWaiter())
                 .disableCache(EnumSet.allOf(CacheFlag.class))
                 .setChunkingFilter(ChunkingFilter.NONE)
-                .setWebsocketFactory(new WebSocketFactory().setVerifyHostname(false)) // this is bad
                 .build();
     }
 }
