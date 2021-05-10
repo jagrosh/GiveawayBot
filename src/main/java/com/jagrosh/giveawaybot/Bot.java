@@ -22,6 +22,7 @@ import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
+import com.neovisionaries.ws.client.WebSocketFactory;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.time.Instant;
@@ -241,6 +242,7 @@ public class Bot extends ListenerAdapter
                 .addEventListeners(client, bot, new MessageWaiter())
                 .disableCache(EnumSet.allOf(CacheFlag.class))
                 .setChunkingFilter(ChunkingFilter.NONE)
+                .setWebsocketFactory(new WebSocketFactory().setVerifyHostname(false)) // this is bad
                 .build();
     }
 }
