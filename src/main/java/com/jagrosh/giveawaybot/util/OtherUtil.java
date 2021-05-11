@@ -15,6 +15,11 @@
  */
 package com.jagrosh.giveawaybot.util;
 
+import com.jagrosh.giveawaybot.Constants;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
@@ -75,5 +80,47 @@ public class OtherUtil
         if(!winstr.toLowerCase().matches("\\d{1,3}w"))
             return -1;
         return Integer.parseInt(winstr.substring(0, winstr.length()-1));
+    }
+
+    public static boolean validateEmoji(Message message, String rawEmoji)
+    {
+        if (rawEmoji == null || rawEmoji.isEmpty())
+            return true;
+        try
+        {
+
+            message.addReaction(rawEmoji).complete();
+        }
+        catch (ErrorResponseException error)
+        {
+            switch (error.getErrorCode())
+            {
+                case 90001: // REACTION_BLOCKED
+                    return validateEmoji(message.getTextChannel(), rawEmoji);
+                case 10014: // UNKNOWN_EMOJI
+                case 50001: // MISSING_ACCESS
+                case 50013: // MISSING_PERMISSION
+                default:
+                    return false;
+            }
+        }
+        catch (Exception ignored) {}
+        return true;
+    }
+
+    public static boolean validateEmoji(TextChannel textChannel, String rawEmoji)
+    {
+        if (rawEmoji == null || rawEmoji.isEmpty())
+            return true;
+        if (!Constants.canSendGiveaway(textChannel))
+            return false;
+
+        return textChannel.sendMessage("Emoji Validation - self destructing").map(
+                message -> {
+                    boolean value = validateEmoji(message, rawEmoji);
+                    message.delete().queue();
+                    return value;
+                }
+        ).complete();
     }
 }

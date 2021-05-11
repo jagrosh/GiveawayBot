@@ -17,6 +17,7 @@ package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Bot;
 import com.jagrosh.giveawaybot.Constants;
+import com.jagrosh.giveawaybot.database.managers.GuildSettingsManager.GuildSettings;
 import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.entities.PremiumLevel;
 import com.jagrosh.giveawaybot.util.FormatUtil;
@@ -127,6 +128,12 @@ public class StartCommand extends GiveawayCommand
             event.replyError("There are already " + level.maxGiveaways + " giveaways running in this " 
                     + (level.perChannelMaxGiveaways ? "channel" : "server") + "!");
             return;
+        }
+
+        GuildSettings settings = bot.getDatabase().settings.getSettings(event.getGuild().getIdLong());
+        if (!level.customEmoji && settings.getEmojiRaw() != null)
+        {
+            bot.getDatabase().settings.updateEmoji(event.getGuild(), null);
         }
         
         // try to delete the command if possible

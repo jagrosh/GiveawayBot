@@ -43,6 +43,7 @@ public class GiveawayManager extends DataManager
     public final static SQLColumn<Instant> END_TIME    = new InstantColumn("END_TIME",    false, Instant.MIN);
     public final static SQLColumn<Integer> NUM_WINNERS = new IntegerColumn("NUM_WINNERS", false, 1);
     public final static SQLColumn<String>  PRIZE       = new StringColumn ("PRIZE",       true,  null, 250);
+    public final static SQLColumn<String>  EMOJI        = new StringColumn("EMOJI",       true,  null, 60); // currently unused
     public final static SQLColumn<Integer> STATUS      = new IntegerColumn("STATUS",      false, Status.RUN.ordinal());
     public final static SQLColumn<Long>    USER_ID     = new LongColumn   ("USER_ID",     false, 0L);
     public final static SQLColumn<Boolean> EXPANDED    = new BooleanColumn("EXPANDED",    false, false);
@@ -98,12 +99,12 @@ public class GiveawayManager extends DataManager
         return getGiveaways(selectAll(END_TIME.isLessThan(end.getEpochSecond()) + " AND " + STATUS.is(Status.RUN.ordinal())));
     }
     
-    public boolean createGiveaway(Message message, User creator, Instant end, int winners, String prize, boolean expanded)
+    public boolean createGiveaway(Message message, User creator, Instant end, int winners, String prize, String emoji, boolean expanded)
     {
-        return createGiveaway(message.getGuild().getIdLong(), message.getTextChannel().getIdLong(), message.getIdLong(), creator.getIdLong(), end, winners, prize, expanded);
+        return createGiveaway(message.getGuild().getIdLong(), message.getTextChannel().getIdLong(), message.getIdLong(), creator.getIdLong(), end, winners, prize, emoji, expanded);
     }
     
-    public boolean createGiveaway(long guildid, long channelid, long messageid, long userid, Instant end, int winners, String prize, boolean expanded)
+    public boolean createGiveaway(long guildid, long channelid, long messageid, long userid, Instant end, int winners, String prize, String emoji, boolean expanded)
     {
         return readWrite(selectAll(MESSAGE_ID.is(messageid)), results -> 
         {
@@ -116,6 +117,7 @@ public class GiveawayManager extends DataManager
                 END_TIME.updateValue(results, end);
                 NUM_WINNERS.updateValue(results, winners);
                 PRIZE.updateValue(results, prize);
+                EMOJI.updateValue(results, emoji);
                 STATUS.updateValue(results, Status.RUN.ordinal());
                 EXPANDED.updateValue(results, expanded);
                 results.updateRow();
@@ -131,6 +133,7 @@ public class GiveawayManager extends DataManager
                 END_TIME.updateValue(results, end);
                 NUM_WINNERS.updateValue(results, winners);
                 PRIZE.updateValue(results, prize);
+                EMOJI.updateValue(results, emoji);
                 STATUS.updateValue(results, Status.RUN.ordinal());
                 EXPANDED.updateValue(results, expanded);
                 results.insertRow();
@@ -171,7 +174,7 @@ public class GiveawayManager extends DataManager
     private static Giveaway giveaway(ResultSet results) throws SQLException
     {
         return new Giveaway(MESSAGE_ID.getValue(results), CHANNEL_ID.getValue(results), GUILD_ID.getValue(results), USER_ID.getValue(results),
-                END_TIME.getValue(results), NUM_WINNERS.getValue(results), PRIZE.getValue(results), Status.values()[STATUS.getValue(results)], 
+                END_TIME.getValue(results), NUM_WINNERS.getValue(results), PRIZE.getValue(results), EMOJI.getValue(results), Status.values()[STATUS.getValue(results)],
                 EXPANDED.getValue(results));
     }
 }

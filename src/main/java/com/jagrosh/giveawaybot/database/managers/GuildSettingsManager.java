@@ -63,6 +63,25 @@ public class GuildSettingsManager extends DataManager
             }
         });
     }
+
+    public void updateEmoji(Guild guild, String raw)
+    {
+        readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), results ->
+        {
+            if (results.next())
+            {
+                EMOJI.updateValue(results, raw);
+                results.updateRow();
+            }
+            else
+            {
+                results.moveToInsertRow();
+                GUILD_ID.updateValue(results, guild.getIdLong());
+                EMOJI.updateValue(results, raw);
+                results.insertRow();
+            }
+        });
+    }
     
     public GuildSettings getSettings(long guildid)
     {
@@ -82,7 +101,7 @@ public class GuildSettingsManager extends DataManager
             this.color = new Color(color);
             this.defaultChannel = defaultChannel;
             this.managerRole = managerRole;
-            this.emoji = emoji == null ? Constants.TADA : emoji;
+            this.emoji = emoji;
         }
         
         private GuildSettings()
@@ -94,10 +113,21 @@ public class GuildSettingsManager extends DataManager
         {
             this(COLOR.getValue(rs), DEFAULT_CHANNEL.getValue(rs), MANAGER_ROLE.getValue(rs), EMOJI.getValue(rs));
         }
-        
-        public String getEmojiDisplay()
+
+        /**
+         *
+         * @return never-null raw string of the custom emoji as unicode or pattern `(a:)?name:id`
+         */
+        public String getEmojiRaw()
         {
             return emoji;
+        }
+
+        public String getEmojiDisplay()
+        {
+            if (emoji == null)
+                return Constants.TADA;
+            return (emoji.contains(":")) ? ("<" + emoji + ">") : emoji;
         }
         
         public TextChannel getDefaultChannel(Guild guild)

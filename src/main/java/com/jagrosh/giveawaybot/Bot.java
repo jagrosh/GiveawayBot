@@ -22,6 +22,7 @@ import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
+import com.neovisionaries.ws.client.WebSocketFactory;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.time.Instant;
@@ -31,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.*;
@@ -107,16 +110,26 @@ public class Bot extends ListenerAdapter
             return false;
         database.settings.updateColor(channel.getGuild());
         Instant end = now.plusSeconds(seconds);
-        Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, Status.RUN, false)
+        String emoji = database.settings.getSettings(channel.getGuild().getIdLong()).getEmojiRaw();
+        Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, emoji, Status.RUN, false)
                 .render(channel.getGuild().getSelfMember().getColor(), now);
-        channel.sendMessage(msg).queue(m -> 
-        {
-            m.addReaction(Constants.TADA).queue();
-            database.giveaways.createGiveaway(m, creator, end, winners, prize, false);
+
+        if (emoji == null || emoji.isEmpty())
+            emoji = Constants.TADA;
+
+        final AtomicReference<String> finalEmoji = new AtomicReference<>(emoji);
+        channel.sendMessage(msg).queue(m -> {
+            m.addReaction(finalEmoji.get()).onErrorFlatMap(ignored -> { // this might be perms error or because we can't add that emoji
+                channel.sendMessageFormat("%s Failed to use your custom emoji. It's been automatically reset.\nThis message self destructs in 20 seconds.", Constants.WARNING).delay(20, TimeUnit.SECONDS).flatMap(Message::delete).queue(s->{},f->{});
+                database.settings.updateEmoji(channel.getGuild(), null);
+                finalEmoji.set(null);
+                return m.addReaction(Constants.TADA);
+            }).queue();
+            database.giveaways.createGiveaway(m, creator, end, winners, prize, finalEmoji.get(), false);
         }, v -> LOG.warn("Unable to start giveaway: "+v));
         return true;
     }
-    
+
     public boolean startGiveaway(TextChannel channel, List<TextChannel> additional, User creator, Instant now, int seconds, int winners, String prize)
     {
         if(!Constants.canSendGiveaway(channel))
@@ -125,21 +138,27 @@ public class Bot extends ListenerAdapter
             return false;
         database.settings.updateColor(channel.getGuild());
         Instant end = now.plusSeconds(seconds);
-        Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, Status.RUN, false)
+        String emoji = database.settings.getSettings(channel.getGuild().getIdLong()).getEmojiRaw();
+        Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, emoji, Status.RUN, false)
                 .render(channel.getGuild().getSelfMember().getColor(), now);
+
+        if (emoji == null || emoji.isEmpty())
+            emoji = Constants.TADA;
+
+        final String finalEmoji = emoji;
         Map<Long,Long> map = additional.stream()
                 .map(c -> 
                 { 
                     Message m = c.sendMessage(msg).complete();
-                    m.addReaction(Constants.TADA).queue();
+                    m.addReaction(finalEmoji).queue(); // we are able to add the reaction, perms check Line #139 & DistributeCommand Line #180 for validation of the emoji
                     return m;
                 })
-                .collect(Collectors.toMap(m -> m.getChannel().getIdLong(), m -> m.getIdLong()));
-        channel.sendMessage(msg).queue(m -> 
+                .collect(Collectors.toMap(m -> m.getChannel().getIdLong(), Message::getIdLong));
+        channel.sendMessage(msg).queue(m ->
         {
-            m.addReaction(Constants.TADA).queue();
+            m.addReaction(finalEmoji).queue(); // we are able to add the reaction, perms check Line #139 & DistributeCommand Line #180 for validation of the emoji
             database.expanded.createExpanded(m.getIdLong(), map);
-            database.giveaways.createGiveaway(m, creator, end, winners, prize, true);
+            database.giveaways.createGiveaway(m, creator, end, winners, prize, finalEmoji, true);
         }, v -> LOG.warn("Unable to start giveaway: "+v));
         return true;
     }

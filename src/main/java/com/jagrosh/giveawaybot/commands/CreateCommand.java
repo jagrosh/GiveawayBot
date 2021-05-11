@@ -17,6 +17,7 @@ package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Bot;
 import com.jagrosh.giveawaybot.Constants;
+import com.jagrosh.giveawaybot.database.managers.GuildSettingsManager;
 import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.giveawaybot.entities.MessageWaiter;
 import com.jagrosh.giveawaybot.entities.PremiumLevel;
@@ -56,23 +57,30 @@ public class CreateCommand extends GiveawayCommand
     }
     
     @Override
-    protected void execute(CommandEvent event) 
-    {
+    protected void execute(CommandEvent event) {
         // ignore if there's already creation running here
-        if(current.contains(event.getChannel().getIdLong()))
+        if (current.contains(event.getChannel().getIdLong()))
             return;
-        
+
         // preliminary giveaway count check
         // we use current text channel as a basis, even though this may not be the final giveaway channel
         // this might need to be changed at some point
         PremiumLevel level = bot.getDatabase().premium.getPremiumLevel(event.getGuild());
-        if(tooManyGiveaways(event, null, level))
+        if (tooManyGiveaways(event, null, level))
             return;
-        
+
         // get started
         current.add(event.getChannel().getIdLong());
-        event.replySuccess("Alright! Let's set up your giveaway! First, what channel do you want the giveaway in?\n"
-                + "You can type `cancel` at any time to cancel creation."+CHANNEL);
+        String toSend = "Alright! Let's set up your giveaway! First, what channel do you want the giveaway in?\n"
+                + "You can type `cancel` at any time to cancel creation.";
+
+        GuildSettingsManager.GuildSettings settings = bot.getDatabase().settings.getSettings(event.getGuild().getIdLong());
+        if (!level.customEmoji && settings.getEmojiRaw() != null) {
+            toSend += "\nNote: Your giveaway emoji has been reset since your last giveaway creation.";
+            bot.getDatabase().settings.updateEmoji(event.getGuild(), null);
+        }
+
+        event.replySuccess(toSend+CHANNEL);
         waitForChannel(event, level, event.getMessage().getIdLong());
     }
     
@@ -227,13 +235,10 @@ public class CreateCommand extends GiveawayCommand
             }
 
             Instant now = Instant.now();
-            if(bot.startGiveaway(tchan, event.getAuthor(), now, seconds, winners, prize))
-            {
-                event.replySuccess("Done! The giveaway for the `"+e.getMessage().getContentRaw()+"` is starting in "+tchan.getAsMention()+"!");
-            }
-            else
-            {
-                event.replyError("Uh oh. Something went wrong and I wasn't able to start the giveaway."+CANCEL);
+            if (bot.startGiveaway(tchan, event.getAuthor(), now, seconds, winners, prize)) {
+                event.replySuccess("Done! The giveaway for the `" + e.getMessage().getContentRaw() + "` is starting in " + tchan.getAsMention() + "!");
+            } else {
+                event.replyError("Uh oh. Something went wrong and I wasn't able to start the giveaway." + CANCEL);
             }
         });
     }

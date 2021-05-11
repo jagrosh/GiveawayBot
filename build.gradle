@@ -12,6 +12,7 @@ java.targetCompatibility = JavaVersion.VERSION_1_8
 
 
 repositories {
+    mavenCentral()
     jcenter()
     maven {
         url 'https://dl.bintray.com/jagrosh/maven'
@@ -19,26 +20,36 @@ repositories {
     maven {
         url 'https://jitpack.io'
     }
+    maven {
+        name 'm2-dv8tion'
+        url 'https://m2.dv8tion.net/releases'
+    }
 }
 
 dependencies {
-    implementation (group: 'net.dv8tion', name: 'JDA', version: '4.1.0_88') {
+    implementation (group: 'net.dv8tion', name: 'JDA', version: '4.2.1_262') {
         exclude module: 'opus-java'
     }
-    implementation group: 'club.minnced', name: 'discord-webhooks', version: '0.1.8'
+    implementation group: 'club.minnced', name: 'discord-webhooks', version: '0.5.6' // 0.3.0 broke with my webhook
 //    implementation group: 'com.github.GiveawayBot', name: 'JDA-Lite', version: 'lite-edits-SNAPSHOT'
-    implementation group: 'com.jagrosh', name: 'jda-utilities', version: '3.0.2'
+    implementation group: 'com.jagrosh', name: 'jda-utilities', version: '3.0.5'
     implementation group: 'com.jagrosh', name: 'EasySQL', version: '0.3'
     implementation group: 'com.typesafe', name: 'config', version: '1.3.2'
     implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.1'
-    implementation group: 'com.h2database', name: 'h2', version: '1.4.196'
+    implementation group: 'com.h2database', name: 'h2', version: '1.4.200'
     implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
-//    implementation group: 'org.jgroups', name: 'jgroups', version: '4.0.15.Final'
+
+    // might write own stuff, but for now i'm lazy until testing
+    implementation group: 'com.vdurmont', name: 'emoji-java', version: '5.1.1'
+
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
 shadowJar {
     mainClassName = 'com.jagrosh.giveawaybot.GiveawayBot'
+    classifier     = ''
+    version        = ''
+    destinationDir = new File('./shadowjar/')
 }
 
 compileJava.options.encoding = 'UTF-8'
