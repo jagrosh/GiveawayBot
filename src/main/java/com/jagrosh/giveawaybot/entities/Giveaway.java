@@ -179,7 +179,7 @@ public class Giveaway
         {
             // stream over all the users that reacted (paginating as necessary
             LOG.debug("Retrieving reactions for giveaway " + messageId);
-            Set<Long> ids = restJDA.getReactionUsers(channelId, messageId, emoji)
+            Set<Long> ids = restJDA.getReactionUsers(channelId, messageId, emoji).complete()
                     .stream().map(u -> u.getIdLong()).distinct().collect(Collectors.toSet());
             additional.entrySet().stream()
                     .flatMap(e -> restJDA.getReactionUsers(e.getKey(), e.getValue(), emoji).stream())
