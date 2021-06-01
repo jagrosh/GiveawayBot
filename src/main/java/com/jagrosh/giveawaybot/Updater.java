@@ -28,6 +28,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -42,7 +43,8 @@ public class Updater
      */
     public static void main() throws Exception
     {
-        LoggerFactory.getLogger("Updater").info("Updater starting.");
+        Logger log = LoggerFactory.getLogger("Updater");
+        log.info("Updater starting.");
         
         Config config = ConfigFactory.load();
         
@@ -62,72 +64,84 @@ public class Updater
         RestJDA restJDA = new RestJDA(config.getString("bot-token"));
         
         // make a schedule to run the update loop and a pool for ending giveaways
-        ScheduledExecutorService schedule = Executors.newScheduledThreadPool(2);
+        ScheduledExecutorService schedule = Executors.newScheduledThreadPool(3);
         ExecutorService pool = Executors.newFixedThreadPool(15);
         
         // create an index to track time
         AtomicLong index = new AtomicLong(1);
         
-        // main updating loop
+        // primary loop that ends giveaways
         schedule.scheduleWithFixedDelay(() -> 
         {
-            // set vars for this iteration
-            long current = index.getAndIncrement();
-            Instant now = Instant.now();
-            
-            // end giveaways with endnow status
-            database.giveaways.getGiveaways(Status.ENDNOW).forEach(giveaway -> 
+            try
             {
-                database.giveaways.setStatus(giveaway.messageId, Status.ENDING);
-                pool.submit(() -> 
+                // set vars for this iteration
+                long current = index.getAndIncrement();
+                Instant now = Instant.now();
+
+                // end giveaways with endnow status
+                database.giveaways.getGiveaways(Status.ENDNOW).forEach(giveaway -> 
                 {
-                    giveaway.end(restJDA, giveaway.expanded ? database.expanded.getExpanded(giveaway.messageId) : Collections.EMPTY_MAP);
-                    database.giveaways.deleteGiveaway(giveaway.messageId);
-                    if(giveaway.expanded)
-                        database.expanded.deleteExpanded(giveaway.messageId);
+                    database.giveaways.setStatus(giveaway.messageId, Status.ENDING);
+                    pool.submit(() -> 
+                    {
+                        giveaway.end(restJDA, giveaway.expanded ? database.expanded.getExpanded(giveaway.messageId) : Collections.EMPTY_MAP);
+                        database.giveaways.deleteGiveaway(giveaway.messageId);
+                        if(giveaway.expanded)
+                            database.expanded.deleteExpanded(giveaway.messageId);
+                    });
                 });
-            });
-            
-            // end giveaways that have run out of time
-            database.giveaways.getGiveawaysEndingBefore(now.plusMillis(1900)).forEach(giveaway -> 
-            {
-                database.giveaways.setStatus(giveaway.messageId, Status.ENDING);
-                pool.submit(() -> 
+
+                // end giveaways that have run out of time
+                database.giveaways.getGiveawaysEndingBefore(now.plusMillis(1900)).forEach(giveaway -> 
                 {
-                    giveaway.end(restJDA, giveaway.expanded ? database.expanded.getExpanded(giveaway.messageId) : Collections.EMPTY_MAP);
-                    database.giveaways.deleteGiveaway(giveaway.messageId);
-                    if(giveaway.expanded)
-                        database.expanded.deleteExpanded(giveaway.messageId);
+                    database.giveaways.setStatus(giveaway.messageId, Status.ENDING);
+                    pool.submit(() -> 
+                    {
+                        giveaway.end(restJDA, giveaway.expanded ? database.expanded.getExpanded(giveaway.messageId) : Collections.EMPTY_MAP);
+                        database.giveaways.deleteGiveaway(giveaway.messageId);
+                        if(giveaway.expanded)
+                            database.expanded.deleteExpanded(giveaway.messageId);
+                    });
                 });
-            });
-            
-            if(current%120==0)
-            {
-                // update giveaways within 1 hour of ending
-                database.giveaways.getGiveawaysEndingBefore(now.plusSeconds(60*60)).forEach(giveaway -> giveaway.update(restJDA, database, now));
             }
-            else if(current%15==0)
+            catch(Exception ex)
             {
-                // update giveaways within 3 minutes of ending
-                database.giveaways.getGiveawaysEndingBefore(now.plusSeconds(3*60)).forEach(giveaway -> giveaway.update(restJDA, database, now));
-            }
-            else
-            {
-                // update giveaways within 5 seconds of ending
-                database.giveaways.getGiveawaysEndingBefore(now.plusSeconds(5)).forEach(giveaway -> giveaway.update(restJDA, database, now));
+                log.error("Exception in primary update loop: ", ex);
             }
         }, 0, 1, TimeUnit.SECONDS);
         
-        // secondary update loop that updates all giveaways
+        // secondary update loop that updates upcoming giveaways more frequently
         schedule.scheduleWithFixedDelay(() -> 
         {
-            for(Giveaway giveaway: database.giveaways.getGiveaways(Status.RUN))
+            try
             {
-                if(Instant.now().until(giveaway.end, ChronoUnit.MINUTES)>60)
+                Instant now = Instant.now();
+                database.giveaways.getGiveawaysEndingBefore(now.plusSeconds(30)).forEach(giveaway -> giveaway.update(restJDA, database, now));
+            }
+            catch(Exception ex)
+            {
+                log.error("Exception in secondary update loop: ", ex);
+            }
+        }, 1, 5, TimeUnit.SECONDS);
+        
+        // tertiary update loop that updates all giveaways
+        schedule.scheduleWithFixedDelay(() -> 
+        {
+            try
+            {
+                for(Giveaway giveaway: database.giveaways.getGiveaways(Status.RUN))
                 {
-                    giveaway.update(restJDA, database, Instant.now(), false);
-                    try{Thread.sleep(120);}catch(Exception ignore){} // stop hitting global ratelimits...
+                    if(Instant.now().until(giveaway.end, ChronoUnit.MINUTES)>60)
+                    {
+                        giveaway.update(restJDA, database, Instant.now(), false);
+                        try{Thread.sleep(100);}catch(Exception ignore){} // stop hitting global ratelimits...
+                    }
                 }
+            }
+            catch(Exception ex)
+            {
+                log.error("Exception in tertiary update loop: ", ex);
             }
         }, 1, 1, TimeUnit.MINUTES);
         
