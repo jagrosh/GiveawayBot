@@ -164,7 +164,7 @@ public class Giveaway
     
     public void end(RestJDA restJDA, Map<Long,Long> additional)
     {
-        LOG.debug("Ending giveaway " + messageId + (additional.isEmpty() ? "" : " (expanded)"));
+        LOG.debug("Ending giveaway " + guildId + "/" + channelId + "/" + messageId + (additional.isEmpty() ? "" : " (expanded)"));
         String emoji = EncodingUtil.encodeUTF8(Constants.TADA);
         MessageBuilder mb = new MessageBuilder();
         MessageBuilder mb2 = new MessageBuilder();
