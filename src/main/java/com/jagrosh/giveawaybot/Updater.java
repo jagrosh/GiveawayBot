@@ -57,7 +57,8 @@ public class Updater
         WebhookClient webhook = new WebhookClientBuilder(config.getString("webhook")).build();
         
         List<Giveaway> list = database.giveaways.getGiveaways();
-        webhook.send(Constants.TADA + " Starting updater... `" + (list == null ? "unknown" : list.size()) + "` giveways in database");
+        long needEnd = list.stream().filter(g -> g.status == Status.ENDING || g.status == Status.ENDNOW).count();
+        webhook.send(Constants.TADA + " Starting updater... `" + list.size() + "` giveways in database / `" + needEnd + "` backlog");
         
         // end any giveaways that didn't get deleted before last restart
         database.giveaways.getGiveaways(Status.ENDING).forEach(giveaway -> database.giveaways.setStatus(giveaway.messageId, Status.ENDNOW));
