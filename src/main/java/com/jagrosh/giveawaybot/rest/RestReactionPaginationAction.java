@@ -51,12 +51,9 @@ public class RestReactionPaginationAction extends ReactionPaginationActionImpl
             try
             {
                 final User user = createFakeUser(array.getObject(i));
-                if(!user.isBot())
-                {
-                    users.add(user);
-                    if (useCache)
-                        cached.add(user);
-                }
+                users.add(user);
+                if (useCache)
+                    cached.add(user);
                 last = user;
                 lastKey = last.getIdLong();
             }

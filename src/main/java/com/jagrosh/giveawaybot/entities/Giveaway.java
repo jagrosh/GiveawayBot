@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.RateLimitedException;
 import net.dv8tion.jda.internal.utils.EncodingUtil;
@@ -179,11 +180,11 @@ public class Giveaway
         {
             // stream over all the users that reacted (paginating as necessary
             LOG.debug("Retrieving reactions for giveaway " + messageId);
-            Set<Long> ids = restJDA.getReactionUsers(channelId, messageId, emoji).complete()
-                    .stream().map(u -> u.getIdLong()).distinct().collect(Collectors.toSet());
+            Set<User> users = restJDA.getReactionUsers(channelId, messageId, emoji).stream().collect(Collectors.toSet());
             additional.entrySet().stream()
                     .flatMap(e -> restJDA.getReactionUsers(e.getKey(), e.getValue(), emoji).stream())
-                    .map(u -> u.getIdLong()).forEach(id -> ids.add(id));
+                    .forEach(u -> users.add(u));
+            Set<Long> ids = users.stream().filter(u -> !u.isBot()).map(u -> u.getIdLong()).distinct().collect(Collectors.toSet());
             LOG.debug("Retrieved " + ids.size() + "reactions for giveaway " + messageId);
             mb2.setEmbed(new EmbedBuilder()
                     .setColor(new Color(0x36393F))
