@@ -64,10 +64,11 @@ public class Updater
         
         // make a 'JDA' rest client
         RestJDA restJDA = new RestJDA(config.getString("bot-token"));
+        boolean endOnly = config.hasPath("end-only") && config.getBoolean("end-only");
         
         // make a schedule to run the update loop and a pool for ending giveaways
         ScheduledExecutorService schedule = Executors.newScheduledThreadPool(3);
-        ExecutorService pool = Executors.newFixedThreadPool(15);
+        ExecutorService pool = Executors.newFixedThreadPool(endOnly ? 1 : 15);
         
         // create an index to track time
         AtomicLong index = new AtomicLong(1);
@@ -113,7 +114,7 @@ public class Updater
             }
         }, 0, 1, TimeUnit.SECONDS);
         
-        if(config.hasPath("end-only") && config.getBoolean("end-only"))
+        if(endOnly)
             webhook.send(Constants.TADA + " Updater running in end-only mode");
         else
         {
