@@ -26,6 +26,7 @@ import com.typesafe.config.ConfigFactory;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
@@ -55,7 +56,8 @@ public class Updater
         
         WebhookClient webhook = new WebhookClientBuilder(config.getString("webhook")).build();
         
-        webhook.send(Constants.TADA + " Starting updater...");
+        List<Giveaway> list = database.giveaways.getGiveaways();
+        webhook.send(Constants.TADA + " Starting updater... `" + (list == null ? "unknown" : list.size()) + "` giveways in database");
         
         // end any giveaways that didn't get deleted before last restart
         database.giveaways.getGiveaways(Status.ENDING).forEach(giveaway -> database.giveaways.setStatus(giveaway.messageId, Status.ENDNOW));
@@ -132,7 +134,7 @@ public class Updater
             {
                 for(Giveaway giveaway: database.giveaways.getGiveaways(Status.RUN))
                 {
-                    if(Instant.now().until(giveaway.end, ChronoUnit.MINUTES)>60)
+                    if(Instant.now().until(giveaway.end, ChronoUnit.MINUTES)>30)
                     {
                         giveaway.update(restJDA, database, Instant.now(), false);
                         try{Thread.sleep(100);}catch(Exception ignore){} // stop hitting global ratelimits...
