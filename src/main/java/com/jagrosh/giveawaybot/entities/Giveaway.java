@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 public class Giveaway 
 {
     
-    public static final Logger LOG = LoggerFactory.getLogger("REST");
+    public static final Logger LOG = LoggerFactory.getLogger("GIVEAWAY");
     
     public final long messageId, channelId, guildId, userId;
     public final Instant end;
@@ -164,6 +164,7 @@ public class Giveaway
     
     public void end(RestJDA restJDA, Map<Long,Long> additional)
     {
+        LOG.debug("Ending giveaway " + messageId + (additional.isEmpty() ? "" : " (expanded)"));
         String emoji = EncodingUtil.encodeUTF8(Constants.TADA);
         MessageBuilder mb = new MessageBuilder();
         MessageBuilder mb2 = new MessageBuilder();
@@ -177,16 +178,19 @@ public class Giveaway
         try 
         {
             // stream over all the users that reacted (paginating as necessary
+            LOG.debug("Retrieving reactions for giveaway " + messageId);
             Set<Long> ids = restJDA.getReactionUsers(channelId, messageId, emoji)
                     .stream().map(u -> u.getIdLong()).distinct().collect(Collectors.toSet());
             additional.entrySet().stream()
                     .flatMap(e -> restJDA.getReactionUsers(e.getKey(), e.getValue(), emoji).stream())
                     .map(u -> u.getIdLong()).forEach(id -> ids.add(id));
+            LOG.debug("Retrieved " + ids.size() + "reactions for giveaway " + messageId);
             mb2.setEmbed(new EmbedBuilder()
                     .setColor(new Color(0x36393F))
                     .setDescription("**" + ids.size() + "** entrants [\u2197](" + messageLink() + ")") // ↗
                     .build());
             List<Long> wins = GiveawayUtil.selectWinners(ids, winners);
+            LOG.debug("Selected " + wins.size() + "winners for giveaway " + messageId);
             if(wins.isEmpty())
             {
                 eb.setDescription("Not enough entrants to determine a winner!");
