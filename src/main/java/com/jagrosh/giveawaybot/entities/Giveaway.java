@@ -159,13 +159,14 @@ public class Giveaway
     
     private String messageLink()
     {
-        return String.format("\n<https://discordapp.com/channels/%d/%d/%d>", guildId, channelId, messageId);
+        return String.format("<https://discord.com/channels/%d/%d/%d>", guildId, channelId, messageId);
     }
     
     public void end(RestJDA restJDA, Map<Long,Long> additional)
     {
         String emoji = EncodingUtil.encodeUTF8(Constants.TADA);
         MessageBuilder mb = new MessageBuilder();
+        MessageBuilder mb2 = new MessageBuilder();
         mb.append(Constants.YAY).append(" **GIVEAWAY ENDED** ").append(Constants.YAY);
         EmbedBuilder eb = new EmbedBuilder();
         eb.setColor(new Color(0x36393F)); // dark theme background
@@ -173,7 +174,6 @@ public class Giveaway
         eb.setTimestamp(end);
         if(prize!=null)
             eb.setAuthor(prize, null, null);
-        String toSend;
         try 
         {
             // stream over all the users that reacted (paginating as necessary
@@ -182,26 +182,29 @@ public class Giveaway
             additional.entrySet().stream()
                     .flatMap(e -> restJDA.getReactionUsers(e.getKey(), e.getValue(), emoji).stream())
                     .map(u -> u.getIdLong()).forEach(id -> ids.add(id));
-            
+            mb2.setEmbed(new EmbedBuilder()
+                    .setColor(new Color(0x36393F))
+                    .setDescription("**" + ids.size() + "** entrants [\u2197](" + messageLink() + ")") // ↗
+                    .build());
             List<Long> wins = GiveawayUtil.selectWinners(ids, winners);
             if(wins.isEmpty())
             {
                 eb.setDescription("Not enough entrants to determine a winner!");
-                toSend = "No valid entrants, so a winner could not be determined!";
+                mb2.setContent("No valid entrants, so a winner could not be determined!");
             }
             else if(wins.size()==1)
             {
                 eb.setDescription("Winner: <@" + wins.get(0) + ">");
-                toSend = "Congratulations <@" + wins.get(0) + ">! You won" + (prize==null ? "" : " the **" + prize + "**") + "!";
+                mb2.setContent("Congratulations <@" + wins.get(0) + ">! You won" + (prize==null ? "" : " the **" + prize + "**") + "!");
             }
             else
             {
                 eb.setDescription("Winners:");
                 wins.forEach(w -> eb.appendDescription("\n").appendDescription("<@"+w+">"));
-                toSend = "Congratulations <@"+wins.get(0)+">";
+                mb2.setContent("Congratulations <@"+wins.get(0)+">");
                 for(int i=1; i<wins.size(); i++)
-                    toSend += ", <@"+wins.get(i)+">";
-                toSend += "! You won" + (prize == null ? "" : " the **" + prize + "**") + "!";
+                    mb2.append(", <@"+wins.get(i)+">");
+                mb2.append("! You won" + (prize == null ? "" : " the **" + prize + "**") + "!");
             }
             mb.setEmbed(eb.appendDescription("\nHosted by: <@" + userId + ">").build());
 
@@ -209,21 +212,21 @@ public class Giveaway
         catch(ErrorResponseException e)
         {
             mb.setEmbed(eb.setDescription("Could not determine a winner!\nHosted by: <@" + userId + ">").build());
-            toSend = "A winner could not be determined! (" + e.getMeaning() + ")";
+            mb2.setContent("A winner could not be determined! (" + e.getMeaning() + ")");
         }
         catch(Exception e) 
         {
             mb.setEmbed(eb.setDescription("Could not determine a winner!\nHosted by: <@" + userId + ">").build());
-            toSend = "A winner could not be determined!";
+            mb2.setContent("A winner could not be determined!");
         }
         Message msg = mb.build();
-        String toSendF = toSend;
+        Message msg2 = mb2.build();
         restJDA.editMessage(channelId, messageId, msg).queue(m->{}, f->{});
-        restJDA.sendMessage(channelId, toSendF + messageLink()).queue(m->{}, f->{});
+        restJDA.sendMessage(channelId, msg2).queue(m->{}, f->{});
         additional.forEach((chid, msgid) -> 
         {
             restJDA.editMessage(chid, msgid, msg).queue(m -> {}, f -> {});
-            restJDA.sendMessage(chid, toSendF).queue(m -> {}, f -> {});
+            restJDA.sendMessage(chid, msg2).queue(m -> {}, f -> {});
         });
     }
 }
