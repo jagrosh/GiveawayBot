@@ -113,39 +113,44 @@ public class Updater
             }
         }, 0, 1, TimeUnit.SECONDS);
         
-        // secondary update loop that updates upcoming giveaways more frequently
-        schedule.scheduleWithFixedDelay(() -> 
+        if(config.hasPath("end-only") && config.getBoolean("end-only"))
+            webhook.send(Constants.TADA + " Updater running in end-only mode");
+        else
         {
-            try
+            // secondary update loop that updates upcoming giveaways more frequently
+            schedule.scheduleWithFixedDelay(() -> 
             {
-                Instant now = Instant.now();
-                database.giveaways.getGiveawaysEndingBefore(now.plusSeconds(30)).forEach(giveaway -> giveaway.update(restJDA, database, now));
-            }
-            catch(Exception ex)
-            {
-                log.error("Exception in secondary update loop: ", ex);
-            }
-        }, 1, 5, TimeUnit.SECONDS);
-        
-        // tertiary update loop that updates all giveaways
-        schedule.scheduleWithFixedDelay(() -> 
-        {
-            try
-            {
-                for(Giveaway giveaway: database.giveaways.getGiveaways(Status.RUN))
+                try
                 {
-                    if(Instant.now().until(giveaway.end, ChronoUnit.MINUTES)>30)
+                    Instant now = Instant.now();
+                    database.giveaways.getGiveawaysEndingBefore(now.plusSeconds(30)).forEach(giveaway -> giveaway.update(restJDA, database, now));
+                }
+                catch(Exception ex)
+                {
+                    log.error("Exception in secondary update loop: ", ex);
+                }
+            }, 1, 5, TimeUnit.SECONDS);
+
+            // tertiary update loop that updates all giveaways
+            schedule.scheduleWithFixedDelay(() -> 
+            {
+                try
+                {
+                    for(Giveaway giveaway: database.giveaways.getGiveaways(Status.RUN))
                     {
-                        giveaway.update(restJDA, database, Instant.now(), false);
-                        try{Thread.sleep(100);}catch(Exception ignore){} // stop hitting global ratelimits...
+                        if(Instant.now().until(giveaway.end, ChronoUnit.MINUTES)>30)
+                        {
+                            giveaway.update(restJDA, database, Instant.now(), false);
+                            try{Thread.sleep(100);}catch(Exception ignore){} // stop hitting global ratelimits...
+                        }
                     }
                 }
-            }
-            catch(Exception ex)
-            {
-                log.error("Exception in tertiary update loop: ", ex);
-            }
-        }, 1, 1, TimeUnit.MINUTES);
+                catch(Exception ex)
+                {
+                    log.error("Exception in tertiary update loop: ", ex);
+                }
+            }, 1, 1, TimeUnit.MINUTES);
+        }
         
         int[] dbfailures = {0};
         schedule.scheduleWithFixedDelay(()->
