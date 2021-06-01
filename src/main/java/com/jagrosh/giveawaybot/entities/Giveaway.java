@@ -19,15 +19,13 @@ import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.giveawaybot.database.Database;
 import com.jagrosh.giveawaybot.rest.RestMessageAction;
 import com.jagrosh.giveawaybot.rest.RestJDA;
+import com.jagrosh.giveawaybot.rest.RestReactionPaginationAction;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.giveawaybot.util.GiveawayUtil;
 import java.awt.Color;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
@@ -163,6 +161,19 @@ public class Giveaway
         return String.format("<https://discord.com/channels/%d/%d/%d>", guildId, channelId, messageId);
     }
     
+    private List<User> getAllReactions(RestJDA restJDA, long channel, long message, String emoji)
+    {
+        RestReactionPaginationAction ra = restJDA.getReactionUsers(channel, message, emoji);
+        List<User> list = new ArrayList<>();
+        List<User> chunk;
+        do
+        {
+            chunk = ra.getNextChunk();
+            list.addAll(chunk);
+        } while(chunk.size() == ra.getMaxLimit());
+        return list;
+    }
+    
     public void end(RestJDA restJDA, Map<Long,Long> additional)
     {
         LOG.debug("Ending giveaway " + guildId + "/" + channelId + "/" + messageId + (additional.isEmpty() ? "" : " (expanded)"));
@@ -180,18 +191,16 @@ public class Giveaway
         {
             // stream over all the users that reacted (paginating as necessary
             LOG.debug("Retrieving reactions for giveaway " + messageId);
-            Set<User> users = restJDA.getReactionUsers(channelId, messageId, emoji).stream().collect(Collectors.toSet());
-            additional.entrySet().stream()
-                    .flatMap(e -> restJDA.getReactionUsers(e.getKey(), e.getValue(), emoji).stream())
-                    .forEach(u -> users.add(u));
+            List<User> users = getAllReactions(restJDA, channelId, messageId, emoji);
+            additional.entrySet().forEach(e -> users.addAll(getAllReactions(restJDA, e.getKey(), e.getValue(), emoji)));
             Set<Long> ids = users.stream().filter(u -> !u.isBot()).map(u -> u.getIdLong()).distinct().collect(Collectors.toSet());
-            LOG.debug("Retrieved " + ids.size() + "reactions for giveaway " + messageId);
+            LOG.debug("Retrieved " + ids.size() + " reactions for giveaway " + messageId);
             mb2.setEmbed(new EmbedBuilder()
                     .setColor(new Color(0x36393F))
                     .setDescription("**" + ids.size() + "** entrants [\u2197](" + messageLink() + ")") // ↗
                     .build());
             List<Long> wins = GiveawayUtil.selectWinners(ids, winners);
-            LOG.debug("Selected " + wins.size() + "winners for giveaway " + messageId);
+            LOG.debug("Selected " + wins.size() + " winners for giveaway " + messageId);
             if(wins.isEmpty())
             {
                 eb.setDescription("Not enough entrants to determine a winner!");
