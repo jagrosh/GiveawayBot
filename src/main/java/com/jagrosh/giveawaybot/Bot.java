@@ -19,10 +19,8 @@ import com.jagrosh.giveawaybot.commands.*;
 import com.jagrosh.giveawaybot.database.Database;
 import com.jagrosh.giveawaybot.entities.*;
 import com.jagrosh.giveawaybot.util.FormatUtil;
-import com.jagrosh.jdautilities.command.CommandClient;
-import com.jagrosh.jdautilities.command.CommandClientBuilder;
+import com.jagrosh.jdautilities.command.*;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
-import com.neovisionaries.ws.client.WebSocketFactory;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.time.Instant;
@@ -62,12 +60,14 @@ public class Bot extends ListenerAdapter
     private final ScheduledExecutorService threadpool; // threadpool to use for timings
     private final Database database; // database
     private final Logger LOG = LoggerFactory.getLogger("Bot");
+    private boolean safeMode;
     
-    private Bot(Database database, String webhookUrl)
+    private Bot(Database database, String webhookUrl, boolean safeMode)
     {
         this.database = database;
         this.threadpool = Executors.newScheduledThreadPool(20);
         this.webhook = new WebhookLog(webhookUrl, System.getProperty("logname"));
+        this.safeMode = safeMode;
         
         new Uptimer.DatabaseUptimer(this).start(this.threadpool);
         new Uptimer.StatusUptimer(this).start(this.threadpool);
@@ -92,6 +92,16 @@ public class Bot extends ListenerAdapter
     public Database getDatabase()
     {
         return database;
+    }
+    
+    public boolean isSafeMode()
+    {
+        return safeMode;
+    }
+    
+    public void setSafeMode(boolean safe)
+    {
+        this.safeMode = safe;
     }
     
     // public methods
@@ -190,7 +200,8 @@ public class Bot extends ListenerAdapter
         Bot bot = new Bot(new Database(config.getString("database.host"), 
                                        config.getString("database.username"), 
                                        config.getString("database.password")), 
-                          config.getString("webhook"));
+                          config.getString("webhook"), 
+                          config.hasPath("safemode") && config.getBoolean("safemode"));
         
         // build the client to deal with commands
         CommandClient client = new CommandClientBuilder()

@@ -34,7 +34,8 @@ public class InviteCommand extends Command
     }
     
     @Override
-    protected void execute(CommandEvent event) {
+    protected void execute(CommandEvent event) 
+    {
         event.reply(Constants.YAY+" Hello! I'm **GiveawayBot**! I help to make giveaways quick and easy!\n"
                 + "You can add me to your server with this link:\n\n"
                 + LINK + " **<"+Constants.INVITE+">**\n\n"
