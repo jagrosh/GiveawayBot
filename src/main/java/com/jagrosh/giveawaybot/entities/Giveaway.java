@@ -24,14 +24,10 @@ import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.giveawaybot.util.GiveawayUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
-import net.dv8tion.jda.api.entities.Emoji;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.RateLimitedException;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.Button;
-import net.dv8tion.jda.api.interactions.components.ButtonStyle;
 import net.dv8tion.jda.internal.utils.EncodingUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -203,12 +199,10 @@ public class Giveaway
             additional.entrySet().forEach(e -> users.addAll(getAllReactions(restJDA, e.getKey(), e.getValue(), emoji)));
             List<Long> ids = users.stream().filter(u -> !u.isBot()).map(User::getIdLong).distinct().collect(Collectors.toList());
             LOG.debug("Retrieved " + ids.size() + " reactions for giveaway " + messageId);
-//            mb2.setEmbed(new EmbedBuilder()
-//                    .setColor(new Color(0x36393F))
-//                    .setDescription("**" + ids.size() + "** entrants [\u2197](" + messageLink() + ")") // ↗
-//                    .build());
-            String buttonLabel = "**" + ids.size() + "** entrants";
-            mb2.setActionRows(ActionRow.of(Button.of(ButtonStyle.LINK, messageLink(), buttonLabel, Emoji.fromUnicode("\u2197"))));
+            mb2.setEmbed(new EmbedBuilder()
+                    .setColor(new Color(0x36393F))
+                    .setDescription("**" + ids.size() + "** entrants [\u2197](" + messageLink() + ")") // ↗
+                    .build());
             List<Long> wins = GiveawayUtil.selectWinners(ids, winners);
             LOG.debug("Selected " + wins.size() + " winners for giveaway " + messageId);
             if(wins.isEmpty())

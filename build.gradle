@@ -28,7 +28,7 @@ repositories {
 }
 
 dependencies {
-    implementation (group: 'net.dv8tion', name: 'JDA', version: '4.3.0_277') {
+    implementation (group: 'net.dv8tion', name: 'JDA', version: '4.2.1_262') {
         exclude module: 'opus-java'
     }
     implementation group: 'club.minnced', name: 'discord-webhooks', version: '0.5.6' // 0.3.0 broke with my webhook
