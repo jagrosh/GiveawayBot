@@ -25,6 +25,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.api.JDA;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -103,7 +104,7 @@ public abstract class Uptimer
                     : status == BotStatus.LOADING ? BotStatus.LOADING 
                     : onlineCount == 0 ? BotStatus.OFFLINE 
                     : BotStatus.PARTIAL_OUTAGE;
-            
+            LoggerFactory.getLogger(StatusUptimer.class).info("Status is currently " + curr.name());
             if(curr != status) // log if it changed
             {
                 bot.getWebhookLog().send(WebhookLog.Level.INFO, "Status changed from `" + status + "` to `" + curr + "`: " 
