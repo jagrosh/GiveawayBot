@@ -17,6 +17,7 @@ package com.jagrosh.giveawaybot.entities;
 
 import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.giveawaybot.database.Database;
+import com.jagrosh.giveawaybot.database.managers.GuildSettingsManager;
 import com.jagrosh.giveawaybot.rest.RestJDA;
 import com.jagrosh.giveawaybot.rest.RestMessageAction;
 import com.jagrosh.giveawaybot.rest.RestReactionPaginationAction;
@@ -52,10 +53,11 @@ public class Giveaway
     public final Instant end;
     public final int winners;
     public final String prize;
+    public final Emoji emoji;
     public final Status status;
     public final boolean expanded;
     
-    public Giveaway(long messageId, long channelId, long guildId, long userId, Instant end, int winners, String prize, Status status, boolean expanded)
+    public Giveaway(long messageId, long channelId, long guildId, long userId, Instant end, int winners, String prize, Emoji emoji, Status status, boolean expanded)
     {
         this.messageId = messageId;
         this.channelId = channelId;
@@ -64,6 +66,7 @@ public class Giveaway
         this.end = end;
         this.winners = winners;
         this.prize = prize==null ? null : prize.isEmpty() ? null : prize;
+        this.emoji = emoji;
         this.status = status;
         this.expanded = expanded;
     }
@@ -72,6 +75,7 @@ public class Giveaway
     {
         MessageBuilder mb = new MessageBuilder();
         boolean close = now.plusSeconds(9).isAfter(end);
+        String displayedEmoji = emoji.getDisplay();
         mb.append(Constants.YAY).append(close ? " **G I V E A W A Y** " : "   **GIVEAWAY**   ").append(Constants.YAY);
         EmbedBuilder eb = new EmbedBuilder();
         if(close)
@@ -82,7 +86,7 @@ public class Giveaway
             eb.setColor(color);
         eb.setFooter((winners==1 ? "" : winners+" winners | ")+"Ends at",null);
         eb.setTimestamp(end);
-        eb.setDescription("React with " + Constants.TADA + " to enter!"
+        eb.setDescription("React with " + displayedEmoji + " to enter!"
                 + "\nEnds: <t:" + end.getEpochSecond() + ":R> (<t:" + end.getEpochSecond() + ":f>)"
                 + "\nHosted by: <@" + userId + ">");
         if(prize!=null)
@@ -100,7 +104,8 @@ public class Giveaway
     
     public void update(RestJDA restJDA, Database database, Instant now, boolean queue)
     {
-        Message rendered = render(database.settings.getSettings(guildId).color, now);
+        GuildSettingsManager.GuildSettings settings = database.settings.getSettings(guildId);
+        Message rendered = render(settings.color, now);
         RestMessageAction ra = restJDA.editMessage(channelId, messageId, rendered);
         List<RestMessageAction> additional = expanded ? database.expanded.getExpanded(messageId).entrySet()
                 .stream().map(e -> restJDA.editMessage(e.getKey(), e.getValue(), rendered))
@@ -162,7 +167,7 @@ public class Giveaway
     {
         return String.format("<https://discord.com/channels/%d/%d/%d>", guildId, channelId, messageId);
     }
-    
+
     private List<User> getAllReactions(RestJDA restJDA, long channel, long message, String emoji)
     {
         RestReactionPaginationAction ra = restJDA.getReactionUsers(channel, message, emoji);
@@ -178,8 +183,9 @@ public class Giveaway
     
     public void end(RestJDA restJDA, Map<Long,Long> additional)
     {
+        final String encodedEmoji = EncodingUtil.encodeUTF8(emoji.getReaction());
         LOG.debug("Ending giveaway " + guildId + "/" + channelId + "/" + messageId + (additional.isEmpty() ? "" : " (expanded)"));
-        String emoji = EncodingUtil.encodeUTF8(Constants.TADA);
+
         MessageBuilder mb = new MessageBuilder();
         MessageBuilder mb2 = new MessageBuilder();
         mb.append(Constants.YAY).append(" **GIVEAWAY ENDED** ").append(Constants.YAY);
@@ -193,8 +199,8 @@ public class Giveaway
         {
             // stream over all the users that reacted (paginating as necessary
             LOG.debug("Retrieving reactions for giveaway " + messageId);
-            List<User> users = getAllReactions(restJDA, channelId, messageId, emoji);
-            additional.entrySet().forEach(e -> users.addAll(getAllReactions(restJDA, e.getKey(), e.getValue(), emoji)));
+            List<User> users = getAllReactions(restJDA, channelId, messageId, encodedEmoji);
+            additional.entrySet().forEach(e -> users.addAll(getAllReactions(restJDA, e.getKey(), e.getValue(), encodedEmoji)));
             List<Long> ids = users.stream().filter(u -> !u.isBot()).map(User::getIdLong).distinct().collect(Collectors.toList());
             LOG.debug("Retrieved " + ids.size() + " reactions for giveaway " + messageId);
             mb2.setEmbed(new EmbedBuilder()

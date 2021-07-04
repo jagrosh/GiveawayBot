@@ -16,20 +16,23 @@
 package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Bot;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import net.dv8tion.jda.api.entities.ChannelType;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class EvalCommand extends Command {
+public class EvalCommand extends Command
+{
 
     private final Bot bot;
-    public EvalCommand(Bot bot) {
+    public EvalCommand(Bot bot)
+    {
         this.bot = bot;
         name = "eval";
         help = "evaluates Nashorn code";
@@ -40,7 +43,8 @@ public class EvalCommand extends Command {
     }
     
     @Override
-    protected void execute(CommandEvent event) {
+    protected void execute(CommandEvent event)
+    {
         ScriptEngine se = new ScriptEngineManager().getEngineByName("Nashorn");
         se.put("event", event);
         se.put("jda", event.getJDA());

@@ -261,5 +261,5 @@ public class RestMessage implements Message
     public Message getReferencedMessage() { throw new UnsupportedOperationException(UNSUPPORTED); }
 
     @Override
-    public List<MessageSticker> getStickers()  { throw new UnsupportedOperationException(UNSUPPORTED); }
+    public List<MessageSticker> getStickers() { throw new UnsupportedOperationException(UNSUPPORTED); }
 }

@@ -21,13 +21,14 @@ import com.jagrosh.giveawaybot.entities.Giveaway;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.JDAUtilitiesInfo;
-import java.util.List;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDAInfo;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.Permission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  *
@@ -50,7 +51,7 @@ public class AboutCommand extends Command
     }
     
     @Override
-    protected void execute(CommandEvent event) 
+    protected void execute(CommandEvent event)
     {
         if(bot.isSafeMode())
         {
