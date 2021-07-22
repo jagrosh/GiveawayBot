@@ -42,6 +42,7 @@ public class CreateCommand extends GiveawayCommand
     private final static String TIME = "\n\n`Please enter the duration of the giveaway in seconds.`\n`Alternatively, enter a duration in minutes and include an M at the end, or days and include a D.`";
     private final static String WINNERS = "\n\n`Please enter a number of winners between 1 and %d.`";
     private final static String PRIZE = "\n\n`Please enter the giveaway prize. This will also begin the giveaway.`";
+    private final static String PROMO = "\nNeed to host more giveaways, giveaways with longer durations, or giveaways with more winners? Check out <" + Constants.DONATE + ">!";
     
     private final static List<String> CANCEL_WORDS = Arrays.asList("cancel", "!gcancel", "g!cancel");
     
@@ -90,7 +91,8 @@ public class CreateCommand extends GiveawayCommand
         else if(list.size() >= level.maxGiveaways)
         {
             event.replyError("There are already " + level.maxGiveaways + " giveaways running in " 
-                    + (tchannel == null ? "this server" : tchannel.getAsMention()) + "!" + CANCEL);
+                    + (tchannel == null ? "this server" : tchannel.getAsMention()) + "!"
+                    + (level == PremiumLevel.NONE ? PROMO : "") + CANCEL);
             current.remove(event.getChannel().getIdLong());
             return true;
         }
@@ -160,7 +162,7 @@ public class CreateCommand extends GiveawayCommand
             if(!level.isValidTime(seconds))
             {
                 event.replyWarning("Oh! Sorry! Giveaway time must not be shorter than " + FormatUtil.secondsToTime(Constants.MIN_TIME) 
-                        + " and no longer than " + FormatUtil.secondsToTime(level.maxTime) + " Mind trying again?" + TIME);
+                        + " and no longer than " + FormatUtil.secondsToTime(level.maxTime) + " Mind trying again?" + (level == PremiumLevel.NONE ? PROMO : "") + TIME);
                 waitForTime(event, tchan, level, e.getMessageIdLong());
                 return;
             }
@@ -183,7 +185,8 @@ public class CreateCommand extends GiveawayCommand
                 // check value
                 if(!level.isValidWinners(num))
                 {
-                    event.replyWarning("Hey! I can only support 1 to " + level.maxWinners + " winners!" + String.format(WINNERS, level.maxWinners));
+                    event.replyWarning("Hey! I can only support 1 to " + level.maxWinners + " winners!" 
+                            + (level == PremiumLevel.NONE ? PROMO : "") + String.format(WINNERS, level.maxWinners));
                     waitForWinners(event, level, tchan, seconds, e.getMessageIdLong());
                 }
                 else
@@ -229,7 +232,8 @@ public class CreateCommand extends GiveawayCommand
             Instant now = Instant.now();
             if(bot.startGiveaway(tchan, event.getAuthor(), now, seconds, winners, prize))
             {
-                event.replySuccess("Done! The giveaway for the `"+e.getMessage().getContentRaw()+"` is starting in "+tchan.getAsMention()+"!");
+                event.replySuccess("Done! The giveaway for the `" + e.getMessage().getContentRaw() + "` is starting in " + tchan.getAsMention() + "!" 
+                        + (level == PremiumLevel.NONE && Math.random() < .01 ? "\nIf you want to help keep this bot online, please check out <" + Constants.DONATE + ">!" : ""));
             }
             else
             {
