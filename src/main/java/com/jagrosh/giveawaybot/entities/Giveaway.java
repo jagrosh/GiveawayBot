@@ -83,7 +83,7 @@ public class Giveaway
         eb.setFooter((winners==1 ? "" : winners+" winners | ")+"Ends at",null);
         eb.setTimestamp(end);
         eb.setDescription("React with " + Constants.TADA + " to enter!"
-                + "\nEnds: <t:" + end.getEpochSecond() + ":R> (<t:" + end.getEpochSecond() + ":f>"
+                + "\nEnds: <t:" + end.getEpochSecond() + ":R> (<t:" + end.getEpochSecond() + ":f>)"
                 + "\nHosted by: <@" + userId + ">");
         if(prize!=null)
             eb.setAuthor(prize, null, null);
