@@ -105,6 +105,8 @@ public abstract class Uptimer
                     : onlineCount == 0 ? BotStatus.OFFLINE 
                     : BotStatus.PARTIAL_OUTAGE;
             LoggerFactory.getLogger(StatusUptimer.class).info("Status is currently " + curr.name());
+            if(curr == BotStatus.ONLINE)
+                lastOnline = Instant.now();
             if(curr != status) // log if it changed
             {
                 bot.getWebhookLog().send(WebhookLog.Level.INFO, "Status changed from `" + status + "` to `" + curr + "`: " 
