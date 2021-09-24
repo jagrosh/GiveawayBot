@@ -16,6 +16,7 @@
 package com.jagrosh.giveawaybot.util;
 
 import com.jagrosh.giveawaybot.Constants;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,6 +33,13 @@ import net.dv8tion.jda.api.entities.User;
  */
 public class GiveawayUtil
 {
+    private static final SecureRandom random = new SecureRandom();
+    
+    private static synchronized double randDouble()
+    {
+        return random.nextDouble();
+    }
+    
     public static <T> List<T> selectWinners(Set<T> set, int winners)
     {
         return selectWinners(new ArrayList<>(set), winners);
@@ -43,7 +51,7 @@ public class GiveawayUtil
         List<T> pullist = new LinkedList<>(list);
         for(int i=0; i<winners && !pullist.isEmpty(); i++)
         {
-            winlist.add(pullist.remove((int)(Math.random()*pullist.size())));
+            winlist.add(pullist.remove((int)(randDouble() * pullist.size())));
         }
         return winlist;
     }
@@ -58,7 +66,7 @@ public class GiveawayUtil
                 if(users.isEmpty())
                     failure.run();
                 else
-                    success.accept(users.get((int)(Math.random()*users.size())));
+                    success.accept(users.get((int)(randDouble() * users.size())));
             } catch(Exception e) {
                 failure.run();
             }
