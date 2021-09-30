@@ -110,13 +110,14 @@ public class OtherUtil
 
     public static boolean validateEmoji(TextChannel textChannel, String rawEmoji)
     {
-        if (rawEmoji == null || rawEmoji.isEmpty())
+        if(rawEmoji == null || rawEmoji.isEmpty())
             return true;
-        if (!Constants.canSendGiveaway(textChannel))
+        if(!Constants.canSendGiveaway(textChannel))
             return false;
 
-        return textChannel.sendMessage("Emoji Validation - self destructing").map(
-                message -> {
+        return textChannel.sendMessage("Emoji Validation - self destructing")
+                .map(message ->
+                {
                     boolean value = validateEmoji(message, rawEmoji);
                     message.delete().queue();
                     return value;

@@ -17,15 +17,19 @@ package com.jagrosh.giveawaybot.database.managers;
 
 import com.jagrosh.easysql.DataManager;
 import com.jagrosh.easysql.SQLColumn;
-import com.jagrosh.easysql.columns.*;
+import com.jagrosh.easysql.columns.IntegerColumn;
+import com.jagrosh.easysql.columns.LongColumn;
+import com.jagrosh.easysql.columns.StringColumn;
 import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.giveawaybot.database.Database;
-import java.awt.Color;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import com.jagrosh.giveawaybot.entities.Emoji;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
+
+import java.awt.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
  *
@@ -94,14 +98,14 @@ public class GuildSettingsManager extends DataManager
         public final Color color;
         private final long defaultChannel;
         private final long managerRole;
-        public final String emoji;
+        public final Emoji emoji;
         
         private GuildSettings(int color, long defaultChannel, long managerRole, String emoji)
         {
             this.color = new Color(color);
             this.defaultChannel = defaultChannel;
             this.managerRole = managerRole;
-            this.emoji = emoji;
+            this.emoji = new Emoji(emoji);
         }
         
         private GuildSettings()
@@ -112,22 +116,6 @@ public class GuildSettingsManager extends DataManager
         private GuildSettings(ResultSet rs) throws SQLException
         {
             this(COLOR.getValue(rs), DEFAULT_CHANNEL.getValue(rs), MANAGER_ROLE.getValue(rs), EMOJI.getValue(rs));
-        }
-
-        /**
-         *
-         * @return never-null raw string of the custom emoji as unicode or pattern `(a:)?name:id`
-         */
-        public String getEmojiRaw()
-        {
-            return emoji;
-        }
-
-        public String getEmojiDisplay()
-        {
-            if (emoji == null)
-                return Constants.TADA;
-            return (emoji.contains(":")) ? ("<" + emoji + ">") : emoji;
         }
         
         public TextChannel getDefaultChannel(Guild guild)

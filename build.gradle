@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'com.jagrosh'
-version '2.4'
+version '3.1'
 
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 java.targetCompatibility = JavaVersion.VERSION_1_8
@@ -13,10 +13,11 @@ java.targetCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
     mavenCentral()
-    jcenter()
+    jcenter() // remove before 1st Feb 2022
     maven {
+        name 'bintray-jagrosh'
         url 'https://dl.bintray.com/jagrosh/maven'
-        }
+    }
     maven {
         url 'https://jitpack.io'
     }
@@ -27,10 +28,10 @@ repositories {
 }
 
 dependencies {
-    implementation (group: 'net.dv8tion', name: 'JDA', version: '4.2.1_262') {
+    implementation (group: 'net.dv8tion', name: 'JDA', version: '4.3.0_331') {
         exclude module: 'opus-java'
     }
-    implementation group: 'club.minnced', name: 'discord-webhooks', version: '0.5.6' // 0.3.0 broke with my webhook
+    implementation group: 'club.minnced', name: 'discord-webhooks', version: '0.5.8' // 0.3.0 broke with my webhook
 //    implementation group: 'com.github.GiveawayBot', name: 'JDA-Lite', version: 'lite-edits-SNAPSHOT'
     implementation group: 'com.jagrosh', name: 'jda-utilities', version: '3.0.5'
     implementation group: 'com.jagrosh', name: 'EasySQL', version: '0.3'
@@ -39,16 +40,13 @@ dependencies {
     implementation group: 'com.h2database', name: 'h2', version: '1.4.200'
     implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
 
-    // might write own stuff, but for now i'm lazy until testing
-    implementation group: 'com.vdurmont', name: 'emoji-java', version: '5.1.1'
-
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
 shadowJar {
     mainClassName = 'com.jagrosh.giveawaybot.GiveawayBot'
-    classifier     = ''
-    version        = ''
+    classifier     = 'jar-with-dependencies'
+    version        = version
     destinationDir = new File('./shadowjar/')
 }
 

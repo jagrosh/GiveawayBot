@@ -43,57 +43,59 @@ public class EndCommand extends GiveawayCommand
     @Override
     protected void execute(CommandEvent event) 
     {
-        if(event.getArgs().isEmpty()) 
+        event.async(() ->
         {
-            List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getTextChannel());
-            Giveaway giveaway = null;
-            if(list!=null)
+            if(event.getArgs().isEmpty()) 
             {
-                for(Giveaway g: list)
+                List<Giveaway> list = bot.getDatabase().giveaways.getGiveaways(event.getTextChannel());
+                Giveaway giveaway = null;
+                if(list!=null)
                 {
-                    if(giveaway==null || g.messageId>giveaway.messageId)
-                        giveaway = g;
+                    for(Giveaway g: list)
+                    {
+                        if(giveaway==null || g.messageId>giveaway.messageId)
+                            giveaway = g;
+                    }
                 }
+                if(giveaway!=null)
+                {
+                    if(!bot.getDatabase().giveaways.setStatus(giveaway.messageId, Status.ENDNOW))
+                        event.reactError();
+                    return;
+                }
+                event.getChannel().getHistory().retrievePast(100).queue(messages -> 
+                {
+                    Message m = messages.stream().filter(msg -> 
+                            msg.getAuthor().equals(event.getSelfUser()) 
+                            && !msg.getEmbeds().isEmpty()
+                            && msg.getEmbeds().get(0).getColorRaw() > 1 
+                            && msg.getReactions().stream().anyMatch(mr -> mr.getReactionEmote().getName().equals(Constants.TADA) && mr.getCount()>0)).findFirst().orElse(null);
+                    if(m==null)
+                        event.replyWarning("I couldn't find any recent giveaways in this channel.");
+                    else
+                    {
+                        GiveawayUtil.getSingleWinner(m, wins -> event.replySuccess("The new winner is "+wins.getAsMention()+"! Congratulations!"), 
+                            () -> event.replyWarning("I couldn't determine a winner for that giveaway."), bot.getThreadpool());
+                    }
+                }, v -> event.replyError("I failed to retrieve message history"));
             }
-            if(giveaway!=null)
+            else if(event.getArgs().matches("\\d{17,20}")) 
             {
-                if(!bot.getDatabase().giveaways.setStatus(giveaway.messageId, Status.ENDNOW))
+                Giveaway giveaway = bot.getDatabase().giveaways.getGiveaway(Long.parseLong(event.getArgs()), event.getGuild().getIdLong());
+                if(giveaway==null)
+                {
+                    event.getChannel().retrieveMessageById(event.getArgs()).queue(m -> {
+                        GiveawayUtil.getSingleWinner(m, wins -> event.replySuccess("The new winner is "+wins.getAsMention()+"! Congratulations!"), 
+                            () -> event.replyWarning("I couldn't determine a winner for that giveaway."), bot.getThreadpool());
+                    }, v -> event.replyError("I failed to retrieve that message."));
+                }
+                else if(!bot.getDatabase().giveaways.setStatus(giveaway.messageId, Status.ENDNOW))
                     event.reactError();
-                return;
             }
-            event.getChannel().getHistory().retrievePast(100).queue(messages -> 
+            else
             {
-                Message m = messages.stream().filter(msg -> 
-                        msg.getAuthor().equals(event.getSelfUser()) 
-                        && !msg.getEmbeds().isEmpty()
-                        && msg.getEmbeds().get(0).getColorRaw() > 1 
-                        && msg.getReactions().stream().anyMatch(mr -> mr.getReactionEmote().getName().equals(Constants.TADA) && mr.getCount()>0)).findFirst().orElse(null);
-                if(m==null)
-                    event.replyWarning("I couldn't find any recent giveaways in this channel.");
-                else
-                {
-                    GiveawayUtil.getSingleWinner(m, wins -> event.replySuccess("The new winner is "+wins.getAsMention()+"! Congratulations!"), 
-                        () -> event.replyWarning("I couldn't determine a winner for that giveaway."), bot.getThreadpool());
-                }
-            }, v -> event.replyError("I failed to retrieve message history"));
-        }
-        else if(event.getArgs().matches("\\d{17,20}")) 
-        {
-            Giveaway giveaway = bot.getDatabase().giveaways.getGiveaway(Long.parseLong(event.getArgs()), event.getGuild().getIdLong());
-            if(giveaway==null)
-            {
-                event.getChannel().retrieveMessageById(event.getArgs()).queue(m -> {
-                    GiveawayUtil.getSingleWinner(m, wins -> event.replySuccess("The new winner is "+wins.getAsMention()+"! Congratulations!"), 
-                        () -> event.replyWarning("I couldn't determine a winner for that giveaway."), bot.getThreadpool());
-                }, v -> event.replyError("I failed to retrieve that message."));
+                event.replyError("That is not a valid message ID! Try running without an ID to use the most recent giveaway in a channel.");
             }
-            else if(!bot.getDatabase().giveaways.setStatus(giveaway.messageId, Status.ENDNOW))
-                event.reactError();
-        }
-        else
-        {
-            event.replyError("That is not a valid message ID! Try running without an ID to use the most recent giveaway in a channel.");
-        }
+        });
     }
-    
 }

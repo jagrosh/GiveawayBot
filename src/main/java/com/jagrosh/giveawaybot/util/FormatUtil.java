@@ -75,7 +75,8 @@ public class FormatUtil
                     .append(" - ").append(command.getHelp());
         }
         builder.append("\n\nDo not include <> nor [] - <> means required and [] means optional."
-                    + "\nFor additional help, contact "+Constants.OWNER+" or check out "+Constants.WEBSITE);
+                    + "\nFor additional help, contact "+Constants.OWNER+" or check out "+Constants.WEBSITE
+                    + "\nTo help keep the bot online, please consider donating at <" + Constants.DONATE +">");
         return builder.toString();
     }
     

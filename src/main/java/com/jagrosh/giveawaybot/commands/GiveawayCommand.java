@@ -20,6 +20,8 @@ import com.jagrosh.giveawaybot.entities.PremiumLevel;
 import com.jagrosh.jdautilities.command.Command;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.ChannelType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -27,6 +29,7 @@ import net.dv8tion.jda.api.entities.ChannelType;
  */
 public abstract class GiveawayCommand extends Command
 {
+    private final Logger log = LoggerFactory.getLogger(GiveawayCommand.class);
     protected final Bot bot;
     protected boolean needsPremium = false;
     
@@ -36,6 +39,11 @@ public abstract class GiveawayCommand extends Command
         this.guildOnly = true;
         this.category = new Command.Category("Giveaway", event -> 
         {
+            if(bot.isSafeMode())
+            {
+                log.info("Ignored '" + this.name +"' by " + event.getAuthor().getId() + " in " + (event.getGuild() == null ? "DMs" : event.getGuild().getId()) + "/" + event.getChannel().getId());
+                return false;
+            }
             if(!event.isFromType(ChannelType.TEXT))
             {
                 event.replyError("This command cannot be used in Direct Messages!");

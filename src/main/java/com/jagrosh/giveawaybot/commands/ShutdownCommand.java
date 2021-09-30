@@ -23,10 +23,12 @@ import com.jagrosh.jdautilities.command.CommandEvent;
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class ShutdownCommand extends Command {
+public class ShutdownCommand extends Command
+{
 
     private final Bot bot;
-    public ShutdownCommand(Bot bot) {
+    public ShutdownCommand(Bot bot)
+    {
         this.bot = bot;
         name = "shutdown";
         help = "shuts down the bot";
@@ -36,7 +38,8 @@ public class ShutdownCommand extends Command {
     }
     
     @Override
-    protected void execute(CommandEvent event) {
+    protected void execute(CommandEvent event)
+    {
         event.reactSuccess();
         bot.shutdown();
     }

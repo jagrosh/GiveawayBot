@@ -19,24 +19,16 @@ import com.jagrosh.giveawaybot.commands.*;
 import com.jagrosh.giveawaybot.database.Database;
 import com.jagrosh.giveawaybot.entities.*;
 import com.jagrosh.giveawaybot.util.FormatUtil;
-import com.jagrosh.jdautilities.command.CommandClient;
-import com.jagrosh.jdautilities.command.CommandClientBuilder;
+import com.jagrosh.jdautilities.command.*;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import net.dv8tion.jda.api.OnlineStatus;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Message.MentionType;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.role.update.RoleUpdateColorEvent;
@@ -51,6 +43,17 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
@@ -58,43 +61,55 @@ import org.slf4j.LoggerFactory;
 public class Bot extends ListenerAdapter
 {
     private ShardManager shards; // list of all logins the bot has
-    
+
     private final WebhookLog webhook;
     private final ScheduledExecutorService threadpool; // threadpool to use for timings
     private final Database database; // database
     private final Logger LOG = LoggerFactory.getLogger("Bot");
-    
-    private Bot(Database database, String webhookUrl)
+    private boolean safeMode;
+
+    private Bot(Database database, String webhookUrl, boolean safeMode)
     {
         this.database = database;
         this.threadpool = Executors.newScheduledThreadPool(20);
         this.webhook = new WebhookLog(webhookUrl, System.getProperty("logname"));
-        
+        this.safeMode = safeMode;
+
         new Uptimer.DatabaseUptimer(this).start(this.threadpool);
         new Uptimer.StatusUptimer(this).start(this.threadpool);
     }
-    
+
     // public getters
     public ShardManager getShardManager()
     {
         return shards;
     }
-    
+
     public ScheduledExecutorService getThreadpool()
     {
         return threadpool;
     }
-    
+
     public WebhookLog getWebhookLog()
     {
         return webhook;
     }
-    
+
     public Database getDatabase()
     {
         return database;
     }
-    
+
+    public boolean isSafeMode()
+    {
+        return safeMode;
+    }
+
+    public void setSafeMode(boolean safe)
+    {
+        this.safeMode = safe;
+    }
+
     // public methods
     public void shutdown()
     {
@@ -102,85 +117,76 @@ public class Bot extends ListenerAdapter
         shards.shutdown();
         database.shutdown();
     }
-    
+
     public boolean startGiveaway(TextChannel channel, User creator, Instant now, int seconds, int winners, String prize)
     {
-        if(!Constants.canSendGiveaway(channel))
+        if (!Constants.canSendGiveaway(channel))
             return false;
         database.settings.updateColor(channel.getGuild());
         Instant end = now.plusSeconds(seconds);
-        String emoji = database.settings.getSettings(channel.getGuild().getIdLong()).getEmojiRaw();
+        Emoji emoji = database.settings.getSettings(channel.getGuild().getIdLong()).emoji;
         Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, emoji, Status.RUN, false)
                 .render(channel.getGuild().getSelfMember().getColor(), now);
 
-        if (emoji == null || emoji.isEmpty())
-            emoji = Constants.TADA;
-
-        final AtomicReference<String> finalEmoji = new AtomicReference<>(emoji);
-        channel.sendMessage(msg).queue(m -> {
-            m.addReaction(finalEmoji.get()).onErrorFlatMap(ignored -> { // this might be perms error or because we can't add that emoji
-                channel.sendMessageFormat("%s Failed to use your custom emoji. It's been automatically reset.\nThis message self destructs in 20 seconds.", Constants.WARNING).delay(20, TimeUnit.SECONDS).flatMap(Message::delete).queue(s->{},f->{});
-                database.settings.updateEmoji(channel.getGuild(), null);
-                finalEmoji.set(null);
-                return m.addReaction(Constants.TADA);
-            }).queue();
-            database.giveaways.createGiveaway(m, creator, end, winners, prize, finalEmoji.get(), false);
-        }, v -> LOG.warn("Unable to start giveaway: "+v));
+        final String finalEmoji = emoji.getDisplay();
+        channel.sendMessage(msg)
+                .queue(m ->
+                {
+                    m.addReaction(finalEmoji).queue();
+                    database.giveaways.createGiveaway(m, creator, end, winners, prize, finalEmoji, false);
+                }, v -> LOG.warn("Unable to start giveaway: " + v));
         return true;
     }
 
     public boolean startGiveaway(TextChannel channel, List<TextChannel> additional, User creator, Instant now, int seconds, int winners, String prize)
     {
-        if(!Constants.canSendGiveaway(channel))
+        if (!Constants.canSendGiveaway(channel))
             return false;
-        if(additional.stream().anyMatch(c -> !Constants.canSendGiveaway(c)))
+        if (additional.stream().anyMatch(c -> !Constants.canSendGiveaway(c)))
             return false;
         database.settings.updateColor(channel.getGuild());
         Instant end = now.plusSeconds(seconds);
-        String emoji = database.settings.getSettings(channel.getGuild().getIdLong()).getEmojiRaw();
+        Emoji emoji = database.settings.getSettings(channel.getGuild().getIdLong()).emoji;
         Message msg = new Giveaway(0, channel.getIdLong(), channel.getGuild().getIdLong(), creator.getIdLong(), end, winners, prize, emoji, Status.RUN, false)
                 .render(channel.getGuild().getSelfMember().getColor(), now);
 
-        if (emoji == null || emoji.isEmpty())
-            emoji = Constants.TADA;
-
-        final String finalEmoji = emoji;
-        Map<Long,Long> map = additional.stream()
-                .map(c -> 
-                { 
+        final String finalEmoji = emoji.getDisplay();
+        Map<Long, Long> map = additional.stream()
+                .map(c ->
+                {
                     Message m = c.sendMessage(msg).complete();
-                    m.addReaction(finalEmoji).queue(); // we are able to add the reaction, perms check Line #139 & DistributeCommand Line #180 for validation of the emoji
+                    m.addReaction(finalEmoji).queue();
                     return m;
                 })
                 .collect(Collectors.toMap(m -> m.getChannel().getIdLong(), Message::getIdLong));
         channel.sendMessage(msg).queue(m ->
         {
-            m.addReaction(finalEmoji).queue(); // we are able to add the reaction, perms check Line #139 & DistributeCommand Line #180 for validation of the emoji
+            m.addReaction(finalEmoji).queue();
             database.expanded.createExpanded(m.getIdLong(), map);
             database.giveaways.createGiveaway(m, creator, end, winners, prize, finalEmoji, true);
-        }, v -> LOG.warn("Unable to start giveaway: "+v));
+        }, v -> LOG.warn("Unable to start giveaway: " + v));
         return true;
     }
-    
+
     // events
     @Override
     public void onRoleUpdateColor(RoleUpdateColorEvent event)
     {
-        if(event.getGuild().getSelfMember().getRoles().contains(event.getRole()))
+        if (event.getGuild().getSelfMember().getRoles().contains(event.getRole()))
             database.settings.updateColor(event.getGuild());
     }
 
     @Override
     public void onGuildMemberRoleAdd(GuildMemberRoleAddEvent event)
     {
-        if(event.getMember().equals(event.getGuild().getSelfMember()))
+        if (event.getMember().equals(event.getGuild().getSelfMember()))
             database.settings.updateColor(event.getGuild());
     }
 
     @Override
     public void onGuildMemberRoleRemove(GuildMemberRoleRemoveEvent event)
     {
-        if(event.getMember().equals(event.getGuild().getSelfMember()))
+        if (event.getMember().equals(event.getGuild().getSelfMember()))
             database.settings.updateColor(event.getGuild());
     }
 
@@ -191,30 +197,31 @@ public class Bot extends ListenerAdapter
                 +event.getJDA().getShardInfo().getShardTotal()+"` has connected. Guilds: `"
                 +event.getJDA().getGuilds().size() + "`");// + " Users: `"+event.getJDA().getUsers().size()+"`");
     }//*/
-    
+
     /**
      * Starts the application in Bot mode
-     * @param shardTotal 
-     * @param shardSetId 
-     * @param shardSetSize 
-     * @throws java.lang.Exception 
+     * @param shardTotal
+     * @param shardSetId
+     * @param shardSetSize
+     * @throws java.lang.Exception
      */
     public static void main(int shardTotal, int shardSetId, int shardSetSize) throws Exception
     {
         Config config = ConfigFactory.load();
-        
+
         // instantiate a bot with a database connector
-        Bot bot = new Bot(new Database(config.getString("database.host"), 
-                                       config.getString("database.username"), 
-                                       config.getString("database.password")), 
-                          config.getString("webhook"));
-        
+        Bot bot = new Bot(new Database(config.getString("database.host"),
+                config.getString("database.username"),
+                config.getString("database.password")),
+                config.getString("webhook"),
+                config.hasPath("safemode") && config.getBoolean("safemode"));
+
         // build the client to deal with commands
         CommandClient client = new CommandClientBuilder()
                 .setPrefix(config.getString("prefix"))
                 .setAlternativePrefix(config.getString("altprefix"))
                 .setOwnerId("113156185389092864")
-                .setActivity(Activity.playing(Constants.TADA+" "+Constants.WEBSITE+" "+Constants.TADA+" Type !ghelp "+Constants.TADA))
+                .setActivity(Activity.playing(Constants.TADA + " " + Constants.WEBSITE + " " + Constants.TADA + " Type !ghelp " + Constants.TADA))
                 .setEmojis(Constants.TADA, Constants.WARNING, Constants.ERROR)
                 .setHelpConsumer(event -> event.replyInDm(FormatUtil.formatHelp(event), 
                         m-> {try{event.getMessage().addReaction(Constants.REACTION).queue(s->{},f->{});}catch(PermissionException ignored){}}, 
@@ -225,26 +232,26 @@ public class Bot extends ListenerAdapter
                         new AboutCommand(bot),
                         new InviteCommand(),
                         new PingCommand(),
-                        
+
                         new CreateCommand(bot),
                         new StartCommand(bot),
                         new EndCommand(bot),
                         new RerollCommand(bot),
                         new ListCommand(bot),
                         new SettingsCommand(bot),
-                        
+
                         new DistributeCommand(bot),
                         new RerolldistCommand(bot),
-                        
+
                         new DebugCommand(bot),
                         new EvalCommand(bot),
                         new ShutdownCommand(bot)
                 ).build();
-        
-        bot.webhook.send(WebhookLog.Level.INFO, "Starting shards `"+(shardSetId*shardSetSize + 1) + " - " + ((shardSetId+1)*shardSetSize) + "` of `"+shardTotal+"`...");
-        
+
+        bot.webhook.send(WebhookLog.Level.INFO, "Starting shards `" + (shardSetId * shardSetSize + 1) + " - " + ((shardSetId + 1) * shardSetSize) + "` of `" + shardTotal + "`...");
+
         MessageAction.setDefaultMentions(Arrays.asList(MentionType.CHANNEL, MentionType.EMOTE, MentionType.USER));
-        
+
         // start logging in
         bot.shards = DefaultShardManagerBuilder
                 .createLight(config.getString("bot-token"), GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES)
@@ -253,7 +260,7 @@ public class Bot extends ListenerAdapter
                 //.setEventPool(Executors.newScheduledThreadPool(100, r -> new Thread(r, "gbevent")))
                 //.setGatewayPool(Executors.newScheduledThreadPool(100, r -> new Thread("gbgateway")))
                 .setShardsTotal(shardTotal)
-                .setShards(shardSetId*shardSetSize, (shardSetId+1)*shardSetSize-1)
+                .setShards(shardSetId * shardSetSize, (shardSetId + 1) * shardSetSize - 1)
                 .setActivity(Activity.playing("loading..."))
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .addEventListeners(client, bot, new MessageWaiter())
