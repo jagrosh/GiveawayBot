@@ -1,10 +1,10 @@
 *.txt
 *.jar
 *.sh
-/.idea/
-/.gradle/
+nb*.xml
 /live/
 /test/
+/backup/
 /target/
 /src/main/resources/static/
 /src/main/resources/templates
