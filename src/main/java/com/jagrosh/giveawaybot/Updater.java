@@ -66,10 +66,12 @@ public class Updater
         // make a 'JDA' rest client
         RestJDA restJDA = new RestJDA(config.getString("bot-token"));
         boolean endOnly = config.hasPath("end-only") && config.getBoolean("end-only");
+        int sleepTime = config.hasPath("sleep-time") ? config.getInt("sleep-time") : 0;
+        int threads = config.hasPath("threads") ? config.getInt("threads") : 1;
         
         // make a schedule to run the update loop and a pool for ending giveaways
-        ScheduledExecutorService schedule = Executors.newScheduledThreadPool(3);
-        ExecutorService pool = Executors.newFixedThreadPool(endOnly ? 1 : 15);
+        ScheduledExecutorService schedule = Executors.newScheduledThreadPool(4);
+        ExecutorService pool = Executors.newFixedThreadPool(threads);
         
         // create an index to track time
         AtomicLong index = new AtomicLong(1);
@@ -94,6 +96,8 @@ public class Updater
                         if(giveaway.expanded)
                             database.expanded.deleteExpanded(giveaway.messageId);
                     });
+                    if(sleepTime > 0)
+                        try{Thread.sleep(sleepTime);}catch(Exception ex){}
                 });
 
                 // end giveaways that have run out of time
@@ -107,6 +111,8 @@ public class Updater
                         if(giveaway.expanded)
                             database.expanded.deleteExpanded(giveaway.messageId);
                     });
+                    if(sleepTime > 0)
+                        try{Thread.sleep(sleepTime);}catch(Exception ex){}
                 });
             }
             catch(Exception ex)
