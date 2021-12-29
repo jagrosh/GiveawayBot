@@ -54,7 +54,8 @@ public class SettingsCommand extends Command
             PremiumLevel premium = bot.getDatabase().premium.getPremiumLevel(event.getGuild());
 
             eb.setColor(settings.color);
-            eb.appendDescription("Premium Level: **"+ premium.name + "**\n");
+            eb.appendDescription("Server Owner: <@" + event.getGuild().getOwnerId() + ">");
+            eb.appendDescription("\nPremium Level: **"+ premium.name + "**");
             eb.appendDescription("\nReaction: " + settings.getEmojiDisplay());
             eb.setAuthor(event.getGuild().getName(), null, event.getGuild().getIconUrl());
             event.reply(new MessageBuilder()
