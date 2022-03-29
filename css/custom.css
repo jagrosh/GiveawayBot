@@ -3,6 +3,7 @@ body {
     width: 100%;
     height: 100%;
     font-family: 'Open Sans','Helvetica Neue',Arial,sans-serif;
+    background-color: #A0B2ED;
 }
 
 a {
@@ -30,6 +31,8 @@ header {
     color: #5465A0;
     background-color: #A0B2ED;
     background-position: center;
+    padding-top: 50px;
+    padding-bottom: 50px;
 }
 
 header .header-content {
@@ -66,12 +69,12 @@ header .header-content .header-content-inner b {
     }
 
     header .header-content {
-        position: absolute;
-        top: 50%;
+        /*position: absolute;*/
+        /*top: 50%;*/
         padding: 0 50px;
-        -webkit-transform: translateY(-50%);
+        /*-webkit-transform: translateY(-50%);
         -ms-transform: translateY(-50%);
-        transform: translateY(-50%);
+        transform: translateY(-50%);*/
     }
 
     header .header-content .header-content-inner {
@@ -161,25 +164,6 @@ header .header-content .header-content-inner b {
 .image-1 {
   background-image: url('../images/giveaway_ava_epic.png');
 }
-
-.item-1 {
-	background: url('../images/writing.jpg');
-	}
-
-.item-2 {
-	background: url('../images/concert.jpg');
-	}
-
-.item-3 {
-	background: url('../images/pencil_sharpener.jpg');
-	}
-
-.item-1,
-.item-2,
-.item-3 {
-	background-size: cover;
-	background-position: 50% 50%;
-	}
 
 .page-footer {
 	text-align: center;
