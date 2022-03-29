@@ -23,6 +23,12 @@ p {
     line-height: 1.5;
 }
 
+#output > img{
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+}
+
 header {
     position: relative;
     width: 100%;

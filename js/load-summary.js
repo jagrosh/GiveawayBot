@@ -20,7 +20,7 @@ function infoFormat(title, value) {
 }
 
 function userFormat(user) {
-    return '<img src="' + avatarFormat(user) + '" alt="avatar" width="32" height="32"> '+'<b>' + user.username + '</b>#' + user.discrim + ' (' + user.id + ')<br>';
+    return '<img src="' + avatarFormat(user) + '" alt="avatar"> '+'<b>' + user.username + '</b>#' + user.discrim + ' (' + user.id + ')<br>';
 }
 
 // Document Parsing
