@@ -27,12 +27,12 @@ function userFormat(user) {
 function parseAndShowDocument(data, url) {
     // filter html and parse json
     var obj = JSON.parse(data.contents.split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;').split('\n').join('<br>'));
-    var ended = new Date(obj.end * 1000);
+    var ended = new Date(obj.giveaway.end * 1000);
     var text = "<h2>Giveaway Summary</h2>"
-             + infoFormat("Prize", obj.prize)
-             + infoFormat("Winners", obj.num_winners)
+             + infoFormat("Prize", obj.giveaway.prize)
+             + infoFormat("Winners", obj.giveaway.num_winners)
              + infoFormat("Ended", ended.toLocaleString())
-             + infoFormat("Giveaway ID", obj.id);
+             + infoFormat("Giveaway ID", obj.giveaway.id);
     text += "<br><h2>Winners</h2>";
     obj.winners.forEach(user => text += userFormat(user));
     text += "<br><h2>Entrants</h2>"
