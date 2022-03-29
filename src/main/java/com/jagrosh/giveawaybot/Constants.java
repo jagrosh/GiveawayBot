@@ -27,22 +27,24 @@ import net.dv8tion.jda.api.entities.TextChannel;
 public class Constants 
 {
     public static final OffsetDateTime STARTUP = OffsetDateTime.now();
-    public static final int PRIZE_MAX   = 250;
-    public static final long SERVER_ID  = 585687812548853760L;
+    public static final long  SERVER_ID = 585687812548853760L;
     public static final String TADA     = "\uD83C\uDF89"; // 🎉
     public static final String WARNING  = "\uD83D\uDCA5"; // 💥
     public static final String ERROR    = "\uD83D\uDCA5"; // 💥
     public static final String YAY      = "<:yay:585696613507399692>";//"<:yay:440620097543864320>";
     public static final String REACTION = "yay:585696613507399692";//"yay:440620097543864320";
-    public static final Color  BLURPLE  = Color.decode("#7289DA");
-    public static final String INVITE   = "https://giveawaybot.party/invite";
-    public static final String DONATE   = "https://giveawaybot.party/donate";
-    public static final int MIN_TIME    = 10;
+    public static final Color  BLURPLE  = new Color(0x5865F2);
+    public static final Color  GRAY     = new Color(0x2F3136);
     public static final String WEBSITE  = "https://giveawaybot.party";
-    public static final String OWNER    = "**jagrosh**#4824";
+    public static final String INVITE   = WEBSITE + "/invite";
+    public static final String DONATE   = WEBSITE + "/donate";
+    public static final String SUPPORT  = WEBSITE + "/support";
+    public static final String SUMMARY  = WEBSITE + "/summary";
     public static final String GITHUB   = "https://github.com/jagrosh/GiveawayBot";
+    
+    public static final int    MIN_TIME = 10;
+    public static final String OWNER    = "**jagrosh**#4824";
     public static final String VERSION  = "2.2";
-    public static final String PERMS    = "`Read Messages`, `Write Messages`, `Read Message History`, `Embed Links`, `Use External Emoji`, and `Add Reactions`";
     
     public static final boolean canSendGiveaway(TextChannel channel)
     {

@@ -31,8 +31,17 @@
             </pattern>
         </encoder>
     </appender>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- author: Kaidan Gustave  -->
+            <pattern> 
+                %nopex[%d{HH:mm:ss}] [%level] [%logger{0}]: %msg%n%ex
+            </pattern>
+        </encoder>
+    </appender>
     
     <root level="INFO">
-        <appender-ref ref="FILE"/>
+        <appender-ref ref="STDOUT" />
+        <!--appender-ref ref="FILE"/-->
     </root>
 </configuration>

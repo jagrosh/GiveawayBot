@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 John Grosh (john.a.grosh@gmail.com).
+ * Copyright 2022 John Grosh (john.a.grosh@gmail.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,30 +15,28 @@
  */
 package com.jagrosh.giveawaybot.commands;
 
-import com.jagrosh.giveawaybot.Bot;
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.interactions.command.ApplicationCommand;
+import com.jagrosh.interactions.receive.Interaction;
+import com.jagrosh.interactions.responses.InteractionResponse;
 
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class ShutdownCommand extends Command {
-
-    private final Bot bot;
-    public ShutdownCommand(Bot bot) {
-        this.bot = bot;
-        name = "shutdown";
-        help = "shuts down the bot";
-        ownerCommand = true;
-        guildOnly = false;
-        category = new Category("Owner");
+public class PingCmd extends GBCommand
+{
+    public PingCmd(String prefix)
+    {
+        this.app = new ApplicationCommand.Builder()
+                .setType(ApplicationCommand.Type.CHAT_INPUT)
+                .setName(prefix + "ping")
+                .setDescription("check if the bot is online")
+                .build();
     }
     
     @Override
-    protected void execute(CommandEvent event) {
-        event.reactSuccess();
-        bot.shutdown();
+    public InteractionResponse gbExecute(Interaction interaction)
+    {
+        return respondSuccess("Pong!");
     }
-    
 }

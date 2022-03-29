@@ -15,12 +15,51 @@
  */
 package com.jagrosh.giveawaybot.util;
 
+import java.awt.Color;
+
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
 public class OtherUtil
 {
+    public static Color parseColor(String color)
+    {
+        try 
+        {
+            switch(color.replace(" ", "_").toLowerCase()) 
+            {
+                case "red":         return Color.RED;
+                case "orange":      return Color.ORANGE;
+                case "yellow":      return Color.YELLOW;
+                case "green":       return Color.GREEN;
+                case "cyan":        return Color.CYAN;
+                case "blue":        return Color.BLUE;
+                case "magenta":     return Color.MAGENTA;
+                case "pink":        return Color.PINK;
+                case "black":       return Color.decode("#000001");
+                case "dark_gray": 
+                case "dark_grey":   return Color.DARK_GRAY;
+                case "gray":
+                case "grey":        return Color.GRAY;
+                case "light_gray":
+                case "light_grey":  return Color.LIGHT_GRAY;
+                case "white":       return Color.WHITE;
+                //discord 
+                case "blurple":     return Color.decode("#5865F2");
+                case "old_blurple": return Color.decode("#7289DA");
+                case "greyple":     return Color.decode("#99AAB5");
+                case "darktheme":   return Color.decode("#2C2F33");
+                default:            return Color.decode(color.startsWith("#") ? color : "#" + color);
+            }
+        }
+        catch(NumberFormatException e) 
+        {
+            return null;
+        }
+    }
+    
+    @SuppressWarnings("fallthrough")
     public static int parseShortTime(String timestr)
     {
         timestr = timestr.toLowerCase();
