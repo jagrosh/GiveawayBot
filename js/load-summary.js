@@ -16,11 +16,11 @@ function avatarFormat(user) {
 }
 
 function infoFormat(title, value) {
-    return '<p>' + title + '<br><code>' + value + '</code><br></p>'
+    return '<p>' + title + '<br><code>' + value + '</code><br></p>';
 }
 
 function userFormat(user) {
-    return '<img src="' + avatarFormat(user) + '" alt="avatar"> '+'<b>' + user.username + '</b>#' + user.discrim + ' (' + user.id + ')<br>';
+    return '<img src="' + avatarFormat(user) + '" alt="avatar"> '+'<b>' + user.username + '</b>#' + user.discrim + ' (' + user.id + ')';
 }
 
 // Document Parsing
@@ -30,16 +30,17 @@ function parseAndShowDocument(data, url) {
     var ended = new Date(obj.giveaway.end * 1000);
     var text = "<h2>Giveaway Summary</h2>"
              + infoFormat("Prize", obj.giveaway.prize)
+             + infoFormat("Host", userFormat(obj.giveaway.host))
              + infoFormat("Winners", obj.giveaway.num_winners)
              + infoFormat("Ended", ended.toLocaleString())
              + infoFormat("Giveaway ID", obj.giveaway.id);
     text += "<br><h2>Winners</h2>";
-    obj.winners.forEach(user => text += userFormat(user));
+    obj.winners.forEach(user => text += userFormat(user) + "<br>");
     text += "<br><h2>Entrants</h2>"
-    obj.entries.forEach(user => text += userFormat(user));
+    obj.entries.forEach(user => text += userFormat(user) + "<br>");
     
     // update
-    $('#output').html(text + '<br><br><a class="button" href="'+url+'">Download Giveaway Summary JSON</a>');
+    $('#output').html(text + '<br><br><br><a class="button" href="'+url+'">Download Giveaway Summary JSON</a>');
 }
 
 // Loading doc and parsing
