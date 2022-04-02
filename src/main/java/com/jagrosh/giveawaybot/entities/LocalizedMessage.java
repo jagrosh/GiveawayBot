@@ -41,13 +41,15 @@ public enum LocalizedMessage
     ERROR_INVALID_WINNERS_FORMAT("error.invalid_winners.format"), 
     ERROR_INVALID_WINNERS_MAX("error.invalid_winners.max"),
     ERROR_INVALID_PRIZE_LENGTH("error.invalid_prize.length"),
+    ERROR_INVALID_DESCR_LENGTH("error.invalid_descr.length"),
     
     // other errors
     ERROR_NO_DMS("error.no_dms"),
     ERROR_GIVEAWAY_ENDED("error.giveaway_ended"),
     ERROR_INVALID_COLOR("error.invalid_color"),
     ERROR_INVALID_ID("error.invalid_id"),
-    ERROR_GIVEWAY_NOT_FOUND("error.giveaway_not_found"),
+    ERROR_GIVEAWAY_NOT_FOUND("error.giveaway_not_found"),
+    ERROR_GIVEAWAY_ALREADY_ENTERED("error.giveaway_already_entered"),
     ERROR_GENERIC_CREATION("error.generic.creation"),
     ERROR_GENERIC_ENTER("error.generic.enter"),
     ERROR_GENERIC_ENDING("error.generic.ending"),

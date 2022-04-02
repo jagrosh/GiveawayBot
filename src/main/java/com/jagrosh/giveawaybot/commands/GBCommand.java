@@ -16,14 +16,22 @@
 package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Constants;
+import com.jagrosh.giveawaybot.GiveawayBot;
 import com.jagrosh.giveawaybot.GiveawayException;
+import com.jagrosh.giveawaybot.data.GuildSettings;
 import com.jagrosh.giveawaybot.entities.LocalizedMessage;
 import com.jagrosh.interactions.command.ApplicationCommand;
 import com.jagrosh.interactions.command.Command;
+import com.jagrosh.interactions.entities.Guild;
 import com.jagrosh.interactions.entities.SentMessage;
 import com.jagrosh.interactions.receive.Interaction;
+import com.jagrosh.interactions.requests.Route;
 import com.jagrosh.interactions.responses.InteractionResponse;
 import com.jagrosh.interactions.responses.MessageCallback;
+import java.time.Instant;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -31,22 +39,14 @@ import com.jagrosh.interactions.responses.MessageCallback;
  */
 public abstract class GBCommand implements Command
 {
+    private final Logger log = LoggerFactory.getLogger(GBCommand.class);
+    protected final GiveawayBot bot;
     protected ApplicationCommand app;
     
-    /*protected GBCommand(String prefix, String name, String description)
+    protected GBCommand(GiveawayBot bot)
     {
-        this(prefix, ApplicationCommand.Type.CHAT_INPUT, name, description, true);
+        this.bot = bot;
     }
-    
-    protected GBCommand(String prefix, ApplicationCommand.Type type, String name, String description, boolean defaultPermission)
-    {
-        this.app = new ApplicationCommand.Builder()
-                .setName(prefix + name)
-                .setDescription(description)
-                .setType(type)
-                .setDefaultPermission(defaultPermission)
-                .build();
-    */
     
     @Override
     public ApplicationCommand getApplicationCommand()
@@ -57,8 +57,34 @@ public abstract class GBCommand implements Command
     @Override
     public InteractionResponse execute(Interaction interaction)
     {
+        // bot cannot be used in DMs
         if(interaction.getGuildId() == 0L)
             return new MessageCallback(new SentMessage.Builder().setContent(LocalizedMessage.ERROR_NO_DMS.getLocalizedMessage(interaction.getEffectiveLocale())).build());
+        
+        // update cached user for interaction
+        bot.getDatabase().updateUser(interaction.getUser());
+        
+        // update cached guild info
+        GuildSettings gs = bot.getDatabase().getSettings(interaction.getGuildId());
+        Instant now = Instant.now();
+        if(gs.getLatestRetrieval().plusSeconds(60*15).isBefore(now))
+        {
+            Guild g;
+            try
+            {
+                JSONObject gjson = bot.getRestClient().request(Route.GET_GUILD.format(interaction.getGuildId()), "").get().getBody();
+                //log.info(String.format("Retrieved guild: " + gjson));
+                g = new Guild(gjson);
+            }
+            catch(Exception ex) 
+            {
+                g = null;
+                log.error(String.format("Failed to retrieve guild: %s, %s", ex, ex.getMessage()));
+            }
+            bot.getDatabase().setAutomaticGuildSettings(interaction.getGuildId(), now, g);
+        }
+        
+        // attempt to run command
         try
         {
             return gbExecute(interaction);

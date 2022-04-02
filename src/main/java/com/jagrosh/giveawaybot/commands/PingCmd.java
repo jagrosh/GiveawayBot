@@ -15,6 +15,7 @@
  */
 package com.jagrosh.giveawaybot.commands;
 
+import com.jagrosh.giveawaybot.GiveawayBot;
 import com.jagrosh.interactions.command.ApplicationCommand;
 import com.jagrosh.interactions.receive.Interaction;
 import com.jagrosh.interactions.responses.InteractionResponse;
@@ -25,11 +26,12 @@ import com.jagrosh.interactions.responses.InteractionResponse;
  */
 public class PingCmd extends GBCommand
 {
-    public PingCmd(String prefix)
+    public PingCmd(GiveawayBot bot)
     {
+        super(bot);
         this.app = new ApplicationCommand.Builder()
                 .setType(ApplicationCommand.Type.CHAT_INPUT)
-                .setName(prefix + "ping")
+                .setName(bot.getCommandPrefix() + "ping")
                 .setDescription("check if the bot is online")
                 .build();
     }

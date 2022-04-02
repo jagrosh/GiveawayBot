@@ -15,6 +15,7 @@
  */
 package com.jagrosh.giveawaybot.commands;
 
+import com.jagrosh.giveawaybot.GiveawayBot;
 import com.jagrosh.giveawaybot.GiveawayException;
 import com.jagrosh.giveawaybot.GiveawayManager;
 import com.jagrosh.giveawaybot.data.Database;
@@ -31,16 +32,12 @@ import com.jagrosh.interactions.responses.InteractionResponse;
  */
 public class EndCmd extends GBCommand
 {
-    private final Database database;
-    private final GiveawayManager gman;
-    
-    public EndCmd(String prefix, Database database, GiveawayManager gman)
+    public EndCmd(GiveawayBot bot)
     {
-        this.database = database;
-        this.gman = gman;
+        super(bot);
         this.app = new ApplicationCommand.Builder()
                 .setType(ApplicationCommand.Type.CHAT_INPUT)
-                .setName(prefix + "end")
+                .setName(bot.getCommandPrefix() + "end")
                 .setDescription("end a giveaway")
                 .addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.STRING, "giveaway_id", "ends a giveaway", true, null, null, true))
                 .build();
@@ -49,7 +46,7 @@ public class EndCmd extends GBCommand
     @Override
     public InteractionResponse gbExecute(Interaction interaction) throws GiveawayException
     {
-        gman.checkPermission(interaction.getMember(), interaction.getGuildId());
+        bot.getGiveawayManager().checkPermission(interaction.getMember(), interaction.getGuildId());
         
         String sid = interaction.getCommandData().getOptionByName("giveaway_id").getStringValue().split("~")[0].trim();
         long id = -1;
@@ -61,11 +58,11 @@ public class EndCmd extends GBCommand
         if(id < 0)
             return respondError(LocalizedMessage.ERROR_INVALID_ID.getLocalizedMessage(interaction.getEffectiveLocale(), sid));
         
-        Giveaway g = database.getGiveaway(id);
+        Giveaway g = bot.getDatabase().getGiveaway(id);
         if(g == null || g.getGuildId() != interaction.getGuildId())
-            return respondError(LocalizedMessage.ERROR_GIVEWAY_NOT_FOUND.getLocalizedMessage(interaction.getEffectiveLocale(), id+""));
+            return respondError(LocalizedMessage.ERROR_GIVEAWAY_NOT_FOUND.getLocalizedMessage(interaction.getEffectiveLocale(), id+""));
         
-        boolean success = gman.endGiveaway(g);
+        boolean success = bot.getGiveawayManager().endGiveaway(g);
         
         if(success)
             return respondSuccess(LocalizedMessage.SUCCESS_GIVEAWAY_ENDED.getLocalizedMessage(interaction.getEffectiveLocale(), id+""));

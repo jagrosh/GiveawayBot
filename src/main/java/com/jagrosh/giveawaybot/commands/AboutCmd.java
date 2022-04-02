@@ -16,7 +16,7 @@
 package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Constants;
-import com.jagrosh.giveawaybot.data.Database;
+import com.jagrosh.giveawaybot.GiveawayBot;
 import com.jagrosh.giveawaybot.entities.LocalizedMessage;
 import com.jagrosh.interactions.command.ApplicationCommand;
 import com.jagrosh.interactions.entities.Embed;
@@ -37,14 +37,12 @@ public class AboutCmd extends GBCommand
     private final static String STATS = "\uD83D\uDCCA "; // 📊
     private final static String LINKS = "\uD83C\uDF10 "; // 🌐
     
-    private final Database database;
-    
-    public AboutCmd(String prefix, Database database)
+    public AboutCmd(GiveawayBot bot)
     {
-        this.database = database;
+        super(bot);
         this.app = new ApplicationCommand.Builder()
                 .setType(ApplicationCommand.Type.CHAT_INPUT)
-                .setName(prefix + "about")
+                .setName(bot.getCommandPrefix() + "about")
                 .setDescription("show information about the bot")
                 .build();
     }
@@ -59,7 +57,9 @@ public class AboutCmd extends GBCommand
                         .setTitle(LocalizedMessage.INFO_ABOUT_BRIEF.getLocalizedMessage(wl), null)
                         .setColor(new Color(0x5865F2))
                         .setDescription(LocalizedMessage.INFO_ABOUT_LONG.getLocalizedMessage(wl))
-                        .addField(STATS + LocalizedMessage.INFO_ABOUT_STATS.getLocalizedMessage(wl), LocalizedMessage.INFO_ABOUT_STATS_GIVEAWAYS.getLocalizedMessage(wl, database.countAllGiveaways()) + "\n" + LocalizedMessage.INFO_ABOUT_STATS_SERVERS.getLocalizedMessage(wl, 0), true)
+                        .addField(STATS + LocalizedMessage.INFO_ABOUT_STATS.getLocalizedMessage(wl), 
+                                      LocalizedMessage.INFO_ABOUT_STATS_GIVEAWAYS.getLocalizedMessage(wl, bot.getDatabase().countAllGiveaways()) 
+                                 + "\n" + LocalizedMessage.INFO_ABOUT_STATS_SERVERS.getLocalizedMessage(wl, 0), true)
                         .addField(LINKS + LocalizedMessage.INFO_ABOUT_LINKS.getLocalizedMessage(wl), 
                                 "[" + LocalizedMessage.INFO_ABOUT_LINKS_WEBSITE.getLocalizedMessage(wl) + "](" + Constants.WEBSITE 
                                 + ")\n[" + LocalizedMessage.INFO_ABOUT_LINKS_INVITE.getLocalizedMessage(wl) + "](" + Constants.INVITE 

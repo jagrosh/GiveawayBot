@@ -16,6 +16,7 @@
 package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Constants;
+import com.jagrosh.giveawaybot.GiveawayBot;
 import com.jagrosh.giveawaybot.GiveawayException;
 import com.jagrosh.giveawaybot.data.Database;
 import com.jagrosh.giveawaybot.data.GuildSettings;
@@ -39,11 +40,9 @@ import java.awt.Color;
  */
 public class SettingsCmd extends GBCommand
 {
-    private final Database database;
-    
-    public SettingsCmd(String prefix, Database database)
+    public SettingsCmd(GiveawayBot bot)
     {
-        this.database = database;
+        super(bot);
         ApplicationCommandOption showCmd = new ApplicationCommandOption(ApplicationCommandOption.Type.SUB_COMMAND, "show", "show current settings", false);
         ApplicationCommandOption group = new ApplicationCommandOption(ApplicationCommandOption.Type.SUB_COMMAND_GROUP, "set", "set settings", false);
         ApplicationCommandOption colorCmd = new ApplicationCommandOption(ApplicationCommandOption.Type.SUB_COMMAND, "color", "set giveaway embed color", false);
@@ -53,7 +52,7 @@ public class SettingsCmd extends GBCommand
         group.addOptions(colorCmd, roleCmd);
         this.app = new ApplicationCommand.Builder()
                 .setType(ApplicationCommand.Type.CHAT_INPUT)
-                .setName(prefix + "settings")
+                .setName(bot.getCommandPrefix() + "settings")
                 .setDescription("show or modify settings")
                 .addOptions(showCmd, group)
                 .build();
@@ -78,22 +77,22 @@ public class SettingsCmd extends GBCommand
                 {
                     case "role":
                         long id = cmd.getOptionByName("role").getIdValue();
-                        database.setGuildManager(interaction.getGuildId(), id);
+                        bot.getDatabase().setGuildManager(interaction.getGuildId(), id);
                         return respondSuccess(LocalizedMessage.SUCCESS_SETTINGS_ROLE.getLocalizedMessage(wl, "<@&" + id + ">"));
                     case "color":
                         String col = cmd.getOptionByName("hex").getStringValue();
                         Color color = OtherUtil.parseColor(col);
                         if(color == null)
                             return respondError(LocalizedMessage.ERROR_INVALID_COLOR.getLocalizedMessage(wl, col));
-                        database.setGuildColor(interaction.getGuildId(), color);
+                        bot.getDatabase().setGuildColor(interaction.getGuildId(), color);
                         return respondSuccess(LocalizedMessage.SUCCESS_SETTINGS_COLOR.getLocalizedMessage(wl, "#" + Integer.toHexString(color.getRGB() & 0xFFFFFF).toUpperCase()));
                     default:
                         return respondError("Unknown settings command.");
                 }
             case "show":
-                GuildSettings gs = database.getSettings(interaction.getGuildId());
+                GuildSettings gs = bot.getDatabase().getSettings(interaction.getGuildId());
                 String text = LocalizedMessage.INFO_SETTINGS_OWNER.getLocalizedMessage(wl) + ": <@" + gs.getOwnerId() + ">\n" 
-                        + LocalizedMessage.INFO_SETTINGS_PREMIUM.getLocalizedMessage(wl) + ": **" + database.getPremiumLevel(gs.getOwnerId()) + "**\n" 
+                        + LocalizedMessage.INFO_SETTINGS_PREMIUM.getLocalizedMessage(wl) + ": **" + bot.getDatabase().getPremiumLevel(gs.getGuildId(), gs.getOwnerId()) + "**\n" 
                         + LocalizedMessage.INFO_SETTINGS_ROLE.getLocalizedMessage(wl) + ": " + (gs.getManagerRoleId() == 0L ? "N/A" : "<@&" + gs.getManagerRoleId() + ">") + "\n"
                         + LocalizedMessage.INFO_SETTINGS_EMOJI.getLocalizedMessage(wl) + ": " + gs.getEmoji();
                 return new MessageCallback(new SentMessage.Builder()

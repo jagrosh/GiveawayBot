@@ -16,8 +16,10 @@
 package com.jagrosh.giveawaybot.data;
 
 import com.jagrosh.giveawaybot.Constants;
+import com.jagrosh.interactions.components.PartialEmoji;
 import com.jagrosh.interactions.entities.WebLocale;
 import java.awt.Color;
+import java.time.Instant;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -44,6 +46,8 @@ public class GuildSettings
     private long ownerId;
     @Column(name = "LOCALE")
     private String locale;
+    @Column(name = "LAST_FETCH")
+    private long latestRetrieval;
     
     public GuildSettings()
     {
@@ -58,6 +62,7 @@ public class GuildSettings
         this.emoji = null;
         this.ownerId = 0L;
         this.locale = null;
+        this.latestRetrieval = 0L;
     }
     
     public long getGuildId()
@@ -104,6 +109,11 @@ public class GuildSettings
     {
         return emoji == null ? Constants.TADA : emoji;
     }
+    
+    public PartialEmoji getPartialEmoji()
+    {
+        return new PartialEmoji(emoji == null ? Constants.TADA : emoji, 0L, false);
+    }
 
     public void setEmoji(String emoji)
     {
@@ -128,5 +138,15 @@ public class GuildSettings
     public void setLocale(WebLocale locale)
     {
         this.locale = locale.getCode();
+    }
+    
+    public Instant getLatestRetrieval()
+    {
+        return Instant.ofEpochSecond(latestRetrieval);
+    }
+    
+    public void setLatestRetrieval(Instant time)
+    {
+        this.latestRetrieval = time.getEpochSecond();
     }
 }

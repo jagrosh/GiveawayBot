@@ -15,8 +15,8 @@
  */
 package com.jagrosh.giveawaybot.commands;
 
+import com.jagrosh.giveawaybot.GiveawayBot;
 import com.jagrosh.giveawaybot.GiveawayException;
-import com.jagrosh.giveawaybot.GiveawayManager;
 import com.jagrosh.interactions.command.ApplicationCommand;
 import com.jagrosh.interactions.receive.Interaction;
 import com.jagrosh.interactions.responses.InteractionResponse;
@@ -27,14 +27,12 @@ import com.jagrosh.interactions.responses.InteractionResponse;
  */
 public class RerollCmd extends GBCommand
 {
-    private final GiveawayManager gman;
-    
-    public RerollCmd(String prefix, GiveawayManager gman)
+    public RerollCmd(GiveawayBot bot)
     {
-        this.gman = gman;
+        super(bot);
         this.app = new ApplicationCommand.Builder()
                 .setType(ApplicationCommand.Type.MESSAGE)
-                .setName(prefix + "reroll")
+                .setName(bot.getCommandPrefix() + "reroll")
                 .setDescription("rerolls one new winner from a giveaway")
                 .build();
     }
@@ -42,7 +40,7 @@ public class RerollCmd extends GBCommand
     @Override
     public InteractionResponse gbExecute(Interaction interaction) throws GiveawayException
     {
-        gman.checkPermission(interaction.getMember(), interaction.getGuildId());
+        bot.getGiveawayManager().checkPermission(interaction.getMember(), interaction.getGuildId());
         
         //interaction.getMessage().get
         return respondSuccess("Not supported");

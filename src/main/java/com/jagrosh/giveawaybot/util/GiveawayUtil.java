@@ -55,21 +55,4 @@ public class GiveawayUtil
         }
         return winlist;
     }
-    
-    public static void getSingleWinner(Message message, Consumer<User> success, Runnable failure, ExecutorService threadpool)
-    {
-        threadpool.submit(() -> {
-            try {
-                MessageReaction mr = message.getReactions().stream().filter(r -> r.getReactionEmote().getName().equals(Constants.TADA)).findAny().orElse(null);
-                List<User> users = new LinkedList<>();
-                mr.retrieveUsers().stream().distinct().filter(u -> !u.isBot()).forEach(users::add);
-                if(users.isEmpty())
-                    failure.run();
-                else
-                    success.accept(users.get((int)(randDouble() * users.size())));
-            } catch(Exception e) {
-                failure.run();
-            }
-        });
-    }
 }

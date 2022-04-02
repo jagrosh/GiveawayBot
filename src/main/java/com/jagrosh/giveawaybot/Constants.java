@@ -17,8 +17,6 @@ package com.jagrosh.giveawaybot;
 
 import java.awt.Color;
 import java.time.OffsetDateTime;
-import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.TextChannel;
 
 /**
  *
@@ -44,11 +42,5 @@ public class Constants
     
     public static final int    MIN_TIME = 10;
     public static final String OWNER    = "**jagrosh**#4824";
-    public static final String VERSION  = "2.2";
-    
-    public static final boolean canSendGiveaway(TextChannel channel)
-    {
-        return channel.getGuild().getSelfMember().hasPermission(channel, Permission.MESSAGE_READ, Permission.MESSAGE_WRITE, 
-                Permission.MESSAGE_HISTORY, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_EXT_EMOJI, Permission.MESSAGE_ADD_REACTION);
-    }
+    public static final String VERSION  = "3.0";
 }

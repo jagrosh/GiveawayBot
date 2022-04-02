@@ -55,15 +55,19 @@ public class Giveaway
     
     @Column(name = "PRIZE")
     private String prize;
+    
+    @Column(name = "DESCRIPTION")
+    private String description;
 
     public Giveaway() {}
     
-    public Giveaway(long userId, Instant endTime, int winners, String prize)
+    public Giveaway(long userId, Instant endTime, int winners, String prize, String description)
     {
         this.userId = userId;
         this.endTime = endTime.getEpochSecond();
         this.winners = winners;
         this.prize = prize;
+        this.description = description;
     }
     
     public long getMessageId()
@@ -144,6 +148,16 @@ public class Giveaway
     public void setWinners(int winners)
     {
         this.winners = winners;
+    }
+
+    public String getDescription()
+    {
+        return description;
+    }
+
+    public void setDescription(String description)
+    {
+        this.description = description;
     }
     
     public String getJumpLink()

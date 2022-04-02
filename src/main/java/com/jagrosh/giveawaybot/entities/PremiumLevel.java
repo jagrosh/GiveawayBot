@@ -15,8 +15,6 @@
  */
 package com.jagrosh.giveawaybot.entities;
 
-import com.jagrosh.giveawaybot.Constants;
-
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
@@ -33,6 +31,7 @@ public enum PremiumLevel
         DISCORD(4, "Discord",       60*60*24*7*5, 50, 25, true,  778420722673778748L),
         SUPER  (5, "Super Patron",  60*60*24*7*5, 50, 25, true,  589196324193173512L);
         
+        public final static long SERVER_ID = 585687812548853760L;
         public final int level;
         public final String name;
         public final int maxTime, maxWinners, maxGiveaways;
@@ -49,16 +48,6 @@ public enum PremiumLevel
             this.maxGiveaways = maxGiveaways;
             this.perChannelMaxGiveaways = perChannelMaxGiveaways;
             this.roleId = roleId;
-        }
-        
-        public boolean isValidTime(int seconds)
-        {
-            return seconds >= Constants.MIN_TIME && seconds <= maxTime;
-        }
-        
-        public boolean isValidWinners(int winners)
-        {
-            return winners >= 1 && winners <= maxWinners;
         }
         
         // static methods

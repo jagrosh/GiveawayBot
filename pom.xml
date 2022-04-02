@@ -14,14 +14,13 @@
     
     <repositories>
         <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+        <repository>
             <id>dv8tion</id>
             <name>m2-dv8tion</name>
             <url>https://m2.dv8tion.net/releases</url>
-        </repository>
-        <repository>
-            <id>central</id>
-            <name>bintray</name>
-            <url>https://jcenter.bintray.com</url>
         </repository>
         <repository>
             <id>objectdb</id>
@@ -32,16 +31,26 @@
     
     <dependencies>
         <!-- Discord Libraries -->
-        <dependency>
+	<dependency>
+	    <groupId>com.github.jagrosh</groupId>
+	    <artifactId>DiscordInteractions</artifactId>
+	    <version>master-SNAPSHOT</version>
+	</dependency>
+        <!--dependency>
             <groupId>com.jagrosh</groupId>
             <artifactId>DiscordInteractions</artifactId>
             <version>0.1</version>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>club.minnced</groupId>
             <artifactId>discord-webhooks</artifactId>
             <version>0.8.0</version>
         </dependency>
+        <dependency>
+	    <groupId>net.dv8tion</groupId>
+	    <artifactId>JDA</artifactId>
+	    <version>5.0.0-alpha.9</version>
+	</dependency>
         
         <!-- Database Libraries -->
         <dependency>
@@ -72,11 +81,13 @@
             <version>20200518</version>
         </dependency>
         
+        <!-- Testing -->
         <dependency>
-	    <groupId>net.dv8tion</groupId>
-	    <artifactId>JDA</artifactId>
-	    <version>4.2.1_262</version>
-	</dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.1</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     
     <build>

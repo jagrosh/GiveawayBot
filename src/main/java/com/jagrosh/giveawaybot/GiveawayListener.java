@@ -23,13 +23,12 @@ import com.jagrosh.giveawaybot.entities.PremiumLevel;
 import com.jagrosh.giveawaybot.util.GiveawayUtil;
 import com.jagrosh.interactions.InteractionsListener;
 import com.jagrosh.interactions.command.Choice;
-import com.jagrosh.interactions.components.Component;
 import com.jagrosh.interactions.entities.AllowedMentions;
 import com.jagrosh.interactions.entities.SentMessage;
+import com.jagrosh.interactions.entities.WebLocale;
 import com.jagrosh.interactions.receive.CommandInteractionDataOption;
 import com.jagrosh.interactions.receive.Interaction;
 import com.jagrosh.interactions.requests.RestClient;
-import com.jagrosh.interactions.requests.Route;
 import com.jagrosh.interactions.responses.AutocompleteCallback;
 import com.jagrosh.interactions.responses.DeferredCallback;
 import com.jagrosh.interactions.responses.InteractionResponse;
@@ -37,10 +36,6 @@ import com.jagrosh.interactions.responses.MessageCallback;
 import com.jagrosh.interactions.util.JsonUtil;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -48,7 +43,7 @@ import org.slf4j.LoggerFactory;
  */
 public class GiveawayListener implements InteractionsListener
 {
-    private final Logger log = LoggerFactory.getLogger(GiveawayListener.class);
+    //private final Logger log = LoggerFactory.getLogger(GiveawayListener.class);
     private final Database database;
     private final GiveawayManager gman;
     private final RestClient rest;
@@ -65,12 +60,13 @@ public class GiveawayListener implements InteractionsListener
     {
         try
         {
-            PremiumLevel lv = database.getPremiumLevel(interaction.getUser().getIdLong());
+            PremiumLevel lv = database.getPremiumLevel(interaction.getGuildId(), interaction.getUser().getIdLong());
             // validate inputs
             Giveaway g = gman.constructGiveaway(interaction.getUser(), 
                     interaction.getComponentData().getModalValueByCustomId("time"), 
                     interaction.getComponentData().getModalValueByCustomId("winners"), 
-                    interaction.getComponentData().getModalValueByCustomId("prize"), lv, interaction.getEffectiveLocale());
+                    interaction.getComponentData().getModalValueByCustomId("prize"), 
+                    interaction.getComponentData().getModalValueByCustomId("description"), lv, interaction.getEffectiveLocale());
 
             // attempt giveaway creation
             long id = gman.sendGiveaway(g, interaction.getGuildId(), interaction.getChannelId());
@@ -127,8 +123,14 @@ public class GiveawayListener implements InteractionsListener
             Giveaway g = database.getGiveaway(id);
             if(g == null)
                 return GBCommand.respondError(LocalizedMessage.ERROR_GIVEAWAY_ENDED.getLocalizedMessage(interaction.getEffectiveLocale()));
-            database.addEntry(id, interaction.getUser());
-            return new MessageCallback(gman.renderGiveaway(g, database.getEntryCount(id)), true);
+            boolean entered = database.addEntry(id, interaction.getUser());
+            if(entered)
+                return new MessageCallback(gman.renderGiveaway(g, database.getEntryCount(id)), true);
+            else
+                return new MessageCallback(new SentMessage.Builder()
+                        .setReferenceMessage(id)
+                        .setContent(LocalizedMessage.ERROR_GIVEAWAY_ALREADY_ENTERED.getLocalizedMessage(interaction.getEffectiveLocale()))
+                        .setEphemeral(true).build());
         }
         else if(customId.toLowerCase().startsWith(GiveawayManager.REROLL_BUTTON_ID.toLowerCase()))
         {
@@ -142,7 +144,7 @@ public class GiveawayListener implements InteractionsListener
                 return new MessageCallback(new SentMessage.Builder()
                         .setAllowedMentions(new AllowedMentions(AllowedMentions.ParseType.USERS))
                         .setReferenceMessage(interaction.getMessage().getIdLong())
-                        .setContent(LocalizedMessage.SUCCESS_GIVEAWAY_REROLL.getLocalizedMessage(interaction.getEffectiveLocale(), "<@" + winner.get(0) + ">"))
+                        .setContent(LocalizedMessage.SUCCESS_GIVEAWAY_REROLL.getLocalizedMessage(interaction.getEffectiveLocale(), "<@" + interaction.getUser().getIdLong() + ">", "<@" + winner.get(0) + ">"))
                         .build());
             } 
             catch(Exception ex)

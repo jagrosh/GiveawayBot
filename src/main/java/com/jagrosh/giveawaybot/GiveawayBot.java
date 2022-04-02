@@ -18,6 +18,7 @@ package com.jagrosh.giveawaybot;
 import com.jagrosh.giveawaybot.commands.*;
 import com.jagrosh.giveawaybot.data.Database;
 import com.jagrosh.giveawaybot.entities.FileUploader;
+import com.jagrosh.giveawaybot.entities.PremiumChecker;
 import com.jagrosh.giveawaybot.entities.WebhookLog;
 import com.jagrosh.interactions.Interactions;
 import com.jagrosh.interactions.InteractionsClient;
@@ -43,42 +44,30 @@ public class GiveawayBot
      */
     public static void main(String[] args) throws Exception
     {
-        // load config and send startup message
+        // load config and configure gb core
         Config config = ConfigFactory.load();
-        WebhookLog webhook = new WebhookLog(config.getString("webhook.url"), config.getString("webhook.name"));
-        webhook.send(WebhookLog.Level.INFO, "GiveawayBot is starting!");
-        
-        // connect to the database
-        Database database = new Database(config.getString("database.host"), config.getString("database.user"), config.getString("database.pass"));
-        webhook.send(WebhookLog.Level.INFO, String.format("Database contains `%d` giveaways", database.countAllGiveaways()));
-        
-        // instantiate the rest client and start the giveaway manager
-        RestClient restClient = new RestClient(config.getString("bot-token"));
-        FileUploader uploader = new FileUploader(config.getStringList("file-uploader"));
-        GiveawayManager givMan = new GiveawayManager(database, restClient, uploader);
-        givMan.start();
+        GiveawayBot bot = new GiveawayBot(config);
         
         // instantiate commands
-        String cmdPrefix = config.getString("cmd-prefix");
         Command[] commands = 
         {
-            new AboutCmd(cmdPrefix, database),
-            new PingCmd(cmdPrefix),
-            new InviteCmd(cmdPrefix),
+            new AboutCmd(bot),
+            new PingCmd(bot),
+            new InviteCmd(bot),
             
-            new StartCmd(cmdPrefix, givMan),
-            new CreateCmd(cmdPrefix, givMan),
-            new ListCmd(cmdPrefix, database, givMan),
-            new EndCmd(cmdPrefix, database, givMan),
-            new SettingsCmd(cmdPrefix, database)
+            new StartCmd(bot),
+            new CreateCmd(bot),
+            new ListCmd(bot),
+            new EndCmd(bot),
+            new SettingsCmd(bot)
         };
         
         // instantiate interactions client
         InteractionsClient client = new InteractionsClient.Builder()
                 .setAppId(config.getLong("app-id"))
-                .setRestClient(restClient)
+                .setRestClient(bot.getRestClient())
                 .addCommands(commands)
-                .setListener(new GiveawayListener(database, givMan, restClient))
+                .setListener(bot.getGiveawayListener())
                 .build();
         
         // update commands if necessary
@@ -93,6 +82,66 @@ public class GiveawayBot
         ic.port = config.getInt("port");
         
         // go!
+        bot.getGiveawayManager().start();
+        bot.getPremiumChecker().start();
         Interactions.start(client, ic);
+    }
+    
+    private final String cmdPrefix;
+    private final Database database;
+    private final RestClient restClient;
+    private final GiveawayManager manager;
+    private final GiveawayListener listener;
+    private final PremiumChecker premium;
+    
+    private GiveawayBot(Config config)
+    {
+        // send startup message
+        WebhookLog webhook = new WebhookLog(config.getString("webhook.url"), config.getString("webhook.name"));
+        webhook.send(WebhookLog.Level.INFO, "GiveawayBot is starting!");
+        
+        // get the prefix for commands
+        cmdPrefix = config.getString("cmd-prefix");
+        
+        // connect to the database
+        database = new Database(config.getString("database.host"), config.getString("database.user"), config.getString("database.pass"));
+        webhook.send(WebhookLog.Level.INFO, String.format("Database contains `%d` giveaways", database.countAllGiveaways()));
+        
+        // instantiate the remaing components
+        FileUploader uploader = new FileUploader(config.getStringList("file-uploader"));
+        premium = new PremiumChecker(database, webhook, config.getString("checker-token"));
+        restClient = new RestClient(config.getString("bot-token"));
+        manager = new GiveawayManager(database, restClient, uploader);
+        listener = new GiveawayListener(database, manager, restClient);
+    }
+    
+    public String getCommandPrefix()
+    {
+        return cmdPrefix;
+    }
+    
+    public Database getDatabase()
+    {
+        return database;
+    }
+
+    public PremiumChecker getPremiumChecker()
+    {
+        return premium;
+    }
+    
+    public RestClient getRestClient()
+    {
+        return restClient;
+    }
+    
+    public GiveawayManager getGiveawayManager()
+    {
+        return manager;
+    }
+    
+    public GiveawayListener getGiveawayListener()
+    {
+        return listener;
     }
 }

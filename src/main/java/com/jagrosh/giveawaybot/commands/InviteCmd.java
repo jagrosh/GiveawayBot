@@ -16,6 +16,7 @@
 package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.Constants;
+import com.jagrosh.giveawaybot.GiveawayBot;
 import com.jagrosh.giveawaybot.entities.LocalizedMessage;
 import com.jagrosh.interactions.command.ApplicationCommand;
 import com.jagrosh.interactions.receive.Interaction;
@@ -29,11 +30,12 @@ public class InviteCmd extends GBCommand
 {
     private final static String LINK = "\uD83D\uDD17";
     
-    public InviteCmd(String prefix)
+    public InviteCmd(GiveawayBot bot)
     {
+        super(bot);
         this.app = new ApplicationCommand.Builder()
                 .setType(ApplicationCommand.Type.CHAT_INPUT)
-                .setName(prefix + "invite")
+                .setName(bot.getCommandPrefix() + "invite")
                 .setDescription("add the bot to your own server")
                 .build();
     }

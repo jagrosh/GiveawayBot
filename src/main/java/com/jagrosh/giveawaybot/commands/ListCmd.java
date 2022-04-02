@@ -15,6 +15,7 @@
  */
 package com.jagrosh.giveawaybot.commands;
 
+import com.jagrosh.giveawaybot.GiveawayBot;
 import com.jagrosh.giveawaybot.GiveawayException;
 import com.jagrosh.giveawaybot.GiveawayManager;
 import com.jagrosh.giveawaybot.data.Database;
@@ -37,29 +38,25 @@ import java.util.List;
  */
 public class ListCmd extends GBCommand
 {
-    private final Database database;
-    private final GiveawayManager gman;
-    
-    public ListCmd(String prefix, Database database, GiveawayManager gman)
+    public ListCmd(GiveawayBot bot)
     {
+        super(bot);
         this.app = new ApplicationCommand.Builder()
                 .setType(ApplicationCommand.Type.CHAT_INPUT)
-                .setName(prefix + "list")
+                .setName(bot.getCommandPrefix() + "list")
                 .setDescription("show active giveaways")
                 .build();
-        this.database = database;
-        this.gman = gman;
     }
     
     @Override
     protected InteractionResponse gbExecute(Interaction interaction) throws GiveawayException
     {
-        gman.checkPermission(interaction.getMember(), interaction.getGuildId());
+        bot.getGiveawayManager().checkPermission(interaction.getMember(), interaction.getGuildId());
         
-        List<Giveaway> list = database.getGiveawaysByGuild(interaction.getGuildId());
+        List<Giveaway> list = bot.getDatabase().getGiveawaysByGuild(interaction.getGuildId());
         if(list.isEmpty())
             return respondError(LocalizedMessage.WARNING_NO_GIVEAWAYS.getLocalizedMessage(interaction.getEffectiveLocale()));
-        Color c = database.getSettings(interaction.getGuildId()).getColor();
+        //Color c = bot.getDatabase().getSettings(interaction.getGuildId()).getColor();
         StringBuilder sb = new StringBuilder("**Active Giveaways**\n");
         list.forEach(giv -> 
         {

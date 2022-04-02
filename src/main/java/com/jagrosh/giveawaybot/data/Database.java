@@ -16,6 +16,8 @@
 package com.jagrosh.giveawaybot.data;
 
 import com.jagrosh.giveawaybot.entities.PremiumLevel;
+import com.jagrosh.interactions.entities.Guild;
+import com.jagrosh.interactions.entities.GuildRole;
 import com.jagrosh.interactions.entities.User;
 import java.awt.Color;
 import java.time.Instant;
@@ -36,11 +38,6 @@ public class Database
 {
     private final EntityManagerFactory emf;
     private final EntityManager em;
-    // temporary collections, todo database stuff
-    //private final HashMap<Long,Giveaway> giveaways = new HashMap<>();
-    //private final HashMap<Long,GuildSettings> settings = new HashMap<>();
-    //private final HashMap<Long,GiveawayEntries> entries = new HashMap<>();
-    //private final HashMap<Long,CachedUser> users = new HashMap<>();
     
     public Database(String host, String user, String pass)
     {
@@ -53,7 +50,6 @@ public class Database
         em.getMetamodel().managedType(Giveaway.class);
         em.getMetamodel().managedType(GiveawayEntries.class);
         em.getMetamodel().managedType(GuildSettings.class);
-        em.getMetamodel().managedType(PremiumStatus.class);
     }
     
     // guild settings
@@ -61,6 +57,32 @@ public class Database
     {
         GuildSettings gs = em.find(GuildSettings.class, guildId);
         return gs == null ? new GuildSettings(guildId) : gs;
+    }
+    
+    public void setAutomaticGuildSettings(long guildId, Instant now, Guild guild)
+    {
+        GuildSettings gs = em.find(GuildSettings.class, guildId);
+        em.getTransaction().begin();
+        if(gs == null)
+        {
+            gs = new GuildSettings();
+            gs.setGuildId(guildId);
+            em.persist(gs);
+        }
+        gs.setLatestRetrieval(now);
+        if(guild != null)
+        {
+            gs.setOwnerId(guild.getOwnerId());
+            if(gs.getManagerRoleId() == 0L)
+            {
+                GuildRole legacy = guild.getRoles().stream()
+                        .filter(r -> r.getName().equalsIgnoreCase("giveaways"))
+                        .findFirst().orElse(null);
+                if(legacy != null)
+                    gs.setManagerRoleId(legacy.getIdLong());
+            }
+        }
+        em.getTransaction().commit();
     }
     
     public void setGuildColor(long guildId, Color color)
@@ -155,23 +177,11 @@ public class Database
     
     
     // entries
-    public void addEntry(long giveawayId, User user)
+    public void updateUser(User user)
     {
-        // update entries
-        GiveawayEntries ge = em.find(GiveawayEntries.class, giveawayId);
-        em.getTransaction().begin();
-        
-        if(ge == null)
-        {
-            ge = new GiveawayEntries();
-            ge.setGiveawayId(giveawayId);
-            em.persist(ge);
-        }
-        ge.addUser(user.getIdLong());
-        
-        
         // update cached user
         CachedUser u = em.find(CachedUser.class, user.getIdLong());
+        em.getTransaction().begin();
         if(u == null)
         {
             u = new CachedUser();
@@ -181,8 +191,36 @@ public class Database
         u.setUsername(user.getUsername());
         u.setDiscriminator(user.getDiscriminator());
         u.setAvatar(user.getAvatar());
-        
         em.getTransaction().commit();
+    }
+    
+    public CachedUser getUser(long userId)
+    {
+        return em.find(CachedUser.class, userId);
+    }
+    
+    public boolean addEntry(long giveawayId, User user)
+    {
+        // update user
+        updateUser(user);
+        
+        // update entries
+        GiveawayEntries ge = em.find(GiveawayEntries.class, giveawayId);
+        
+        // short circuit if user has already entered
+        if(ge != null && ge.getUsers().contains(user.getIdLong()))
+            return false;
+        
+        em.getTransaction().begin();
+        if(ge == null)
+        {
+            ge = new GiveawayEntries();
+            ge.setGiveawayId(giveawayId);
+            em.persist(ge);
+        }
+        ge.addUser(user.getIdLong());
+        em.getTransaction().commit();
+        return true;
     }
     
     public List<CachedUser> getEntries(long giveawayId)
@@ -202,9 +240,54 @@ public class Database
     
     
     // premium
-    public PremiumLevel getPremiumLevel(long userId)
+    public PremiumLevel getPremiumLevel(long guildId, long userId)
     {
-        PremiumStatus ps = em.find(PremiumStatus.class, userId);
-        return ps == null ? PremiumLevel.NONE : ps.getPremium();
+        // get premium level of user
+        CachedUser user = em.find(CachedUser.class, userId);
+        PremiumLevel userPremium = user == null ? PremiumLevel.NONE : user.getPremiumLevel();
+        
+        // get premium level of guild
+        GuildSettings guild = em.find(GuildSettings.class, guildId);
+        long ownerId = guild == null ? 0L : guild.getOwnerId();
+        CachedUser owner = em.find(CachedUser.class, ownerId);
+        PremiumLevel guildPremium = owner == null ? PremiumLevel.NONE : owner.getPremiumLevel();
+                
+        return userPremium.level > guildPremium.level ? userPremium : guildPremium;
+    }
+    
+    public void updatePremiumLevel(long userId, String username, String discrim, String avatar, PremiumLevel premium)
+    {
+        CachedUser u = em.find(CachedUser.class, userId);
+        em.getTransaction().begin();
+        if(u == null)
+        {
+            u = new CachedUser();
+            u.setId(userId);
+            em.persist(u);
+        }
+        u.setUsername(username);
+        u.setDiscriminator(discrim);
+        u.setAvatar(avatar);
+        u.setPremiumLevel(premium);
+        em.getTransaction().commit();
+    }
+    
+    public void removePremium(long userId)
+    {
+        CachedUser u = em.find(CachedUser.class, userId);
+        em.getTransaction().begin();
+        if(u == null)
+        {
+            u = new CachedUser();
+            u.setId(userId);
+            em.persist(u);
+        }
+        u.setPremiumLevel(PremiumLevel.NONE);
+        em.getTransaction().commit();
+    }
+    
+    public List<CachedUser> getAllPremiumUsers()
+    {
+        return em.createNamedQuery("CachedUser.findAllWithPremium", CachedUser.class).getResultList();
     }
 }

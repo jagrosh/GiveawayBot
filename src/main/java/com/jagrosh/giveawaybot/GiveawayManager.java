@@ -31,12 +31,12 @@ import com.jagrosh.interactions.entities.*;
 import com.jagrosh.interactions.requests.RestClient;
 import com.jagrosh.interactions.requests.RestClient.RestResponse;
 import com.jagrosh.interactions.requests.Route;
+import com.jagrosh.interactions.util.JsonUtil;
 import java.awt.Color;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +51,8 @@ public class GiveawayManager
                                REROLL_BUTTON_ID = "reroll-giveaway";
     private final static String REROLL_EMOJI = "\uD83D\uDD04"; // 🔄
     private final static int MINIMUM_SECONDS = 10,
-                             MAX_PRIZE_LENGTH = 250;
+                             MAX_PRIZE_LENGTH = 250,
+                             MAX_DESCR_LENGTH = 1000;
     
     private final Logger log = LoggerFactory.getLogger(GiveawayManager.class);
     private final ScheduledExecutorService schedule = Executors.newSingleThreadScheduledExecutor();
@@ -90,9 +91,10 @@ public class GiveawayManager
         database.removeGiveaway(giveaway.getMessageId());
         List<CachedUser> pool = new ArrayList<>(entries);
         List<CachedUser> winners = GiveawayUtil.selectWinners(pool, giveaway.getWinners());
+        CachedUser host = database.getUser(giveaway.getUserId());
         try
         {
-            JSONObject summary = createGiveawaySummary(giveaway, entries, winners);
+            JSONObject summary = createGiveawaySummary(giveaway, host, entries, winners);
             String url = uploader.uploadFile(summary.toString(), "giveaway_summary.json");
             String summaryKey = url == null ? null : url.replaceAll(".*/(\\d+/\\d+)/.*", "$1");
             RestResponse res = rest.request(Route.PATCH_MESSAGE.format(giveaway.getChannelId(), giveaway.getMessageId()), renderGiveaway(giveaway, entries.size(), winners, summaryKey).toJson()).get();
@@ -103,11 +105,6 @@ public class GiveawayManager
             return false;
         }
         return true;
-    }
-    
-    public PremiumLevel getPremiumLevel(long guildId, long userId)
-    {
-        return database.getPremiumLevel(userId);
     }
     
     public void checkPermission(GuildMember member, long guildId) throws GiveawayException
@@ -134,7 +131,7 @@ public class GiveawayManager
             throw new GiveawayException(LocalizedMessage.ERROR_MAXIMUM_GIVEAWAYS_GUILD, currentGiveaways, level.perChannelMaxGiveaways);
     }
     
-    public Giveaway constructGiveaway(User user, String time, String winners, String prize, PremiumLevel level, WebLocale locale) throws GiveawayException
+    public Giveaway constructGiveaway(User user, String time, String winners, String prize, String description, PremiumLevel level, WebLocale locale) throws GiveawayException
     {
         // validate time
         int seconds = OtherUtil.parseTime(time);
@@ -158,11 +155,13 @@ public class GiveawayManager
         if(wins < 1 || wins > level.maxWinners)
             throw new GiveawayException(LocalizedMessage.ERROR_INVALID_WINNERS_MAX, wins, 1, level.maxWinners);
         
-        // validate prize
+        // validate prize and description
         if(prize.length() > MAX_PRIZE_LENGTH)
             throw new GiveawayException(LocalizedMessage.ERROR_INVALID_PRIZE_LENGTH, prize, MAX_PRIZE_LENGTH);
+        if(description != null && description.length() > MAX_DESCR_LENGTH)
+            throw new GiveawayException(LocalizedMessage.ERROR_INVALID_PRIZE_LENGTH, prize, MAX_PRIZE_LENGTH);
         
-        return new Giveaway(user.getIdLong(), Instant.now().plusSeconds(seconds), wins, prize);
+        return new Giveaway(user.getIdLong(), Instant.now().plusSeconds(seconds), wins, prize, description);
     }
     
     public long sendGiveaway(Giveaway giveaway, long guildId, long channelId) throws GiveawayException
@@ -200,7 +199,8 @@ public class GiveawayManager
     public SentMessage renderGiveaway(Giveaway giveaway, int numEntries, List<CachedUser> winners, String summaryKey)
     {
         GuildSettings gs = database.getSettings(giveaway.getGuildId());
-        String message = (winners == null ? "Ends" : "Ended") + ": <t:" + giveaway.getEndInstant().getEpochSecond() + ":R> (<t:" + giveaway.getEndInstant().getEpochSecond() + ":f>)"
+        String message = (giveaway.getDescription() == null || giveaway.getDescription().isEmpty() ? "" : giveaway.getDescription() + "\n\n")
+                + (winners == null ? "Ends" : "Ended") + ": <t:" + giveaway.getEndInstant().getEpochSecond() + ":R> (<t:" + giveaway.getEndInstant().getEpochSecond() + ":f>)"
                 + "\nHosted by: <@" + giveaway.getUserId() + ">"
                 + "\nEntries: **" + numEntries + "**"
                 + (winners == null ? "" : "\nWinners: " + renderWinners(winners));
@@ -242,26 +242,16 @@ public class GiveawayManager
         return sb.toString().substring(2);
     }
     
-    private JSONObject createGiveawaySummary(Giveaway giveaway, List<CachedUser> entries, List<CachedUser> winners)
+    private JSONObject createGiveawaySummary(Giveaway giveaway, CachedUser host, List<CachedUser> entries, List<CachedUser> winners)
     {
-        JSONObject givJson = new JSONObject()
-                .put("id", Long.toString(giveaway.getMessageId()))
-                .put("prize", giveaway.getPrize())
-                .put("num_winners", giveaway.getWinners())
-                .put("host", Long.toString(giveaway.getUserId()))
-                .put("end", giveaway.getEndTime());
-        JSONArray entJson = new JSONArray();
-        entries.forEach(e -> entJson.put(new JSONObject()
-                .put("id", Long.toString(e.getId()))
-                .put("username", e.getUsername())
-                .put("discrim", e.getDiscriminator())
-                .put("avatar", e.getAvatar())));
-        JSONArray winJson = new JSONArray();
-        winners.forEach(e -> winJson.put(new JSONObject()
-                .put("id", Long.toString(e.getId()))
-                .put("username", e.getUsername())
-                .put("discrim", e.getDiscriminator())
-                .put("avatar", e.getAvatar())));
-        return new JSONObject().put("giveaway", givJson).put("winners", winJson).put("entries", entJson);
+        return new JSONObject()
+                .put("giveaway", new JSONObject()
+                    .put("id", Long.toString(giveaway.getMessageId()))
+                    .put("prize", giveaway.getPrize())
+                    .put("num_winners", giveaway.getWinners())
+                    .put("host", host.toJson())
+                    .put("end", giveaway.getEndTime()))
+                .put("winners", JsonUtil.buildArray(winners))
+                .put("entries", JsonUtil.buildArray(entries));
     }
 }

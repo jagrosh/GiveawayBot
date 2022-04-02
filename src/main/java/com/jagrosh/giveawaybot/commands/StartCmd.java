@@ -15,8 +15,8 @@
  */
 package com.jagrosh.giveawaybot.commands;
 
+import com.jagrosh.giveawaybot.GiveawayBot;
 import com.jagrosh.giveawaybot.GiveawayException;
-import com.jagrosh.giveawaybot.GiveawayManager;
 import com.jagrosh.giveawaybot.data.Giveaway;
 import com.jagrosh.giveawaybot.entities.LocalizedMessage;
 import com.jagrosh.giveawaybot.entities.PremiumLevel;
@@ -33,14 +33,12 @@ import com.jagrosh.interactions.responses.MessageCallback;
  */
 public class StartCmd extends GBCommand
 {
-    GiveawayManager gman;
-    
-    public StartCmd(String prefix, GiveawayManager gman)
+    public StartCmd(GiveawayBot bot)
     {
-        this.gman = gman;
+        super(bot);
         this.app = new ApplicationCommand.Builder()
                 .setType(ApplicationCommand.Type.CHAT_INPUT)
-                .setName(prefix + "start")
+                .setName(bot.getCommandPrefix() + "start")
                 .setDescription("starts a giveaway")
                 .addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.STRING, "duration", "duration of the giveaway", true),
                             new ApplicationCommandOption(ApplicationCommandOption.Type.INTEGER, "winners", "number of winners", true, 1, 50, false),
@@ -51,19 +49,19 @@ public class StartCmd extends GBCommand
     @Override
     public InteractionResponse gbExecute(Interaction interaction) throws GiveawayException
     {
-        PremiumLevel pl = gman.getPremiumLevel(interaction.getGuildId(), interaction.getMember().getIdLong());
+        PremiumLevel pl = bot.getDatabase().getPremiumLevel(interaction.getGuildId(), interaction.getMember().getIdLong());
         
         // check availability
-        gman.checkAvailability(interaction.getMember(), interaction.getChannelId(), interaction.getGuildId(), pl, interaction.getEffectiveLocale());
+        bot.getGiveawayManager().checkAvailability(interaction.getMember(), interaction.getChannelId(), interaction.getGuildId(), pl, interaction.getEffectiveLocale());
         
         // validate inputs
-        Giveaway g = gman.constructGiveaway(interaction.getUser(), 
+        Giveaway g = bot.getGiveawayManager().constructGiveaway(interaction.getUser(), 
                 interaction.getCommandData().getOptionByName("duration").getStringValue(), 
                 interaction.getCommandData().getOptionByName("winners").getIntValue() + "", 
-                interaction.getCommandData().getOptionByName("prize").getStringValue(), pl, interaction.getEffectiveLocale());
+                interaction.getCommandData().getOptionByName("prize").getStringValue(), null, pl, interaction.getEffectiveLocale());
         
         // attempt giveaway creation
-        long id = gman.sendGiveaway(g, interaction.getGuildId(), interaction.getChannelId());
+        long id = bot.getGiveawayManager().sendGiveaway(g, interaction.getGuildId(), interaction.getChannelId());
         
         return new MessageCallback(new SentMessage.Builder()
                 .setContent(LocalizedMessage.SUCCESS_GIVEAWAY_CREATED.getLocalizedMessage(interaction.getEffectiveLocale(), Long.toString(id)))

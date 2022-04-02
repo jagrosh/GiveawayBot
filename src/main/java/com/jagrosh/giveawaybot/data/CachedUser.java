@@ -15,10 +15,10 @@
  */
 package com.jagrosh.giveawaybot.data;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import com.jagrosh.giveawaybot.entities.PremiumLevel;
+import com.jagrosh.interactions.interfaces.IJson;
+import javax.persistence.*;
+import org.json.JSONObject;
 
 /**
  *
@@ -26,7 +26,8 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "USERS")
-public class CachedUser
+@NamedQuery(name = "CachedUser.findAllWithPremium", query = "SELECT u FROM CachedUser u WHERE u.premiumLevel > 0")
+public class CachedUser implements IJson
 {
     @Id
     @Column(name = "ID")
@@ -40,6 +41,14 @@ public class CachedUser
 
     @Column(name = "AVATAR")
     private String avatar;
+    
+    @Column(name = "PREMIUM")
+    private int premiumLevel;
+    
+    public CachedUser()
+    {
+        this.premiumLevel = 0;
+    }
     
     public long getId()
     {
@@ -79,5 +88,28 @@ public class CachedUser
     public void setDiscriminator(String discriminator)
     {
         this.discriminator = discriminator;
+    }
+
+    public PremiumLevel getPremiumLevel()
+    {
+        return PremiumLevel.get(premiumLevel);
+    }
+
+    public void setPremiumLevel(PremiumLevel premiumLevel)
+    {
+        this.premiumLevel = premiumLevel.level;
+    }
+
+    @Override
+    public JSONObject toJson()
+    {
+        JSONObject j = new JSONObject()
+                .put("username", username)
+                .put("id", Long.toString(id))
+                .put("discrim", discriminator)
+                .put("avatar", avatar);
+        if(premiumLevel > 0)
+            j.put("premium", premiumLevel);
+        return j;
     }
 }
