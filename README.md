@@ -18,12 +18,12 @@ If you'd like to add **GiveawayBot** to your server, use the following link:<br>
 🔗 **https://giveawaybot.party/invite**
 
 ## Usage
-Commands  
+**Commands**  
 * **/gcreate** - Interactive giveaway setup
 * **/gstart \<time> \<winners> \<prize>** - Starts a new giveaway in the current channel. Users can react with a 🎉 to enter the giveaway. The time can be in seconds, minutes, hours, or days. Specify the time unit with an "s", "m", "h", or "d", for example `30s` or `2h`.
 * **/gend <messageId>** - Ends a giveaway immediately.
-* **/glist** - Lists currently-running giveaways on the server.
-Buttons
+* **/glist** - Lists currently-running giveaways on the server.  
+**Buttons**  
 * Press the button on an active giveaway to enter the giveaway
 * Press the 🔄 button on an ended giveaway to reroll the giveaway
 * Press the giveaway summary button on an ended giveaway to view a summary of a giveaway
