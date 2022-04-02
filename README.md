@@ -18,12 +18,15 @@ If you'd like to add **GiveawayBot** to your server, use the following link:<br>
 🔗 **https://giveawaybot.party/invite**
 
 ## Usage
-* **!ghelp** - Provides the bot's commands via Direct Message
-* **!gcreate** - Interactive giveaway setup
-* **!gstart \<time> [winners] [prize]** - Starts a new giveaway in the current channel. Users can react with a 🎉 to enter the giveaway. The time can be in seconds, minutes, hours, or days. Specify the time unit with an "s", "m", "h", or "d", for example `30s` or `2h`. If you include a number of winners, it must be in the form #w, for example `2w` or `5w`.
-* **!greroll [messsageId]** - Re-rolls a winner. If you provided a message ID, it rerolls the giveaway at that ID. If you leave it blank, it looks in the current channel for the most recent giveaway and rerolls from that.
-* **!gend [messageId]** - Ends a giveaway immediately. If you provided a message ID it will end the giveaway at that ID. If you leave it blank, it looks in the current channel for the most recent giveaway and ends that.
-* **!glist** - Lists currently-running giveaways on the server.
+Commands  
+* **/gcreate** - Interactive giveaway setup
+* **/gstart \<time> \<winners> \<prize>** - Starts a new giveaway in the current channel. Users can react with a 🎉 to enter the giveaway. The time can be in seconds, minutes, hours, or days. Specify the time unit with an "s", "m", "h", or "d", for example `30s` or `2h`.
+* **/gend <messageId>** - Ends a giveaway immediately.
+* **/glist** - Lists currently-running giveaways on the server.
+Buttons
+* Press the button on an active giveaway to enter the giveaway
+* Press the 🔄 button on an ended giveaway to reroll the giveaway
+* Press the giveaway summary button on an ended giveaway to view a summary of a giveaway
 
 ## Suggests, Bugs, Feature Requests
 If you find bugs or would like to suggest features, join my bot development server here: https://invite.gg/jagrosh
