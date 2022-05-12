@@ -36,8 +36,8 @@ public class GuildSettings
     @Id
     @Column(name = "GUILD_ID")
     private long guildId;
-    @Column(name = "MANAGER_ROLE")
-    private long managerRoleId;
+    //@Column(name = "MANAGER_ROLE")
+    //private long managerRoleId;
     @Column(name = "COLOR")
     private int colorVal;
     @Column(name = "EMOJI")
@@ -57,7 +57,7 @@ public class GuildSettings
     public GuildSettings(long guildId)
     {
         this.guildId = guildId;
-        this.managerRoleId = 0L;
+        //this.managerRoleId = 0L;
         this.colorVal = Constants.BLURPLE.getRGB();
         this.emoji = null;
         this.ownerId = 0L;
@@ -75,7 +75,7 @@ public class GuildSettings
         this.guildId = guildId;
     }
 
-    public long getManagerRoleId()
+    /*public long getManagerRoleId()
     {
         return managerRoleId;
     }
@@ -83,7 +83,7 @@ public class GuildSettings
     public void setManagerRoleId(long managerRoleId)
     {
         this.managerRoleId = managerRoleId;
-    }
+    }*/
 
     public int getColorVal()
     {

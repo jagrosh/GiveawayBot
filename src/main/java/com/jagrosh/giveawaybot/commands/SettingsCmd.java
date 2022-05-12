@@ -47,14 +47,16 @@ public class SettingsCmd extends GBCommand
         ApplicationCommandOption group = new ApplicationCommandOption(ApplicationCommandOption.Type.SUB_COMMAND_GROUP, "set", "set settings", false);
         ApplicationCommandOption colorCmd = new ApplicationCommandOption(ApplicationCommandOption.Type.SUB_COMMAND, "color", "set giveaway embed color", false);
         colorCmd.addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.STRING, "hex", "hex code or standard color name", true));
-        ApplicationCommandOption roleCmd = new ApplicationCommandOption(ApplicationCommandOption.Type.SUB_COMMAND, "role", "set giveaway manager role", false);
-        roleCmd.addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.ROLE, "role", "role that can create and manage giveaways", true));
-        group.addOptions(colorCmd, roleCmd);
+        //ApplicationCommandOption roleCmd = new ApplicationCommandOption(ApplicationCommandOption.Type.SUB_COMMAND, "role", "set giveaway manager role", false);
+        //roleCmd.addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.ROLE, "role", "role that can create and manage giveaways", true));
+        group.addOptions(colorCmd/*, roleCmd*/);
         this.app = new ApplicationCommand.Builder()
                 .setType(ApplicationCommand.Type.CHAT_INPUT)
                 .setName(bot.getCommandPrefix() + "settings")
                 .setDescription("show or modify settings")
                 .addOptions(showCmd, group)
+                .setDmPermission(false)
+                .setDefaultPermissions(Permission.MANAGE_GUILD)
                 .build();
     }
     
@@ -75,10 +77,10 @@ public class SettingsCmd extends GBCommand
                 CommandInteractionDataOption cmd = group.getOptions().get(0);
                 switch(cmd.getName())
                 {
-                    case "role":
-                        long id = cmd.getOptionByName("role").getIdValue();
-                        bot.getDatabase().setGuildManager(interaction.getGuildId(), id);
-                        return respondSuccess(LocalizedMessage.SUCCESS_SETTINGS_ROLE.getLocalizedMessage(wl, "<@&" + id + ">"));
+                    //case "role":
+                        //long id = cmd.getOptionByName("role").getIdValue();
+                        //bot.getDatabase().setGuildManager(interaction.getGuildId(), id);
+                        //return respondSuccess(LocalizedMessage.SUCCESS_SETTINGS_ROLE.getLocalizedMessage(wl, "<@&" + id + ">"));
                     case "color":
                         String col = cmd.getOptionByName("hex").getStringValue();
                         Color color = OtherUtil.parseColor(col);
@@ -93,8 +95,9 @@ public class SettingsCmd extends GBCommand
                 GuildSettings gs = bot.getDatabase().getSettings(interaction.getGuildId());
                 String text = LocalizedMessage.INFO_SETTINGS_OWNER.getLocalizedMessage(wl) + ": <@" + gs.getOwnerId() + ">\n" 
                         + LocalizedMessage.INFO_SETTINGS_PREMIUM.getLocalizedMessage(wl) + ": **" + bot.getDatabase().getPremiumLevel(gs.getGuildId(), gs.getOwnerId()) + "**\n" 
-                        + LocalizedMessage.INFO_SETTINGS_ROLE.getLocalizedMessage(wl) + ": " + (gs.getManagerRoleId() == 0L ? "N/A" : "<@&" + gs.getManagerRoleId() + ">") + "\n"
-                        + LocalizedMessage.INFO_SETTINGS_EMOJI.getLocalizedMessage(wl) + ": " + gs.getEmoji();
+                        //+ LocalizedMessage.INFO_SETTINGS_ROLE.getLocalizedMessage(wl) + ": " + (gs.getManagerRoleId() == 0L ? "N/A" : "<@&" + gs.getManagerRoleId() + ">") + "\n"
+                        + LocalizedMessage.INFO_SETTINGS_EMOJI.getLocalizedMessage(wl) + ": " + gs.getEmoji() + "\n"
+                        + LocalizedMessage.INFO_SETTINGS_LOCALE.getLocalizedMessage(wl) + ": " + gs.getLocale().getTextualName();
                 return new MessageCallback(new SentMessage.Builder()
                         .setContent(Constants.YAY + " **GiveawayBot** " + LocalizedMessage.INFO_SETTINGS.getLocalizedMessage(wl))
                         .addEmbed(new Embed.Builder()

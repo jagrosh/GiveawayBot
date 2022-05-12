@@ -48,12 +48,14 @@ public enum LocalizedMessage
     ERROR_GIVEAWAY_ENDED("error.giveaway_ended"),
     ERROR_INVALID_COLOR("error.invalid_color"),
     ERROR_INVALID_ID("error.invalid_id"),
+    ERROR_INVALID_MESSAGE("error.invalid_message"),
     ERROR_GIVEAWAY_NOT_FOUND("error.giveaway_not_found"),
     ERROR_GIVEAWAY_ALREADY_ENTERED("error.giveaway_already_entered"),
     ERROR_GENERIC_CREATION("error.generic.creation"),
     ERROR_GENERIC_ENTER("error.generic.enter"),
     ERROR_GENERIC_ENDING("error.generic.ending"),
     ERROR_GENERIC_REROLL("error.generic.reroll"),
+    ERROR_GENERIC("error.generic"),
     
     // warnings
     WARNING_NO_GIVEAWAYS("warning.no_giveaways"),
@@ -86,7 +88,8 @@ public enum LocalizedMessage
     INFO_SETTINGS_PREMIUM("info.settings.premium"),
     INFO_SETTINGS_EMOJI("info.settings.emoji"),
     INFO_SETTINGS_ROLE("info.settings.role"),
-    INFO_SETTINGS_COLOR("info.settings.color");
+    INFO_SETTINGS_COLOR("info.settings.color"),
+    INFO_SETTINGS_LOCALE("info.settings.locale");
 
     private final static String FILENAME = "localization/messages";
     private final String key;

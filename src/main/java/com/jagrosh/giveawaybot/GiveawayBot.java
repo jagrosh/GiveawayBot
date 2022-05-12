@@ -59,6 +59,7 @@ public class GiveawayBot
             new CreateCmd(bot),
             new ListCmd(bot),
             new EndCmd(bot),
+            new RerollCmd(bot),
             new SettingsCmd(bot)
         };
         
@@ -88,6 +89,7 @@ public class GiveawayBot
     }
     
     private final String cmdPrefix;
+    private final long botId;
     private final Database database;
     private final RestClient restClient;
     private final GiveawayManager manager;
@@ -102,6 +104,7 @@ public class GiveawayBot
         
         // get the prefix for commands
         cmdPrefix = config.getString("cmd-prefix");
+        botId = config.hasPath("bot-id") ? config.getLong("bot-id") : config.getLong("app-id");
         
         // connect to the database
         database = new Database(config.getString("database.host"), config.getString("database.user"), config.getString("database.pass"));
@@ -118,6 +121,11 @@ public class GiveawayBot
     public String getCommandPrefix()
     {
         return cmdPrefix;
+    }
+    
+    public long getBotId()
+    {
+        return botId;
     }
     
     public Database getDatabase()

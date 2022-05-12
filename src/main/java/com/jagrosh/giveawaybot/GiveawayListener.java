@@ -24,6 +24,7 @@ import com.jagrosh.giveawaybot.util.GiveawayUtil;
 import com.jagrosh.interactions.InteractionsListener;
 import com.jagrosh.interactions.command.Choice;
 import com.jagrosh.interactions.entities.AllowedMentions;
+import com.jagrosh.interactions.entities.Permission;
 import com.jagrosh.interactions.entities.SentMessage;
 import com.jagrosh.interactions.entities.WebLocale;
 import com.jagrosh.interactions.receive.CommandInteractionDataOption;
@@ -66,7 +67,8 @@ public class GiveawayListener implements InteractionsListener
                     interaction.getComponentData().getModalValueByCustomId("time"), 
                     interaction.getComponentData().getModalValueByCustomId("winners"), 
                     interaction.getComponentData().getModalValueByCustomId("prize"), 
-                    interaction.getComponentData().getModalValueByCustomId("description"), lv, interaction.getEffectiveLocale());
+                    interaction.getComponentData().getModalValueByCustomId("description"), 
+                    lv, interaction.getEffectiveLocale());
 
             // attempt giveaway creation
             long id = gman.sendGiveaway(g, interaction.getGuildId(), interaction.getChannelId());
@@ -100,16 +102,8 @@ public class GiveawayListener implements InteractionsListener
         CommandInteractionDataOption op = interaction.getCommandData().getOptionByName("giveaway_id");
         if(op != null && op.isFocused())
         {
-            try
-            {
-                gman.checkPermission(interaction.getMember(), interaction.getGuildId());
-                return new AutocompleteCallback<String>(database.getGiveawaysByChannel(interaction.getChannelId())
+            return new AutocompleteCallback<String>(database.getGiveawaysByChannel(interaction.getChannelId())
                     .stream().limit(25).map(g -> new Choice<>(g.getPrize(), g.getMessageId()+"")).collect(Collectors.toList()));
-            }
-            catch(GiveawayException ex)
-            {
-                return new DeferredCallback(false);
-            }
         }
         return new DeferredCallback(false);
     }
@@ -132,8 +126,12 @@ public class GiveawayListener implements InteractionsListener
                         .setContent(LocalizedMessage.ERROR_GIVEAWAY_ALREADY_ENTERED.getLocalizedMessage(interaction.getEffectiveLocale()))
                         .setEphemeral(true).build());
         }
-        else if(customId.toLowerCase().startsWith(GiveawayManager.REROLL_BUTTON_ID.toLowerCase()))
+        /*else if(customId.toLowerCase().startsWith(GiveawayManager.REROLL_BUTTON_ID.toLowerCase()))
         {
+            // TODO: figure out how to handle this with the new permissions
+            if(!interaction.getMember().hasPermission(Permission.MANAGE_GUILD))
+                return GBCommand.respondError(LocalizedMessage.ERROR_USER_PERMISSIONS.getLocalizedMessage(interaction.getEffectiveLocale()));
+            
             String summaryKey = customId.split(" ")[1];
             String url = "https://cdn.discordapp.com/attachments/" + summaryKey + "/giveaway_summary.json";
             try
@@ -151,7 +149,7 @@ public class GiveawayListener implements InteractionsListener
             {
                 return GBCommand.respondError(LocalizedMessage.ERROR_GENERIC_REROLL.getLocalizedMessage(interaction.getEffectiveLocale()));
             }
-        }
-        return new DeferredCallback(false);
+        }*/
+        return GBCommand.respondError(LocalizedMessage.ERROR_GENERIC.getLocalizedMessage(interaction.getEffectiveLocale()));
     }
 }

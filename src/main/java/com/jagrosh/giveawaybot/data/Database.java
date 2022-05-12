@@ -19,6 +19,7 @@ import com.jagrosh.giveawaybot.entities.PremiumLevel;
 import com.jagrosh.interactions.entities.Guild;
 import com.jagrosh.interactions.entities.GuildRole;
 import com.jagrosh.interactions.entities.User;
+import com.jagrosh.interactions.entities.WebLocale;
 import java.awt.Color;
 import java.time.Instant;
 import java.util.Collections;
@@ -73,14 +74,18 @@ public class Database
         if(guild != null)
         {
             gs.setOwnerId(guild.getOwnerId());
-            if(gs.getManagerRoleId() == 0L)
+            if(gs.getLocale() == null || gs.getLocale() == WebLocale.UNKNOWN)
+            {
+                gs.setLocale(guild.getPreferredLocale());
+            }
+            /*if(gs.getManagerRoleId() == 0L)
             {
                 GuildRole legacy = guild.getRoles().stream()
                         .filter(r -> r.getName().equalsIgnoreCase("giveaways"))
                         .findFirst().orElse(null);
                 if(legacy != null)
                     gs.setManagerRoleId(legacy.getIdLong());
-            }
+            }*/
         }
         em.getTransaction().commit();
     }
@@ -99,7 +104,7 @@ public class Database
         em.getTransaction().commit();
     }
     
-    public void setGuildManager(long guildId, long roleId)
+    /*public void setGuildManager(long guildId, long roleId)
     {
         GuildSettings gs = em.find(GuildSettings.class, guildId);
         em.getTransaction().begin();
@@ -111,7 +116,7 @@ public class Database
         }
         gs.setManagerRoleId(roleId);
         em.getTransaction().commit();
-    }
+    }*/
     
     
     // giveaways

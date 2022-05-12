@@ -23,6 +23,7 @@ import com.jagrosh.giveawaybot.data.Giveaway;
 import com.jagrosh.giveawaybot.entities.LocalizedMessage;
 import com.jagrosh.interactions.command.ApplicationCommand;
 import com.jagrosh.interactions.command.ApplicationCommandOption;
+import com.jagrosh.interactions.entities.Permission;
 import com.jagrosh.interactions.receive.Interaction;
 import com.jagrosh.interactions.responses.InteractionResponse;
 
@@ -40,13 +41,15 @@ public class EndCmd extends GBCommand
                 .setName(bot.getCommandPrefix() + "end")
                 .setDescription("end a giveaway")
                 .addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.STRING, "giveaway_id", "ends a giveaway", true, null, null, true))
+                .setDmPermission(false)
+                .setDefaultPermissions(Permission.MANAGE_GUILD)
                 .build();
     }
     
     @Override
     public InteractionResponse gbExecute(Interaction interaction) throws GiveawayException
     {
-        bot.getGiveawayManager().checkPermission(interaction.getMember(), interaction.getGuildId());
+        //bot.getGiveawayManager().checkPermission(interaction.getMember(), interaction.getGuildId());
         
         String sid = interaction.getCommandData().getOptionByName("giveaway_id").getStringValue().split("~")[0].trim();
         long id = -1;

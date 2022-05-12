@@ -44,6 +44,7 @@ public class AboutCmd extends GBCommand
                 .setType(ApplicationCommand.Type.CHAT_INPUT)
                 .setName(bot.getCommandPrefix() + "about")
                 .setDescription("show information about the bot")
+                .setDmPermission(false)
                 .build();
     }
     

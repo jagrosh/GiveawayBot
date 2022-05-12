@@ -17,17 +17,15 @@ package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.GiveawayBot;
 import com.jagrosh.giveawaybot.GiveawayException;
-import com.jagrosh.giveawaybot.GiveawayManager;
-import com.jagrosh.giveawaybot.data.Database;
 import com.jagrosh.giveawaybot.data.Giveaway;
 import com.jagrosh.giveawaybot.entities.LocalizedMessage;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.interactions.command.ApplicationCommand;
+import com.jagrosh.interactions.entities.Permission;
 import com.jagrosh.interactions.entities.SentMessage;
 import com.jagrosh.interactions.receive.Interaction;
 import com.jagrosh.interactions.responses.InteractionResponse;
 import com.jagrosh.interactions.responses.MessageCallback;
-import java.awt.Color;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -45,13 +43,15 @@ public class ListCmd extends GBCommand
                 .setType(ApplicationCommand.Type.CHAT_INPUT)
                 .setName(bot.getCommandPrefix() + "list")
                 .setDescription("show active giveaways")
+                .setDmPermission(false)
+                .setDefaultPermissions(Permission.MANAGE_GUILD)
                 .build();
     }
     
     @Override
     protected InteractionResponse gbExecute(Interaction interaction) throws GiveawayException
     {
-        bot.getGiveawayManager().checkPermission(interaction.getMember(), interaction.getGuildId());
+        //bot.getGiveawayManager().checkPermission(interaction.getMember(), interaction.getGuildId());
         
         List<Giveaway> list = bot.getDatabase().getGiveawaysByGuild(interaction.getGuildId());
         if(list.isEmpty())

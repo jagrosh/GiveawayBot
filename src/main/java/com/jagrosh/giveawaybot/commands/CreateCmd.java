@@ -22,6 +22,7 @@ import com.jagrosh.interactions.command.ApplicationCommand;
 import com.jagrosh.interactions.components.ActionRowComponent;
 import com.jagrosh.interactions.components.Component;
 import com.jagrosh.interactions.components.TextInputComponent;
+import com.jagrosh.interactions.entities.Permission;
 import com.jagrosh.interactions.receive.Interaction;
 import com.jagrosh.interactions.responses.*;
 import java.util.ArrayList;
@@ -42,6 +43,8 @@ public class CreateCmd extends GBCommand
                 .setType(ApplicationCommand.Type.CHAT_INPUT)
                 .setName(bot.getCommandPrefix() + "create")
                 .setDescription("starts a giveaway (interactive)")
+                .setDmPermission(false)
+                .setDefaultPermissions(Permission.MANAGE_GUILD)
                 .build();
         components.add(new ActionRowComponent(new TextInputComponent("time", TextInputComponent.Style.SHORT, "Duration", 2, null, true, null, "Ex: 10 minutes")));
         components.add(new ActionRowComponent(new TextInputComponent("winners", TextInputComponent.Style.SHORT, "Number of Winners", 1, 2, true, "1", null)));

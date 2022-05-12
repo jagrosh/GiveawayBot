@@ -33,6 +33,7 @@ public class PingCmd extends GBCommand
                 .setType(ApplicationCommand.Type.CHAT_INPUT)
                 .setName(bot.getCommandPrefix() + "ping")
                 .setDescription("check if the bot is online")
+                .setDmPermission(false)
                 .build();
     }
     

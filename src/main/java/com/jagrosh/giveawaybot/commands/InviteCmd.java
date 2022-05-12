@@ -37,6 +37,7 @@ public class InviteCmd extends GBCommand
                 .setType(ApplicationCommand.Type.CHAT_INPUT)
                 .setName(bot.getCommandPrefix() + "invite")
                 .setDescription("add the bot to your own server")
+                .setDmPermission(false)
                 .build();
     }
     

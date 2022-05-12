@@ -47,9 +47,7 @@ import org.slf4j.LoggerFactory;
  */
 public class GiveawayManager
 {
-    public final static String ENTER_BUTTON_ID = "enter-giveaway",
-                               REROLL_BUTTON_ID = "reroll-giveaway";
-    private final static String REROLL_EMOJI = "\uD83D\uDD04"; // 🔄
+    public final static String ENTER_BUTTON_ID = "enter-giveaway";
     private final static int MINIMUM_SECONDS = 10,
                              MAX_PRIZE_LENGTH = 250,
                              MAX_DESCR_LENGTH = 1000;
@@ -107,25 +105,9 @@ public class GiveawayManager
         return true;
     }
     
-    public void checkPermission(GuildMember member, long guildId) throws GiveawayException
-    {
-        if(member.hasPermission(Permission.MANAGE_GUILD))
-            return;
-        long roleId = database.getSettings(guildId).getManagerRoleId();
-        if(roleId == 0L)
-            throw new GiveawayException(LocalizedMessage.ERROR_USER_PERMS_NO_ROLE, "/gsettings set role @rolename");
-        if(member.getRoles().contains(roleId))
-            return;
-        throw new GiveawayException(LocalizedMessage.ERROR_USER_PERMS_OR_ROLE, "<@&" + roleId + ">");
-    }
-    
     public void checkAvailability(GuildMember member, long channelId, long guildId, PremiumLevel level, WebLocale locale) throws GiveawayException
     {
-        // check if the person running the command has permission to do so
-        checkPermission(member, guildId);
-        
         // check if the maximum number of giveaways has been reached
-        //PremiumLevel level = database.getPremiumLevel(member.getIdLong());
         long currentGiveaways = level.perChannelMaxGiveaways ? database.countGiveawaysByChannel(channelId) : database.countGiveawaysByGuild(guildId);
         if(currentGiveaways >= level.maxGiveaways)
             throw new GiveawayException(LocalizedMessage.ERROR_MAXIMUM_GIVEAWAYS_GUILD, currentGiveaways, level.perChannelMaxGiveaways);
@@ -203,7 +185,7 @@ public class GiveawayManager
                 + (winners == null ? "Ends" : "Ended") + ": <t:" + giveaway.getEndInstant().getEpochSecond() + ":R> (<t:" + giveaway.getEndInstant().getEpochSecond() + ":f>)"
                 + "\nHosted by: <@" + giveaway.getUserId() + ">"
                 + "\nEntries: **" + numEntries + "**"
-                + (winners == null ? "" : "\nWinners: " + renderWinners(winners));
+                + "\nWinners: " + (winners == null ? "**" + giveaway.getWinners() + "**" : renderWinners(winners));
         SentMessage.Builder sb = new SentMessage.Builder()
                 .addEmbed(new Embed.Builder()
                         .setTitle(giveaway.getPrize(), null)
@@ -213,9 +195,7 @@ public class GiveawayManager
         if(winners == null)
             sb.addComponent(new ActionRowComponent(new ButtonComponent(ButtonComponent.Style.PRIMARY, new PartialEmoji(gs.getEmoji(), 0L, false), ENTER_BUTTON_ID)));
         else if(summaryKey != null)
-            sb.addComponent(new ActionRowComponent(
-                    new ButtonComponent(ButtonComponent.Style.SECONDARY, null, new PartialEmoji(REROLL_EMOJI, 0L, false), REROLL_BUTTON_ID + " " + summaryKey, null,  winners.size() >= numEntries), 
-                    new ButtonComponent("Giveaway Summary", Constants.SUMMARY + "#giveaway=" + summaryKey)));
+            sb.addComponent(new ActionRowComponent(new ButtonComponent("Giveaway Summary", Constants.SUMMARY + "#giveaway=" + summaryKey)));
         else
             sb.removeComponents();
         return sb.build();

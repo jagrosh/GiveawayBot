@@ -22,6 +22,7 @@ import com.jagrosh.giveawaybot.entities.LocalizedMessage;
 import com.jagrosh.giveawaybot.entities.PremiumLevel;
 import com.jagrosh.interactions.command.ApplicationCommand;
 import com.jagrosh.interactions.command.ApplicationCommandOption;
+import com.jagrosh.interactions.entities.Permission;
 import com.jagrosh.interactions.entities.SentMessage;
 import com.jagrosh.interactions.receive.Interaction;
 import com.jagrosh.interactions.responses.InteractionResponse;
@@ -43,6 +44,8 @@ public class StartCmd extends GBCommand
                 .addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.STRING, "duration", "duration of the giveaway", true),
                             new ApplicationCommandOption(ApplicationCommandOption.Type.INTEGER, "winners", "number of winners", true, 1, 50, false),
                             new ApplicationCommandOption(ApplicationCommandOption.Type.STRING, "prize", "the prize being given away", true))
+                .setDmPermission(false)
+                .setDefaultPermissions(Permission.MANAGE_GUILD)
                 .build();
     }
     
