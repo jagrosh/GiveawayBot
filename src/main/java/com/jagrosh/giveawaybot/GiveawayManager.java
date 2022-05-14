@@ -34,8 +34,11 @@ import com.jagrosh.interactions.requests.Route;
 import com.jagrosh.interactions.util.JsonUtil;
 import java.awt.Color;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -50,11 +53,13 @@ public class GiveawayManager
     public final static String ENTER_BUTTON_ID = "enter-giveaway";
     private final static int MINIMUM_SECONDS = 10,
                              MAX_PRIZE_LENGTH = 250,
-                             MAX_DESCR_LENGTH = 1000;
+                             MAX_DESCR_LENGTH = 1000,
+                             FAILURE_COOLDOWN_TIME = 30;
     
     private final Logger log = LoggerFactory.getLogger(GiveawayManager.class);
     private final ScheduledExecutorService schedule = Executors.newSingleThreadScheduledExecutor();
     private final ExecutorService pool = Executors.newCachedThreadPool();
+    private final Map<Long,Instant> latestFailure = new HashMap<>();
     private final Database database;
     private final RestClient rest;
     private final FileUploader uploader;
@@ -107,6 +112,11 @@ public class GiveawayManager
     
     public void checkAvailability(GuildMember member, long channelId, long guildId, PremiumLevel level, WebLocale locale) throws GiveawayException
     {
+        // apply cooldown when giveaway creation fails
+        Instant latest = latestFailure.get(guildId);
+        if(latest != null && latest.until(Instant.now(), ChronoUnit.SECONDS) < FAILURE_COOLDOWN_TIME)
+            throw new GiveawayException(LocalizedMessage.ERROR_GIVEAWAY_COOLDOWN);
+        
         // check if the maximum number of giveaways has been reached
         long currentGiveaways = level.perChannelMaxGiveaways ? database.countGiveawaysByChannel(channelId) : database.countGiveawaysByGuild(guildId);
         if(currentGiveaways >= level.maxGiveaways)
@@ -169,6 +179,7 @@ public class GiveawayManager
         }
         catch(InterruptedException | ExecutionException ex)
         {
+            latestFailure.put(guildId, Instant.now());
             throw new GiveawayException(LocalizedMessage.ERROR_GENERIC_CREATION);
         }
     }

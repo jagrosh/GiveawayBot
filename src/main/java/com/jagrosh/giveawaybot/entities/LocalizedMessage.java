@@ -45,6 +45,7 @@ public enum LocalizedMessage
     
     // other errors
     ERROR_NO_DMS("error.no_dms"),
+    ERROR_GIVEAWAY_COOLDOWN("error.giveaway_cooldown"),
     ERROR_GIVEAWAY_ENDED("error.giveaway_ended"),
     ERROR_INVALID_COLOR("error.invalid_color"),
     ERROR_INVALID_ID("error.invalid_id"),

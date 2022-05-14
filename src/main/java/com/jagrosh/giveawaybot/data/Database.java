@@ -17,7 +17,6 @@ package com.jagrosh.giveawaybot.data;
 
 import com.jagrosh.giveawaybot.entities.PremiumLevel;
 import com.jagrosh.interactions.entities.Guild;
-import com.jagrosh.interactions.entities.GuildRole;
 import com.jagrosh.interactions.entities.User;
 import com.jagrosh.interactions.entities.WebLocale;
 import java.awt.Color;
