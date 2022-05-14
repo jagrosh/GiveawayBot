@@ -168,6 +168,7 @@ public class GiveawayManager
             log.info("Attempted to create giveaway, response: " + res.getStatus() + ", " + res.getBody());
             if(!res.isSuccess())
             {
+                latestFailure.put(guildId, Instant.now());
                 if(res.getErrorSpecific() == 50013)
                     throw new GiveawayException(LocalizedMessage.ERROR_BOT_PERMISSIONS);
                 throw new GiveawayException(LocalizedMessage.ERROR_GENERIC_CREATION);
