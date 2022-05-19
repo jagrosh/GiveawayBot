@@ -1,4 +1,5 @@
 const cors_url = 'https://api.allorigins.win/get?url='
+const valid_ids = ['415263528090337295', '415263552505643018', '415263570528567307', '415263592984870922', '415263623099973655', '415263645212213269', '415263667114737675', '958156545814822932']
 
 // Query string parsing
 function getParameterByName(name, url) {
@@ -46,6 +47,17 @@ function parseAndShowDocument(data, url) {
 // Loading doc and parsing
 $(document).ready(function() {
     var loc = getParameterByName('giveaway')
+    if(!loc)
+    {
+        $('#output').html('No giveaway summary provided.');
+        return;
+    }
+    var base_id = loc.split('/')[0]
+    if(valid_ids.indexOf(base_id) == -1)
+    {
+        $('#output').html('Invalid giveaway summary provided.');
+        return;
+    }
     var url = "https://cdn.discordapp.com/attachments/"+loc+"/giveaway_summary.json";
     if(loc) {
         $.ajax({
