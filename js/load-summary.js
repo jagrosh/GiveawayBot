@@ -36,9 +36,11 @@ function parseAndShowDocument(data, url) {
              + infoFormat("Ended", ended.toLocaleString())
              + infoFormat("Giveaway ID", obj.giveaway.id);
     text += "<br><h2>Winners</h2>";
-    obj.winners.forEach(user => text += userFormat(user) + "<br>");
+    if(obj.winners)
+        obj.winners.forEach(user => text += userFormat(user) + "<br>");
     text += "<br><h2>Entrants</h2>"
-    obj.entries.forEach(user => text += userFormat(user) + "<br>");
+    if(obj.entries)
+        obj.entries.forEach(user => text += userFormat(user) + "<br>");
     
     // update
     $('#output').html(text + '<br><br><br><a class="button" href="'+url+'">Download Giveaway Summary JSON</a>');
