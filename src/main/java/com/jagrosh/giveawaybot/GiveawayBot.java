@@ -88,7 +88,7 @@ public class GiveawayBot
         Interactions.start(client, ic);
     }
     
-    private final String cmdPrefix;
+    private final String cmdPrefix, serverCountOverride;
     private final long botId;
     private final Database database;
     private final RestClient restClient;
@@ -116,6 +116,7 @@ public class GiveawayBot
         restClient = new RestClient(config.getString("bot-token"));
         manager = new GiveawayManager(database, restClient, uploader);
         listener = new GiveawayListener(database, manager, restClient);
+        serverCountOverride = config.hasPath("server-count") ? config.getString("server-count") : "N/A";
     }
     
     public String getCommandPrefix()
@@ -151,5 +152,10 @@ public class GiveawayBot
     public GiveawayListener getGiveawayListener()
     {
         return listener;
+    }
+    
+    public String getServerCountOverride()
+    {
+        return serverCountOverride;
     }
 }
