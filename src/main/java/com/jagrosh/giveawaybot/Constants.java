@@ -34,7 +34,7 @@ public class Constants
     public static final String ERROR    = "\uD83D\uDCA5"; // 💥
     public static final String YAY      = "<:yay:585696613507399692>";//"<:yay:440620097543864320>";
     public static final String REACTION = "yay:585696613507399692";//"yay:440620097543864320";
-    public static final Color  BLURPLE  = Color.decode("#7289DA");
+    public static final Color BLURPLE  = Color.decode("#7289DA");
     public static final String INVITE   = "https://giveawaybot.party/invite";
     public static final String DONATE   = "https://giveawaybot.party/donate";
     public static final int MIN_TIME    = 10;
