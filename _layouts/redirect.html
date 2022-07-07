@@ -5,20 +5,20 @@
     <meta name="description" content="Hold giveaways on your Discord server quickly and easily! GiveawayBot is an open-source Discord Giveaway bot that assists with hosting automated giveaways. It is simple and free to use, and requires little-to-no setup to start hosting giveaways.">
     <meta name="keywords" content="Discord, GiveawayBot, Giveaway, Giveaways, Discord Bot, Boat, Contest, Free, FOSS, OSS, Open Source">
     <meta name="author" content="jagrosh">
-    <meta property="og:title" content="GiveawayBot - Invite GiveawayBot">
+    <meta property="og:title" content="GiveawayBot - {{ page.title }}">
     <meta property="og:site_name" content="Discord GiveawayBot">
     <meta property="og:image" content="http://i.imgur.com/sCEbmKa.png">
-    <meta property="og:description" content="Add GiveawayBot to your server!">
+    <meta property="og:description" content="{{ page.description }}>
     <meta name="theme-color" content="#7289DA">
-    <meta http-equiv="refresh" content="0; url=https://discordapp.com/oauth2/authorize?permissions=347200&scope=bot+applications.commands&client_id=294882584201003009&redirect_uri=https%3A%2F%2Fgiveawaybot.party%2Fthanks&response_type=code">
+    <meta http-equiv="refresh" content="0; url={{ page.target_url }}">
     <script type="text/javascript">
-        window.location.href = "https://discordapp.com/oauth2/authorize?permissions=347200&scope=bot+applications.commands&client_id=294882584201003009&redirect_uri=https%3A%2F%2Fgiveawaybot.party%2Fthanks&response_type=code"
+        window.location.href = "{{ page.target_url }}"
     </script>
-    <title>GiveawayBot - Invite GiveawayBot</title>
+    <title>GiveawayBot - {{ page.title }}</title>
     <script data-ad-client="ca-pub-8512411925677795" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 </head>
 <body>
-    If you are not redirected automatically, <a href='https://discordapp.com/oauth2/authorize?permissions=347200&scope=bot+applications.commands&client_id=294882584201003009&redirect_uri=https%3A%2F%2Fgiveawaybot.party%2Fthanks&response_type=code'>click here</a> to add GiveawayBot to your server.
+    If you are not redirected automatically, <a href='{{ page.target_url }}'>click here</a> to {{ page.target_description }}.
 	
 	<!-- Google Analytics -->
 	<script>
@@ -26,7 +26,6 @@
 	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
 	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 	  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
 	  ga('create', 'UA-105328174-1', 'auto');
 	  ga('send', 'pageview');
 	</script>
