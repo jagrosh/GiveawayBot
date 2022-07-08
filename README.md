@@ -12,8 +12,6 @@
 
 Hold giveaways quickly and easily on your Discord server! GiveawayBot is powered by [DiscordInteractions](https://github.com/jagrosh/DiscordInteractions) and [ObjectDB](https://www.objectdb.com/).
 
-![Example](http://i.imgur.com/bMjO8UA.png)
-
 ## Invite
 If you'd like to add **GiveawayBot** to your server, use the following link:<br>
 🔗 **https://giveawaybot.party/invite**
@@ -28,11 +26,15 @@ If you'd like to add **GiveawayBot** to your server, use the following link:<br>
 
 ### Buttons  
 * Press the button on an active giveaway to enter the giveaway
-* Press the 🔄 button on an ended giveaway to reroll the giveaway
 * Press the giveaway summary button on an ended giveaway to view a summary of a giveaway
 
+---
+
 ## Getting Support
-If you need help with the bot, join [GiveawayBot Support](https://discord.gg/giveawaybot)
+If you need help with the bot, please join [GiveawayBot Support](https://discord.gg/giveawaybot).
+
+## Localization
+If you'd like to contribute translations, please take a look at the [messages.properties](https://github.com/jagrosh/GiveawayBot/blob/master/src/main/resources/localization/messages.properties) file, as well as other files in the [localization directory](https://github.com/jagrosh/GiveawayBot/blob/master/src/main/resources/localization). Localization files take the form `messages-locale.properties`, for example: `messages-de.properties` for German, or `messages-en-US.properties` for United States English. A list of locales is available [here](https://discord.com/developers/docs/reference#locales).
 
 ## Self-Hosting
-Self-hosting your own copy of this bot is not supported; the source code is provided here so users and other bot developers can see how the bot functions. No help will be provided for editing, compiling, or building any code in this repository, and any changes must be documented as per the [license](https://github.com/jagrosh/GiveawayBot/blob/master/LICENSE).
+Self-hosting your own copy of this bot is not supported nor recommended; the source code is provided here so users and other bot developers can see how the bot functions. No help will be provided for editing, compiling, or building any code in this repository, and any changes must be documented as per the [license](https://github.com/jagrosh/GiveawayBot/blob/master/LICENSE).

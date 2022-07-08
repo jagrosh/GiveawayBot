@@ -88,6 +88,12 @@ public class PremiumChecker
         });
     }
     
+    public void shutdown()
+    {
+        schedule.shutdown();
+        jda.shutdown();
+    }
+    
     private void update()
     {
         try

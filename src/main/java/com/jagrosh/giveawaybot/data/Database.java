@@ -52,8 +52,14 @@ public class Database
         em.getMetamodel().managedType(GuildSettings.class);
     }
     
+    public void shutdown()
+    {
+        em.close();
+        emf.close();
+    }
+    
     // guild settings
-    public synchronized GuildSettings getSettings(long guildId)
+    public GuildSettings getSettings(long guildId)
     {
         GuildSettings gs = em.find(GuildSettings.class, guildId);
         return gs == null ? new GuildSettings(guildId) : gs;
@@ -103,53 +109,38 @@ public class Database
         em.getTransaction().commit();
     }
     
-    /*public void setGuildManager(long guildId, long roleId)
-    {
-        GuildSettings gs = em.find(GuildSettings.class, guildId);
-        em.getTransaction().begin();
-        if(gs == null)
-        {
-            gs = new GuildSettings();
-            gs.setGuildId(guildId);
-            em.persist(gs);
-        }
-        gs.setManagerRoleId(roleId);
-        em.getTransaction().commit();
-    }*/
-    
-    
     // giveaways
-    public synchronized Giveaway getGiveaway(long id)
+    public Giveaway getGiveaway(long id)
     {
         return em.find(Giveaway.class, id);
     }
     
-    public synchronized List<Giveaway> getGiveawaysByGuild(long guildId)
+    public List<Giveaway> getGiveawaysByGuild(long guildId)
     {
         return em.createNamedQuery("Giveaway.getAllFromGuild", Giveaway.class).setParameter("guildId", guildId).getResultList();
     }
     
-    public synchronized List<Giveaway> getGiveawaysByChannel(long channelId)
+    public List<Giveaway> getGiveawaysByChannel(long channelId)
     {
         return em.createNamedQuery("Giveaway.getAllFromChannel", Giveaway.class).setParameter("channelId", channelId).getResultList();
     }
     
-    public synchronized long countGiveawaysByChannel(long channelId)
+    public long countGiveawaysByChannel(long channelId)
     {
         return em.createNamedQuery("Giveaway.countAllFromChannel", Long.class).setParameter("channelId", channelId).getSingleResult();
     }
     
-    public synchronized long countGiveawaysByGuild(long guildId)
+    public long countGiveawaysByGuild(long guildId)
     {
         return em.createNamedQuery("Giveaway.countAllFromGuild", Long.class).setParameter("guildId", guildId).getSingleResult();
     }
     
-    public synchronized long countAllGiveaways()
+    public long countAllGiveaways()
     {
         return em.createNamedQuery("Giveaway.countAll", Long.class).getSingleResult();
     }
     
-    public synchronized List<Giveaway> getGiveawaysEndingBefore(Instant time)
+    public List<Giveaway> getGiveawaysEndingBefore(Instant time)
     {
         return em.createNamedQuery("Giveaway.getAllEndingBefore", Giveaway.class).setParameter("endTime", time.getEpochSecond()).getResultList();
     }
@@ -198,12 +189,12 @@ public class Database
         em.getTransaction().commit();
     }
     
-    public synchronized CachedUser getUser(long userId)
+    public CachedUser getUser(long userId)
     {
         return em.find(CachedUser.class, userId);
     }
     
-    public synchronized boolean addEntry(long giveawayId, User user)
+    public synchronized int addEntry(long giveawayId, User user)
     {
         // update user
         updateUser(user);
@@ -213,7 +204,7 @@ public class Database
         
         // short circuit if user has already entered
         if(ge != null && ge.getUsers().contains(user.getIdLong()))
-            return false;
+            return -1;
         
         em.getTransaction().begin();
         if(ge == null)
@@ -224,10 +215,28 @@ public class Database
         }
         ge.addUser(user.getIdLong());
         em.getTransaction().commit();
+        return ge.getUsers().size();
+    }
+    
+    public synchronized boolean removeEntry(long giveawayId, User user)
+    {
+        // update user
+        updateUser(user);
+        
+        // update entries
+        GiveawayEntries ge = em.find(GiveawayEntries.class, giveawayId);
+        
+        // short circuit if user is not already entered
+        if(ge == null || !ge.getUsers().contains(user.getIdLong()))
+            return false;
+        
+        em.getTransaction().begin();
+        ge.removeUser(user.getIdLong());
+        em.getTransaction().commit();
         return true;
     }
     
-    public synchronized List<CachedUser> getEntries(long giveawayId)
+    public List<CachedUser> getEntries(long giveawayId)
     {
         GiveawayEntries ge = em.find(GiveawayEntries.class, giveawayId);
         if(ge == null)
@@ -237,14 +246,17 @@ public class Database
                 .collect(Collectors.toList());
     }
     
-    public synchronized int getEntryCount(long giveawayId)
+    /*public int getEntryCount(long giveawayId)
     {
-        return getEntries(giveawayId).size();
-    }
+        GiveawayEntries ge = em.find(GiveawayEntries.class, giveawayId);
+        if(ge == null)
+            return 0;
+        return ge.getUsers().size();
+    }*/
     
     
     // premium
-    public synchronized PremiumLevel getPremiumLevel(long guildId, long userId)
+    public PremiumLevel getPremiumLevel(long guildId, long userId)
     {
         // get premium level of user
         CachedUser user = em.find(CachedUser.class, userId);
@@ -290,7 +302,7 @@ public class Database
         em.getTransaction().commit();
     }
     
-    public synchronized List<CachedUser> getAllPremiumUsers()
+    public List<CachedUser> getAllPremiumUsers()
     {
         return em.createNamedQuery("CachedUser.findAllWithPremium", CachedUser.class).getResultList();
     }

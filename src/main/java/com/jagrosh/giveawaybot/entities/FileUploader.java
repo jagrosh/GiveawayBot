@@ -50,4 +50,9 @@ public class FileUploader
             return null;
         }
     }
+    
+    public void shutdown()
+    {
+        cluster.close();
+    }
 }

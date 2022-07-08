@@ -15,8 +15,6 @@
  */
 package com.jagrosh.giveawaybot.data;
 
-import java.util.HashSet;
-import java.util.Set;
 import javax.persistence.*;
 
 /**
@@ -24,43 +22,20 @@ import javax.persistence.*;
  * @author John Grosh (john.a.grosh@gmail.com)
  */
 @Entity
-@Table(name = "GIVEAWAY_ENTRIES")
-public class GiveawayEntries
+@Table(name = "GIVEAWAY_ENTRY_TABLE")
+@NamedQueries({
+    @NamedQuery(name = "GiveawayEntry.getAllForGiveaway", query = "SELECT g FROM GiveawayEntry g WHERE g.entryId.giveawayId = :giveawayId")
+})
+public class GiveawayEntry
 {
-    @Id
-    @Column(name = "GIVEAWAY_ID")
-    private long giveawayId;
+    @EmbeddedId
+    @Column(name = "ENTRY_ID")
+    private EntryId entryId;
     
-    @ElementCollection(fetch = FetchType.EAGER)
-    private Set<Long> users = new HashSet<>();
-
-    public long getGiveawayId()
+    @Embeddable
+    public static class EntryId
     {
-        return giveawayId;
-    }
-
-    public void setGiveawayId(long giveawayId)
-    {
-        this.giveawayId = giveawayId;
-    }
-
-    public Set<Long> getUsers()
-    {
-        return users;
-    }
-
-    public void setUsers(Set<Long> users)
-    {
-        this.users = users;
-    }
-    
-    public void addUser(long userId)
-    {
-        this.users.add(userId);
-    }
-    
-    public void removeUser(long userId)
-    {
-        this.users.remove(userId);
+        private long giveawayId;
+        private long userId;
     }
 }

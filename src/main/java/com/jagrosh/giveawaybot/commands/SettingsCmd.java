@@ -18,7 +18,6 @@ package com.jagrosh.giveawaybot.commands;
 import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.giveawaybot.GiveawayBot;
 import com.jagrosh.giveawaybot.GiveawayException;
-import com.jagrosh.giveawaybot.data.Database;
 import com.jagrosh.giveawaybot.data.GuildSettings;
 import com.jagrosh.giveawaybot.entities.LocalizedMessage;
 import com.jagrosh.giveawaybot.util.OtherUtil;
@@ -97,7 +96,8 @@ public class SettingsCmd extends GBCommand
                         + LocalizedMessage.INFO_SETTINGS_PREMIUM.getLocalizedMessage(wl) + ": **" + bot.getDatabase().getPremiumLevel(gs.getGuildId(), gs.getOwnerId()) + "**\n" 
                         //+ LocalizedMessage.INFO_SETTINGS_ROLE.getLocalizedMessage(wl) + ": " + (gs.getManagerRoleId() == 0L ? "N/A" : "<@&" + gs.getManagerRoleId() + ">") + "\n"
                         + LocalizedMessage.INFO_SETTINGS_EMOJI.getLocalizedMessage(wl) + ": " + gs.getEmoji() + "\n"
-                        + LocalizedMessage.INFO_SETTINGS_LOCALE.getLocalizedMessage(wl) + ": " + gs.getLocale().getTextualName();
+                        + LocalizedMessage.INFO_SETTINGS_LOCALE.getLocalizedMessage(wl) + ": " + gs.getLocale().getTextualName() + "\n\n"
+                        + LocalizedMessage.INFO_SETTINGS_ETC.getLocalizedMessage(wl);
                 return new MessageCallback(new SentMessage.Builder()
                         .setContent(Constants.YAY + " **GiveawayBot** " + LocalizedMessage.INFO_SETTINGS.getLocalizedMessage(wl))
                         .addEmbed(new Embed.Builder()

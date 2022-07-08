@@ -55,7 +55,7 @@ public class StartCmd extends GBCommand
         PremiumLevel pl = bot.getDatabase().getPremiumLevel(interaction.getGuildId(), interaction.getMember().getIdLong());
         
         // check availability
-        bot.getGiveawayManager().checkAvailability(interaction.getMember(), interaction.getChannelId(), interaction.getGuildId(), pl, interaction.getEffectiveLocale());
+        bot.getGiveawayManager().checkAvailability(interaction, pl);
         
         // validate inputs
         Giveaway g = bot.getGiveawayManager().constructGiveaway(interaction.getUser(), 

@@ -58,7 +58,7 @@ public class Giveaway
     
     @Column(name = "DESCRIPTION")
     private String description;
-
+    
     public Giveaway() {}
     
     public Giveaway(long userId, Instant endTime, int winners, String prize, String description)

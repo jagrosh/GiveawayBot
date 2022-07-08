@@ -31,16 +31,16 @@
     
     <dependencies>
         <!-- Discord Libraries -->
-	<dependency>
+	<!--dependency>
 	    <groupId>com.github.jagrosh</groupId>
 	    <artifactId>DiscordInteractions</artifactId>
 	    <version>master-SNAPSHOT</version>
-	</dependency>
-        <!--dependency>
+	</dependency-->
+        <dependency>
             <groupId>com.jagrosh</groupId>
             <artifactId>DiscordInteractions</artifactId>
             <version>0.1</version>
-        </dependency-->
+        </dependency>
         <dependency>
             <groupId>club.minnced</groupId>
             <artifactId>discord-webhooks</artifactId>
@@ -97,7 +97,7 @@
           <configuration>
             <archive>
               <manifest>
-                <mainClass>com.jagrosh.giveawaybot.GiveawayBot</mainClass>
+                <mainClass>com.jagrosh.giveawaybot.Main</mainClass>
               </manifest>
             </archive>
             <descriptorRefs>

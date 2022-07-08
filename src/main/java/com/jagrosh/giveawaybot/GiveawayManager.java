@@ -28,6 +28,7 @@ import com.jagrosh.interactions.components.ActionRowComponent;
 import com.jagrosh.interactions.components.ButtonComponent;
 import com.jagrosh.interactions.components.PartialEmoji;
 import com.jagrosh.interactions.entities.*;
+import com.jagrosh.interactions.receive.Interaction;
 import com.jagrosh.interactions.requests.RestClient;
 import com.jagrosh.interactions.requests.RestClient.RestResponse;
 import com.jagrosh.interactions.requests.Route;
@@ -50,11 +51,14 @@ import org.slf4j.LoggerFactory;
  */
 public class GiveawayManager
 {
-    public final static String ENTER_BUTTON_ID = "enter-giveaway";
+    public final static String ENTER_BUTTON_ID = "enter-giveaway",
+                               LEAVE_BUTTON_ID = "leave-giveaway";
     private final static int MINIMUM_SECONDS = 10,
                              MAX_PRIZE_LENGTH = 250,
                              MAX_DESCR_LENGTH = 1000,
                              FAILURE_COOLDOWN_TIME = 30;
+    private final static Permission[] REQUIRED_PERMS = { Permission.SEND_MESSAGES, Permission.VIEW_CHANNEL, 
+        Permission.READ_MESSAGE_HISTORY, Permission.EMBED_LINKS };
     
     private final Logger log = LoggerFactory.getLogger(GiveawayManager.class);
     private final ScheduledExecutorService schedule = Executors.newSingleThreadScheduledExecutor();
@@ -63,12 +67,14 @@ public class GiveawayManager
     private final Database database;
     private final RestClient rest;
     private final FileUploader uploader;
+    private final long clientId;
     
-    public GiveawayManager(Database database, RestClient rest, FileUploader uploader)
+    public GiveawayManager(Database database, RestClient rest, FileUploader uploader, long clientId)
     {
         this.database = database;
         this.rest = rest;
         this.uploader = uploader;
+        this.clientId = clientId;
     }
     
     public void start()
@@ -78,14 +84,35 @@ public class GiveawayManager
             try
             {
                 // end giveaways that have run out of time
-                database.getGiveawaysEndingBefore(Instant.now())
-                        .forEach(giveaway -> pool.submit(() -> endGiveaway(giveaway)));
+                database.getGiveawaysEndingBefore(Instant.now().plusMillis(500))
+                        .stream().parallel()
+                        .forEach(giveaway -> endGiveaway(giveaway));
             }
             catch(Exception ex)
             {
                 log.error("Exception in ending giveaways: ", ex);
             }
         }, 0, 1, TimeUnit.SECONDS);
+    }
+    
+    public void shutdown()
+    {
+        schedule.shutdown();
+        pool.shutdown();
+    }
+    
+    public boolean deleteGiveaway(Giveaway giveaway)
+    {
+        database.removeGiveaway(giveaway.getMessageId());
+        try
+        {
+            RestResponse res = rest.request(Route.DELETE_MESSAGE.format(giveaway.getChannelId(), giveaway.getMessageId())).get();
+            return res.isSuccess();
+        }
+        catch(ExecutionException | InterruptedException ex)
+        {
+            return false;
+        }
     }
     
     public boolean endGiveaway(Giveaway giveaway)
@@ -110,15 +137,20 @@ public class GiveawayManager
         return true;
     }
     
-    public void checkAvailability(GuildMember member, long channelId, long guildId, PremiumLevel level, WebLocale locale) throws GiveawayException
+    public void checkAvailability(Interaction interaction, PremiumLevel level) throws GiveawayException
     {
         // apply cooldown when giveaway creation fails
-        Instant latest = latestFailure.get(guildId);
+        Instant latest = latestFailure.get(interaction.getGuildId());
         if(latest != null && latest.until(Instant.now(), ChronoUnit.SECONDS) < FAILURE_COOLDOWN_TIME)
             throw new GiveawayException(LocalizedMessage.ERROR_GIVEAWAY_COOLDOWN);
         
+        // check bot permissions
+        for(Permission p: REQUIRED_PERMS)
+            if(!interaction.appHasPermission(p))
+                throw new GiveawayException(LocalizedMessage.ERROR_BOT_PERMISSIONS, String.format(Constants.ADMIN, Long.toString(clientId), Long.toString(interaction.getGuildId())));
+        
         // check if the maximum number of giveaways has been reached
-        long currentGiveaways = level.perChannelMaxGiveaways ? database.countGiveawaysByChannel(channelId) : database.countGiveawaysByGuild(guildId);
+        long currentGiveaways = level.perChannelMaxGiveaways ? database.countGiveawaysByChannel(interaction.getChannelId()) : database.countGiveawaysByGuild(interaction.getGuildId());
         if(currentGiveaways >= level.maxGiveaways)
             throw new GiveawayException(LocalizedMessage.ERROR_MAXIMUM_GIVEAWAYS_GUILD, currentGiveaways, level.perChannelMaxGiveaways);
     }
@@ -145,7 +177,7 @@ public class GiveawayManager
             throw new GiveawayException(LocalizedMessage.ERROR_INVALID_WINNERS_FORMAT, winners);
         }
         if(wins < 1 || wins > level.maxWinners)
-            throw new GiveawayException(LocalizedMessage.ERROR_INVALID_WINNERS_MAX, wins, 1, level.maxWinners);
+            throw new GiveawayException(LocalizedMessage.ERROR_INVALID_WINNERS_MAX, wins, level.maxWinners);
         
         // validate prize and description
         if(prize.length() > MAX_PRIZE_LENGTH)
@@ -163,14 +195,14 @@ public class GiveawayManager
             giveaway.setGuildId(guildId);
             giveaway.setChannelId(channelId);
             SentMessage sm = renderGiveaway(giveaway, 0);
-            log.info("Attempting to create giveaway, json: " + sm.toJson());
+            log.debug("Attempting to create giveaway, json: " + sm.toJson());
             RestResponse res = rest.request(Route.POST_MESSAGE.format(channelId), sm.toJson()).get();
-            log.info("Attempted to create giveaway, response: " + res.getStatus() + ", " + res.getBody());
+            log.debug("Attempted to create giveaway, response: " + res.getStatus() + ", " + res.getBody());
             if(!res.isSuccess())
             {
                 latestFailure.put(guildId, Instant.now());
-                if(res.getErrorSpecific() == 50013)
-                    throw new GiveawayException(LocalizedMessage.ERROR_BOT_PERMISSIONS);
+                if(res.getErrorSpecific() == 50013 || res.getErrorSpecific() == 50001)
+                    throw new GiveawayException(LocalizedMessage.ERROR_BOT_PERMISSIONS, String.format(Constants.ADMIN, Long.toString(clientId), Long.toString(guildId)));
                 throw new GiveawayException(LocalizedMessage.ERROR_GENERIC_CREATION);
             }
             ReceivedMessage rm = new ReceivedMessage(res.getBody());
@@ -194,10 +226,11 @@ public class GiveawayManager
     {
         GuildSettings gs = database.getSettings(giveaway.getGuildId());
         String message = (giveaway.getDescription() == null || giveaway.getDescription().isEmpty() ? "" : giveaway.getDescription() + "\n\n")
-                + (winners == null ? "Ends" : "Ended") + ": <t:" + giveaway.getEndInstant().getEpochSecond() + ":R> (<t:" + giveaway.getEndInstant().getEpochSecond() + ":f>)"
-                + "\nHosted by: <@" + giveaway.getUserId() + ">"
-                + "\nEntries: **" + numEntries + "**"
-                + "\nWinners: " + (winners == null ? "**" + giveaway.getWinners() + "**" : renderWinners(winners));
+                + (winners == null ? LocalizedMessage.GIVEAWAY_ENDS.getLocalizedMessage(gs.getLocale()) : LocalizedMessage.GIVEAWAY_ENDED.getLocalizedMessage(gs.getLocale())) 
+                    + ": <t:" + giveaway.getEndInstant().getEpochSecond() + ":R> (<t:" + giveaway.getEndInstant().getEpochSecond() + ":f>)"
+                + "\n" + LocalizedMessage.GIVEAWAY_HOSTED.getLocalizedMessage(gs.getLocale()) + ": <@" + giveaway.getUserId() + ">"
+                + "\n" + LocalizedMessage.GIVEAWAY_ENTRIES.getLocalizedMessage(gs.getLocale()) + ": **" + numEntries + "**"
+                + "\n" + LocalizedMessage.GIVEAWAY_WINNERS.getLocalizedMessage(gs.getLocale()) + ": " + (winners == null ? "**" + giveaway.getWinners() + "**" : renderWinners(winners));
         SentMessage.Builder sb = new SentMessage.Builder()
                 .addEmbed(new Embed.Builder()
                         .setTitle(giveaway.getPrize(), null)
@@ -207,7 +240,7 @@ public class GiveawayManager
         if(winners == null)
             sb.addComponent(new ActionRowComponent(new ButtonComponent(ButtonComponent.Style.PRIMARY, new PartialEmoji(gs.getEmoji(), 0L, false), ENTER_BUTTON_ID)));
         else if(summaryKey != null)
-            sb.addComponent(new ActionRowComponent(new ButtonComponent("Giveaway Summary", Constants.SUMMARY + "#giveaway=" + summaryKey)));
+            sb.addComponent(new ActionRowComponent(new ButtonComponent(LocalizedMessage.GIVEAWAY_SUMMARY.getLocalizedMessage(gs.getLocale()), Constants.SUMMARY + "#giveaway=" + summaryKey)));
         else
             sb.removeComponents();
         return sb.build();

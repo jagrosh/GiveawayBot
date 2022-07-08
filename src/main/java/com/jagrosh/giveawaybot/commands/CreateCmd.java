@@ -58,7 +58,7 @@ public class CreateCmd extends GBCommand
         PremiumLevel pl = bot.getDatabase().getPremiumLevel(interaction.getGuildId(), interaction.getMember().getIdLong());
         
         // check availability
-        bot.getGiveawayManager().checkAvailability(interaction.getMember(), interaction.getChannelId(), interaction.getGuildId(), pl, interaction.getEffectiveLocale());
+        bot.getGiveawayManager().checkAvailability(interaction, pl);
         
         // open modal (remainder of giveaway creation is handled elsewhere
         String customId = interaction.getGuildId() + " " + interaction.getChannelId() + " " + interaction.getMember().getUser().getIdLong();

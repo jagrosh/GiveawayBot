@@ -86,6 +86,8 @@ public class RerollCmd extends GBCommand
             RestClient.RestResponse res = bot.getRestClient().simpleRequest(url).get();
             List<Long> entries = JsonUtil.optArray(res.getBody(), "entries", user -> user.getLong("id"));
             List<Long> winner = GiveawayUtil.selectWinners(entries, 1);
+            if(winner.isEmpty())
+                return GBCommand.respondError(LocalizedMessage.ERROR_GENERIC_REROLL.getLocalizedMessage(interaction.getEffectiveLocale()));
             return new MessageCallback(new SentMessage.Builder()
                     .setAllowedMentions(new AllowedMentions(AllowedMentions.ParseType.USERS))
                     .setReferenceMessage(interaction.getCommandData().getTargetId())

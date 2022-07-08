@@ -55,4 +55,9 @@ public class WebhookLog
     {
         client.send(level.emoji + " `[" + logname + "]` " + message).get();
     }
+    
+    public void shutdown()
+    {
+        client.close();
+    }
 }

@@ -39,6 +39,7 @@ public class Constants
     public static final String SUPPORT  = WEBSITE + "/support";
     public static final String SUMMARY  = WEBSITE + "/summary";
     public static final String GITHUB   = "https://github.com/jagrosh/GiveawayBot";
+    public static final String ADMIN    = "https://discord.com/oauth2/authorize?permissions=8&scope=bot+applications.commands&client_id=%s&guild_id=%s";
     
     public static final int    MIN_TIME = 10;
     public static final String OWNER    = "**jagrosh**#4824";

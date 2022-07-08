@@ -52,10 +52,12 @@ public enum LocalizedMessage
     ERROR_INVALID_MESSAGE("error.invalid_message"),
     ERROR_GIVEAWAY_NOT_FOUND("error.giveaway_not_found"),
     ERROR_GIVEAWAY_ALREADY_ENTERED("error.giveaway_already_entered"),
+    ERROR_GIVEAWAY_NOT_ENTERED("error.giveaway_not_entered"),
     ERROR_GENERIC_CREATION("error.generic.creation"),
     ERROR_GENERIC_ENTER("error.generic.enter"),
     ERROR_GENERIC_ENDING("error.generic.ending"),
     ERROR_GENERIC_REROLL("error.generic.reroll"),
+    ERROR_GENERIC_DELETE("error.generic.delete"),
     ERROR_GENERIC("error.generic"),
     
     // warnings
@@ -66,11 +68,13 @@ public enum LocalizedMessage
     // successful responses
     SUCCESS_GIVEAWAY_CREATED("success.giveaway_created"),
     SUCCESS_ENTERED("success.entered"),
+    SUCCESS_LEAVE("success.leave"),
     SUCCESS_WINNER("success.winner"),
     SUCCESS_SETTINGS_ROLE("success.settings.role"),
     SUCCESS_SETTINGS_COLOR("success.settings.color"),
     SUCCESS_GIVEAWAY_ENDED("success.giveaway_ended"),
     SUCCESS_GIVEAWAY_REROLL("success.giveaway_reroll"),
+    SUCCESS_GIVEAWAY_DELETE("success.giveaway_delete"),
     
     // info
     INFO_INVITE("info.invite"),
@@ -90,7 +94,16 @@ public enum LocalizedMessage
     INFO_SETTINGS_EMOJI("info.settings.emoji"),
     INFO_SETTINGS_ROLE("info.settings.role"),
     INFO_SETTINGS_COLOR("info.settings.color"),
-    INFO_SETTINGS_LOCALE("info.settings.locale");
+    INFO_SETTINGS_LOCALE("info.settings.locale"),
+    INFO_SETTINGS_ETC("info.settings.etc"),
+    
+    GIVEAWAY_LEAVE("giveaway.leave"),
+    GIVEAWAY_ENDS("giveaway.ends"),
+    GIVEAWAY_ENDED("giveaway.ended"),
+    GIVEAWAY_HOSTED("giveaway.hosted"),
+    GIVEAWAY_ENTRIES("giveaway.entries"),
+    GIVEAWAY_WINNERS("giveaway.winners"),
+    GIVEAWAY_SUMMARY("giveaway.summary");
 
     private final static String FILENAME = "localization/messages";
     private final String key;
