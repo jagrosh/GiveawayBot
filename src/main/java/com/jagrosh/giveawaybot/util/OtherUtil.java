@@ -115,4 +115,9 @@ public class OtherUtil
             return -1;
         return Integer.parseInt(winstr.substring(0, winstr.length()-1));
     }
+    
+    public static boolean strEquals(String a, String b)
+    {
+        return a == null ? b == null : a.equals(b);
+    }
 }

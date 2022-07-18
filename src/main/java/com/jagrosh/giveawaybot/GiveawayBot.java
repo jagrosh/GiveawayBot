@@ -17,6 +17,7 @@ package com.jagrosh.giveawaybot;
 
 import com.jagrosh.giveawaybot.commands.*;
 import com.jagrosh.giveawaybot.data.Database;
+import com.jagrosh.giveawaybot.entities.EmojiParser;
 import com.jagrosh.giveawaybot.entities.FileUploader;
 import com.jagrosh.giveawaybot.entities.PremiumChecker;
 import com.jagrosh.giveawaybot.entities.WebhookLog;
@@ -70,13 +71,15 @@ public class GiveawayBot
         // instantiate the remaing components
         uploader = new FileUploader(config.getStringList("file-uploader"));
         GiveawayListener listener = new GiveawayListener(this);
+        EmojiParser emojis = new EmojiParser(config.getConfig("emojis").getStringList("free"));
         restClient = new RestClient(config.getString("bot-token"));
         premium = new PremiumChecker(database, webhook, config.getString("checker-token"));
-        manager = new GiveawayManager(database, restClient, uploader, botId);
+        manager = new GiveawayManager(database, restClient, uploader, emojis, botId);
         
         // instantiate commands
         Command[] commands = 
         {
+            new HelpCmd(this),
             new AboutCmd(this),
             new PingCmd(this),
             new InviteCmd(this),
@@ -87,6 +90,7 @@ public class GiveawayBot
             new DeleteCmd(this),
             new EndCmd(this),
             new RerollCmd(this),
+            new RerollMessageCmd(this),
             new SettingsCmd(this)
         };
         

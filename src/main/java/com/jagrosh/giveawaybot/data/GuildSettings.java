@@ -16,6 +16,7 @@
 package com.jagrosh.giveawaybot.data;
 
 import com.jagrosh.giveawaybot.Constants;
+import com.jagrosh.interactions.components.ButtonComponent;
 import com.jagrosh.interactions.components.PartialEmoji;
 import com.jagrosh.interactions.entities.WebLocale;
 import java.awt.Color;
@@ -36,8 +37,6 @@ public class GuildSettings
     @Id
     @Column(name = "GUILD_ID")
     private long guildId;
-    //@Column(name = "MANAGER_ROLE")
-    //private long managerRoleId;
     @Column(name = "COLOR")
     private int colorVal;
     @Column(name = "EMOJI")
@@ -108,11 +107,6 @@ public class GuildSettings
     public String getEmoji()
     {
         return emoji == null ? Constants.TADA : emoji;
-    }
-    
-    public PartialEmoji getPartialEmoji()
-    {
-        return new PartialEmoji(emoji == null ? Constants.TADA : emoji, 0L, false);
     }
 
     public void setEmoji(String emoji)

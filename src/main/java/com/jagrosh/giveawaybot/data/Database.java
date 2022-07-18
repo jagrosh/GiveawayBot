@@ -16,15 +16,16 @@
 package com.jagrosh.giveawaybot.data;
 
 import com.jagrosh.giveawaybot.entities.PremiumLevel;
+import com.jagrosh.giveawaybot.util.OtherUtil;
 import com.jagrosh.interactions.entities.Guild;
 import com.jagrosh.interactions.entities.User;
 import com.jagrosh.interactions.entities.WebLocale;
 import java.awt.Color;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -38,10 +39,12 @@ public class Database
 {
     private final EntityManagerFactory emf;
     private final EntityManager em;
+    private final Map<Long, GiveawayEntries> cachedEntries = new HashMap<>();
+    private final ScheduledExecutorService cacheCombiner = Executors.newSingleThreadScheduledExecutor();
     
     public Database(String host, String user, String pass)
     {
-        Map<String, String> properties = new HashMap<String, String>();
+        Map<String, String> properties = new HashMap<>();
         properties.put("javax.persistence.jdbc.user", user);
         properties.put("javax.persistence.jdbc.password", pass);
         emf = Persistence.createEntityManagerFactory(host, properties);
@@ -50,10 +53,13 @@ public class Database
         em.getMetamodel().managedType(Giveaway.class);
         em.getMetamodel().managedType(GiveawayEntries.class);
         em.getMetamodel().managedType(GuildSettings.class);
+        cacheCombiner.scheduleWithFixedDelay(() -> syncEntries(), 15, 15, TimeUnit.SECONDS);
     }
     
     public void shutdown()
     {
+        cacheCombiner.shutdown();
+        syncEntries();
         em.close();
         emf.close();
     }
@@ -106,6 +112,20 @@ public class Database
             em.persist(gs);
         }
         gs.setColor(color);
+        em.getTransaction().commit();
+    }
+    
+    public synchronized void setGuildEmoji(long guildId, String emoji)
+    {
+        GuildSettings gs = em.find(GuildSettings.class, guildId);
+        em.getTransaction().begin();
+        if(gs == null)
+        {
+            gs = new GuildSettings();
+            gs.setGuildId(guildId);
+            em.persist(gs);
+        }
+        gs.setEmoji(emoji);
         em.getTransaction().commit();
     }
     
@@ -176,6 +196,14 @@ public class Database
     {
         // update cached user
         CachedUser u = em.find(CachedUser.class, user.getIdLong());
+        
+        // short circuit if data is up to date
+        if(u != null
+            && OtherUtil.strEquals(user.getUsername(), u.getUsername()) 
+            && OtherUtil.strEquals(user.getDiscriminator(), u.getDiscriminator()) 
+            && OtherUtil.strEquals(user.getAvatar(), u.getAvatar()))
+            return;
+        
         em.getTransaction().begin();
         if(u == null)
         {
@@ -199,22 +227,23 @@ public class Database
         // update user
         updateUser(user);
         
-        // update entries
-        GiveawayEntries ge = em.find(GiveawayEntries.class, giveawayId);
+        // get entries
+        GiveawayEntries ge = getEntries(giveawayId);
         
         // short circuit if user has already entered
         if(ge != null && ge.getUsers().contains(user.getIdLong()))
             return -1;
         
-        em.getTransaction().begin();
         if(ge == null)
         {
             ge = new GiveawayEntries();
             ge.setGiveawayId(giveawayId);
+            em.getTransaction().begin();
             em.persist(ge);
+            em.getTransaction().commit();
         }
+        cachedEntries.put(giveawayId, ge);
         ge.addUser(user.getIdLong());
-        em.getTransaction().commit();
         return ge.getUsers().size();
     }
     
@@ -224,26 +253,40 @@ public class Database
         updateUser(user);
         
         // update entries
-        GiveawayEntries ge = em.find(GiveawayEntries.class, giveawayId);
+        GiveawayEntries ge = getEntries(giveawayId);
         
         // short circuit if user is not already entered
         if(ge == null || !ge.getUsers().contains(user.getIdLong()))
             return false;
         
-        em.getTransaction().begin();
+        //em.getTransaction().begin();
+        cachedEntries.put(giveawayId, ge);
         ge.removeUser(user.getIdLong());
-        em.getTransaction().commit();
+        //em.getTransaction().commit();
         return true;
     }
     
-    public List<CachedUser> getEntries(long giveawayId)
+    public synchronized void syncEntries()
     {
-        GiveawayEntries ge = em.find(GiveawayEntries.class, giveawayId);
+        em.getTransaction().begin();
+        cachedEntries.values().forEach(e -> em.merge(e));
+        em.getTransaction().commit();
+        cachedEntries.clear();
+    }
+    
+    public List<CachedUser> getEntriesList(long giveawayId)
+    {
+        GiveawayEntries ge = getEntries(giveawayId);
         if(ge == null)
             return Collections.emptyList();
         return ge.getUsers().stream()
                 .map(u -> em.find(CachedUser.class, u))
                 .collect(Collectors.toList());
+    }
+    
+    private GiveawayEntries getEntries(long giveawayId)
+    {
+        return cachedEntries.containsKey(giveawayId) ? cachedEntries.get(giveawayId) : em.find(GiveawayEntries.class, giveawayId);
     }
     
     /*public int getEntryCount(long giveawayId)
@@ -256,6 +299,11 @@ public class Database
     
     
     // premium
+    public PremiumLevel getPremiumLevel(long guildId)
+    {
+        return getPremiumLevel(guildId, 0L);
+    }
+    
     public PremiumLevel getPremiumLevel(long guildId, long userId)
     {
         // get premium level of user

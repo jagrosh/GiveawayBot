@@ -21,25 +21,25 @@ package com.jagrosh.giveawaybot.entities;
  */
 public enum PremiumLevel
     {
-    //  name                        time         win giv channel roleid
-        NONE   (0, "None",          60*60*24*7*2, 20, 20, false, 0L),
+    //  name                        time         win giv per-ch roleid              emojis
+        NONE   (0, "None",          60*60*24*7*2, 20, 20, false, 0L,                  false),
         
-        BOOST  (1, "Nitro Booster", 60*60*24*7*5, 30, 25, true,  585981877396045826L),
-        PATRON (2, "Patron",        60*60*24*7*5, 30, 25, true,  585689274565918721L),
-        DONATOR(3, "Donator",       60*60*24*7*5, 30, 25, true,  585708901270421504L),
+        BOOST  (1, "Nitro Booster", 60*60*24*7*5, 30, 25, true,  585981877396045826L, true),
+        PATRON (2, "Patron",        60*60*24*7*5, 30, 25, true,  585689274565918721L, true),
+        DONATOR(3, "Donator",       60*60*24*7*5, 30, 25, true,  585708901270421504L, true),
         
-        DISCORD(4, "Discord",       60*60*24*7*5, 50, 25, true,  778420722673778748L),
-        SUPER  (5, "Super Patron",  60*60*24*7*5, 50, 25, true,  589196324193173512L);
+        DISCORD(4, "Discord",       60*60*24*7*6, 50, 25, true,  778420722673778748L, true),
+        SUPER  (5, "Super Patron",  60*60*24*7*6, 50, 25, true,  589196324193173512L, true);
         
         public final static long SERVER_ID = 585687812548853760L;
         public final int level;
         public final String name;
         public final int maxTime, maxWinners, maxGiveaways;
-        public final boolean perChannelMaxGiveaways;
+        public final boolean perChannelMaxGiveaways, customEmojis;
         public final long roleId;
         
         private PremiumLevel(int level, String name, int maxTime, int maxWinners, 
-                int maxGiveaways, boolean perChannelMaxGiveaways, long roleId)
+                int maxGiveaways, boolean perChannelMaxGiveaways, long roleId, boolean customEmojis)
         {
             this.level = level;
             this.name = name;
@@ -48,6 +48,7 @@ public enum PremiumLevel
             this.maxGiveaways = maxGiveaways;
             this.perChannelMaxGiveaways = perChannelMaxGiveaways;
             this.roleId = roleId;
+            this.customEmojis = customEmojis;
         }
         
         // static methods

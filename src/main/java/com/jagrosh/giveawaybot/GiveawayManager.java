@@ -19,6 +19,7 @@ import com.jagrosh.giveawaybot.data.CachedUser;
 import com.jagrosh.giveawaybot.data.Database;
 import com.jagrosh.giveawaybot.data.Giveaway;
 import com.jagrosh.giveawaybot.data.GuildSettings;
+import com.jagrosh.giveawaybot.entities.EmojiParser;
 import com.jagrosh.giveawaybot.entities.FileUploader;
 import com.jagrosh.giveawaybot.entities.LocalizedMessage;
 import com.jagrosh.giveawaybot.entities.PremiumLevel;
@@ -67,14 +68,16 @@ public class GiveawayManager
     private final Database database;
     private final RestClient rest;
     private final FileUploader uploader;
+    private final EmojiParser emojis;
     private final long clientId;
     
-    public GiveawayManager(Database database, RestClient rest, FileUploader uploader, long clientId)
+    public GiveawayManager(Database database, RestClient rest, FileUploader uploader, EmojiParser emojis, long clientId)
     {
         this.database = database;
         this.rest = rest;
         this.uploader = uploader;
         this.clientId = clientId;
+        this.emojis = emojis;
     }
     
     public void start()
@@ -101,6 +104,16 @@ public class GiveawayManager
         pool.shutdown();
     }
     
+    public EmojiParser getEmojiManager()
+    {
+        return emojis;
+    }
+    
+    public String getPermsLink(long guildId)
+    {
+        return String.format(Constants.ADMIN, Long.toString(clientId), Long.toString(guildId));
+    }
+    
     public boolean deleteGiveaway(Giveaway giveaway)
     {
         database.removeGiveaway(giveaway.getMessageId());
@@ -117,18 +130,18 @@ public class GiveawayManager
     
     public boolean endGiveaway(Giveaway giveaway)
     {
-        List<CachedUser> entries = database.getEntries(giveaway.getMessageId());
+        List<CachedUser> entries = database.getEntriesList(giveaway.getMessageId());
         database.removeGiveaway(giveaway.getMessageId());
-        List<CachedUser> pool = new ArrayList<>(entries);
-        List<CachedUser> winners = GiveawayUtil.selectWinners(pool, giveaway.getWinners());
+        List<CachedUser> all = new ArrayList<>(entries);
+        List<CachedUser> winners = GiveawayUtil.selectWinners(all, giveaway.getWinners());
         CachedUser host = database.getUser(giveaway.getUserId());
         try
         {
             JSONObject summary = createGiveawaySummary(giveaway, host, entries, winners);
             String url = uploader.uploadFile(summary.toString(), "giveaway_summary.json");
             String summaryKey = url == null ? null : url.replaceAll(".*/(\\d+/\\d+)/.*", "$1");
-            RestResponse res = rest.request(Route.PATCH_MESSAGE.format(giveaway.getChannelId(), giveaway.getMessageId()), renderGiveaway(giveaway, entries.size(), winners, summaryKey).toJson()).get();
-            RestResponse res2 = rest.request(Route.POST_MESSAGE.format(giveaway.getChannelId()), renderWinnerMessage(giveaway, winners).toJson()).get();
+            rest.request(Route.PATCH_MESSAGE.format(giveaway.getChannelId(), giveaway.getMessageId()), renderGiveaway(giveaway, entries.size(), winners, summaryKey).toJson()).get();
+            rest.request(Route.POST_MESSAGE.format(giveaway.getChannelId()), renderWinnerMessage(giveaway, winners).toJson()).get();
         }
         catch(ExecutionException | InterruptedException ex)
         {
@@ -147,7 +160,7 @@ public class GiveawayManager
         // check bot permissions
         for(Permission p: REQUIRED_PERMS)
             if(!interaction.appHasPermission(p))
-                throw new GiveawayException(LocalizedMessage.ERROR_BOT_PERMISSIONS, String.format(Constants.ADMIN, Long.toString(clientId), Long.toString(interaction.getGuildId())));
+                throw new GiveawayException(LocalizedMessage.ERROR_BOT_PERMISSIONS, getPermsLink(interaction.getGuildId()));
         
         // check if the maximum number of giveaways has been reached
         long currentGiveaways = level.perChannelMaxGiveaways ? database.countGiveawaysByChannel(interaction.getChannelId()) : database.countGiveawaysByGuild(interaction.getGuildId());
@@ -238,7 +251,10 @@ public class GiveawayManager
                         .setTimestamp(giveaway.getEndInstant())
                         .setDescription(message).build());
         if(winners == null)
-            sb.addComponent(new ActionRowComponent(new ButtonComponent(ButtonComponent.Style.PRIMARY, new PartialEmoji(gs.getEmoji(), 0L, false), ENTER_BUTTON_ID)));
+        {
+            EmojiParser.ParsedEntryButton pe = emojis.parse(gs.getEmoji());
+            sb.addComponent(new ActionRowComponent(new ButtonComponent(ButtonComponent.Style.PRIMARY, pe.text, new PartialEmoji(pe.name, pe.id, pe.animated), ENTER_BUTTON_ID, null, false)));
+        }
         else if(summaryKey != null)
             sb.addComponent(new ActionRowComponent(new ButtonComponent(LocalizedMessage.GIVEAWAY_SUMMARY.getLocalizedMessage(gs.getLocale()), Constants.SUMMARY + "#giveaway=" + summaryKey)));
         else

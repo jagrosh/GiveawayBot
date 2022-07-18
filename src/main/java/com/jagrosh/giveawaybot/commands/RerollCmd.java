@@ -17,38 +17,34 @@ package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.GiveawayBot;
 import com.jagrosh.giveawaybot.GiveawayException;
+import static com.jagrosh.giveawaybot.commands.GBCommand.respondError;
 import com.jagrosh.giveawaybot.entities.LocalizedMessage;
-import com.jagrosh.giveawaybot.util.GiveawayUtil;
 import com.jagrosh.interactions.command.ApplicationCommand;
-import com.jagrosh.interactions.components.ActionRowComponent;
-import com.jagrosh.interactions.components.ButtonComponent;
-import com.jagrosh.interactions.entities.AllowedMentions;
+import com.jagrosh.interactions.command.ApplicationCommandOption;
 import com.jagrosh.interactions.entities.Permission;
 import com.jagrosh.interactions.entities.ReceivedMessage;
-import com.jagrosh.interactions.entities.SentMessage;
+import com.jagrosh.interactions.receive.CommandInteractionDataOption;
 import com.jagrosh.interactions.receive.Interaction;
-import com.jagrosh.interactions.requests.RestClient;
+import com.jagrosh.interactions.requests.Route;
 import com.jagrosh.interactions.responses.InteractionResponse;
-import com.jagrosh.interactions.responses.MessageCallback;
-import com.jagrosh.interactions.util.JsonUtil;
-import java.util.List;
+import java.util.concurrent.ExecutionException;
+import org.json.JSONObject;
 
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class RerollCmd extends GBCommand
+public class RerollCmd extends RerollMessageCmd
 {
-    private final static String JUMP_LINK = "https://discord.com/channels/%d/%d/%d";
-    private final static String KEY = "#giveaway=";
-    
     public RerollCmd(GiveawayBot bot)
     {
         super(bot);
         this.app = new ApplicationCommand.Builder()
-                .setType(ApplicationCommand.Type.MESSAGE)
+                .setType(ApplicationCommand.Type.CHAT_INPUT)
                 .setName(bot.getCommandPrefix() + "reroll")
-                //.setDescription("rerolls one new winner from a giveaway")
+                .setDescription("rerolls one new winner from a giveaway")
+                .addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.STRING, "giveaway_id", "ID of giveaway to reroll", true))
+                .addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.INTEGER, "count", "number of new winners to pick", false, 1, 10, false))
                 .setDmPermission(false)
                 .setDefaultPermissions(Permission.MANAGE_GUILD)
                 .build();
@@ -57,48 +53,22 @@ public class RerollCmd extends GBCommand
     @Override
     public InteractionResponse gbExecute(Interaction interaction) throws GiveawayException
     {
-        String summaryKey;
+        long msgId = interaction.getCommandData().getOptionByName("giveaway_id").getIdValue();
+        CommandInteractionDataOption countOpt = interaction.getCommandData().getOptionByName("count");
+        int count = countOpt == null ? 1 : countOpt.getIntValue();
+        String tip = " " + LocalizedMessage.ERROR_REROLL_MESSAGE_OPTION.getLocalizedMessage(interaction.getEffectiveLocale());
+        if(msgId < 150000000000000000L)
+            return respondError(LocalizedMessage.ERROR_INVALID_ID.getLocalizedMessage(interaction.getEffectiveLocale(), interaction.getCommandData().getOptionByName("giveaway_id").getStringValue()) + tip);
+        if(!interaction.appHasPermission(Permission.READ_MESSAGE_HISTORY))
+            return respondError(LocalizedMessage.ERROR_BOT_PERMISSIONS.getLocalizedMessage(interaction.getEffectiveLocale(), bot.getGiveawayManager().getPermsLink(interaction.getGuildId())));
         try
         {
-            // check if the message is from the bot
-            ReceivedMessage msg = interaction.getCommandData().getResolvedData().getMessages().get(interaction.getCommandData().getTargetId());
-            if(msg.getAuthor().getIdLong() != bot.getBotId())
-                return GBCommand.respondError(LocalizedMessage.ERROR_INVALID_MESSAGE.getLocalizedMessage(interaction.getEffectiveLocale()));
-
-            // check if the message is a giveaway by attempting to get the reroll key
-            ActionRowComponent arc = (ActionRowComponent) msg.getComponents().get(0);
-            String url = arc.getComponents().stream()
-                    .map(c -> (ButtonComponent) c)
-                    .filter(b -> b.getUrl() != null)
-                    .map(b -> b.getUrl())
-                    .findFirst().orElse(null);
-            summaryKey = url.substring(url.lastIndexOf(KEY) + KEY.length());
+            JSONObject json = bot.getRestClient().request(Route.GET_MESSAGE.format(interaction.getChannelId(), msgId)).get().getBody();
+            return rerollGiveaway(interaction, new ReceivedMessage(json), count);
         }
-        catch(Exception ex)
+        catch(ExecutionException | InterruptedException ex)
         {
-            return GBCommand.respondError(LocalizedMessage.ERROR_INVALID_MESSAGE.getLocalizedMessage(interaction.getEffectiveLocale()));
-        }
-        
-        // reroll
-        String url = "https://cdn.discordapp.com/attachments/" + summaryKey + "/giveaway_summary.json";
-        try
-        {
-            RestClient.RestResponse res = bot.getRestClient().simpleRequest(url).get();
-            List<Long> entries = JsonUtil.optArray(res.getBody(), "entries", user -> user.getLong("id"));
-            List<Long> winner = GiveawayUtil.selectWinners(entries, 1);
-            if(winner.isEmpty())
-                return GBCommand.respondError(LocalizedMessage.ERROR_GENERIC_REROLL.getLocalizedMessage(interaction.getEffectiveLocale()));
-            return new MessageCallback(new SentMessage.Builder()
-                    .setAllowedMentions(new AllowedMentions(AllowedMentions.ParseType.USERS))
-                    .setReferenceMessage(interaction.getCommandData().getTargetId())
-                    .setContent(LocalizedMessage.SUCCESS_GIVEAWAY_REROLL.getLocalizedMessage(interaction.getEffectiveLocale(), "<@" + interaction.getUser().getIdLong() + ">", "<@" + winner.get(0) + ">") 
-                            + " [\u2197](" + String.format(JUMP_LINK, interaction.getGuildId(), interaction.getChannelId(), interaction.getCommandData().getTargetId()) + ")")
-                    .build());
-        } 
-        catch(Exception ex)
-        {
-            ex.printStackTrace();
-            return GBCommand.respondError(LocalizedMessage.ERROR_GENERIC_REROLL.getLocalizedMessage(interaction.getEffectiveLocale()));
+            return respondError(LocalizedMessage.ERROR_MESSAGE_NOT_FOUND.getLocalizedMessage(interaction.getEffectiveLocale(), msgId) + tip);
         }
     }
 }

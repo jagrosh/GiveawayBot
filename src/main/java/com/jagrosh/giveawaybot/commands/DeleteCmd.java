@@ -38,7 +38,7 @@ public class DeleteCmd extends GBCommand
                 .setType(ApplicationCommand.Type.CHAT_INPUT)
                 .setName(bot.getCommandPrefix() + "delete")
                 .setDescription("delete a giveaway")
-                .addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.STRING, "giveaway_id", "deletes a giveaway", true, null, null, true))
+                .addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.STRING, "giveaway_id", "ID of giveaway to delete without ending", true, null, null, true))
                 .setDmPermission(false)
                 .setDefaultPermissions(Permission.MANAGE_GUILD)
                 .build();

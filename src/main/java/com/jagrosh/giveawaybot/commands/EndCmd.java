@@ -17,8 +17,6 @@ package com.jagrosh.giveawaybot.commands;
 
 import com.jagrosh.giveawaybot.GiveawayBot;
 import com.jagrosh.giveawaybot.GiveawayException;
-import com.jagrosh.giveawaybot.GiveawayManager;
-import com.jagrosh.giveawaybot.data.Database;
 import com.jagrosh.giveawaybot.data.Giveaway;
 import com.jagrosh.giveawaybot.entities.LocalizedMessage;
 import com.jagrosh.interactions.command.ApplicationCommand;
@@ -40,7 +38,7 @@ public class EndCmd extends GBCommand
                 .setType(ApplicationCommand.Type.CHAT_INPUT)
                 .setName(bot.getCommandPrefix() + "end")
                 .setDescription("end a giveaway")
-                .addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.STRING, "giveaway_id", "ends a giveaway", true, null, null, true))
+                .addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.STRING, "giveaway_id", "ID of giveaway to end now", true, null, null, true))
                 .setDmPermission(false)
                 .setDefaultPermissions(Permission.MANAGE_GUILD)
                 .build();

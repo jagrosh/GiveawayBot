@@ -19,7 +19,9 @@ import com.jagrosh.giveawaybot.Constants;
 import com.jagrosh.giveawaybot.GiveawayBot;
 import com.jagrosh.giveawaybot.GiveawayException;
 import com.jagrosh.giveawaybot.data.GuildSettings;
+import com.jagrosh.giveawaybot.entities.EmojiParser;
 import com.jagrosh.giveawaybot.entities.LocalizedMessage;
+import com.jagrosh.giveawaybot.entities.PremiumLevel;
 import com.jagrosh.giveawaybot.util.OtherUtil;
 import com.jagrosh.interactions.command.ApplicationCommand;
 import com.jagrosh.interactions.command.ApplicationCommandOption;
@@ -39,6 +41,8 @@ import java.awt.Color;
  */
 public class SettingsCmd extends GBCommand
 {
+    private final static int MAX_BUTTON_TEXT_LENGTH = 32;
+    
     public SettingsCmd(GiveawayBot bot)
     {
         super(bot);
@@ -46,9 +50,11 @@ public class SettingsCmd extends GBCommand
         ApplicationCommandOption group = new ApplicationCommandOption(ApplicationCommandOption.Type.SUB_COMMAND_GROUP, "set", "set settings", false);
         ApplicationCommandOption colorCmd = new ApplicationCommandOption(ApplicationCommandOption.Type.SUB_COMMAND, "color", "set giveaway embed color", false);
         colorCmd.addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.STRING, "hex", "hex code or standard color name", true));
+        ApplicationCommandOption buttonCmd = new ApplicationCommandOption(ApplicationCommandOption.Type.SUB_COMMAND, "emoji", "set giveaway button emoji and text", false);
+        buttonCmd.addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.STRING, "emoji", "emoji or button text", true, 1, 64, false));
         //ApplicationCommandOption roleCmd = new ApplicationCommandOption(ApplicationCommandOption.Type.SUB_COMMAND, "role", "set giveaway manager role", false);
         //roleCmd.addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.ROLE, "role", "role that can create and manage giveaways", true));
-        group.addOptions(colorCmd/*, roleCmd*/);
+        group.addOptions(colorCmd, buttonCmd/*, roleCmd*/);
         this.app = new ApplicationCommand.Builder()
                 .setType(ApplicationCommand.Type.CHAT_INPUT)
                 .setName(bot.getCommandPrefix() + "settings")
@@ -87,6 +93,17 @@ public class SettingsCmd extends GBCommand
                             return respondError(LocalizedMessage.ERROR_INVALID_COLOR.getLocalizedMessage(wl, col));
                         bot.getDatabase().setGuildColor(interaction.getGuildId(), color);
                         return respondSuccess(LocalizedMessage.SUCCESS_SETTINGS_COLOR.getLocalizedMessage(wl, "#" + Integer.toHexString(color.getRGB() & 0xFFFFFF).toUpperCase()));
+                    case "emoji":
+                        String em = cmd.getOptionByName("emoji").getStringValue();
+                        EmojiParser.ParsedEntryButton pe = bot.getGiveawayManager().getEmojiManager().parse(em);
+                        if(pe.isFree() || bot.getDatabase().getPremiumLevel(interaction.getGuildId()).customEmojis)
+                        {
+                            if(pe.text != null && pe.text.length() > MAX_BUTTON_TEXT_LENGTH)
+                                return respondError(LocalizedMessage.ERROR_INVALID_EMOJI_LENGTH.getLocalizedMessage(wl, MAX_BUTTON_TEXT_LENGTH));
+                            bot.getDatabase().setGuildEmoji(interaction.getGuildId(), pe.render());
+                            return respondSuccess(LocalizedMessage.SUCCESS_SETTINGS_EMOJI.getLocalizedMessage(wl, pe.render()));
+                        }
+                        else return respondError(LocalizedMessage.ERROR_INVALID_EMOJI_CHOICE.getLocalizedMessage(wl, bot.getGiveawayManager().getEmojiManager().getFreeEmoji()));
                     default:
                         return respondError("Unknown settings command.");
                 }
