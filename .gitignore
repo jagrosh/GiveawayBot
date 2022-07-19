@@ -6,5 +6,6 @@ nb*.xml
 /test/
 /backup/
 /target/
+/nbproject/
 /src/main/resources/static/
 /src/main/resources/templates

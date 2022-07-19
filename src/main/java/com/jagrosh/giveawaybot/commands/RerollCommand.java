@@ -44,7 +44,7 @@ public class RerollCommand extends GiveawayCommand
         {
             event.getChannel().getHistory().retrievePast(100).queue(messages -> 
             {
-                Message m = messages.stream().filter(msg -> msg.getAuthor().equals(event.getSelfUser()) && !msg.getEmbeds().isEmpty() 
+                Message m = messages.stream().filter(msg -> msg.getAuthor().equals(event.getSelfUser()) && msg.getContentRaw().contains("GIVEAWAY") && !msg.getEmbeds().isEmpty() 
                         && msg.getReactions().stream().anyMatch(mr -> mr.getReactionEmote().getName().equals(Constants.TADA)&&mr.getCount()>0)).findFirst().orElse(null);
                 if(m==null)
                     event.replyWarning("I couldn't find any recent giveaways in this channel.");

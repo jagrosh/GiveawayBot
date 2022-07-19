@@ -60,9 +60,9 @@ public class Bot extends ListenerAdapter
     private final ScheduledExecutorService threadpool; // threadpool to use for timings
     private final Database database; // database
     private final Logger LOG = LoggerFactory.getLogger("Bot");
-    private boolean safeMode;
+    private boolean safeMode, warningMode;
     
-    private Bot(Database database, String webhookUrl, boolean safeMode)
+    private Bot(Database database, String webhookUrl, boolean safeMode, boolean warningMode)
     {
         this.database = database;
         this.threadpool = Executors.newScheduledThreadPool(20);
@@ -102,6 +102,11 @@ public class Bot extends ListenerAdapter
     public void setSafeMode(boolean safe)
     {
         this.safeMode = safe;
+    }
+    
+    public boolean isWarningMode()
+    {
+        return warningMode;
     }
     
     // public methods
@@ -201,7 +206,8 @@ public class Bot extends ListenerAdapter
                                        config.getString("database.username"), 
                                        config.getString("database.password")), 
                           config.getString("webhook"), 
-                          config.hasPath("safemode") && config.getBoolean("safemode"));
+                          config.hasPath("safemode") && config.getBoolean("safemode"),
+                          config.hasPath("warnmode") && config.getBoolean("warnmode"));
         
         // build the client to deal with commands
         CommandClient client = new CommandClientBuilder()
