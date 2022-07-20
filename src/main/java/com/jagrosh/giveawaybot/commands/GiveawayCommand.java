@@ -39,7 +39,7 @@ public abstract class GiveawayCommand extends Command
         this.guildOnly = true;
         this.category = new Command.Category("Giveaway", event -> 
         {
-            if(bot.isSafeMode())
+            if(bot.getCurrentMode() == Bot.Mode.SAFE)
             {
                 log.info("Ignored '" + this.name +"' by " + event.getAuthor().getId() + " in " + (event.getGuild() == null ? "DMs" : event.getGuild().getId()) + "/" + event.getChannel().getId());
                 return false;

@@ -37,6 +37,7 @@ public class Constants
     public static final Color  BLURPLE  = Color.decode("#7289DA");
     public static final String INVITE   = "https://giveawaybot.party/invite";
     public static final String DONATE   = "https://giveawaybot.party/donate";
+    public static final String SUPPORT  = "https://giveawaybot.party/support";
     public static final int MIN_TIME    = 10;
     public static final String WEBSITE  = "https://giveawaybot.party";
     public static final String OWNER    = "**jagrosh**#4824";

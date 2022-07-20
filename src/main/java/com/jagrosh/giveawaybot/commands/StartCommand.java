@@ -36,6 +36,7 @@ public class StartCommand extends GiveawayCommand
     private final static String EXAMPLE = "\nExample usage: `!gstart 30m 5w Awesome T-Shirt`";
     private final static String WARNING = "\n\n" + Constants.WARNING + " Warning: `!gstart` (and `g!start`) is deprecated. Please switch to using `/gstart` as soon as possible."
             + " Note that the `!g` commands and `/g` commands are separate systems; if you start a giveaway with the `!g` commands, you must also use the `!g` commands for rerolling.";
+    private final static String ENDED = "Giveaway creation via `!gstart` is no longer available. Please use `/gstart` to create giveaways. If you encounter issues, please join the support server: " + Constants.SUPPORT;
     
     public StartCommand(Bot bot)
     {
@@ -49,12 +50,19 @@ public class StartCommand extends GiveawayCommand
     @Override
     protected void execute(CommandEvent event) 
     {
+        if(bot.getCurrentMode() == Bot.Mode.LIMITED)
+        {
+            event.replyError(ENDED);
+            return;
+        }
+        
+        String warning = bot.getCurrentMode() == Bot.Mode.WARNING ? WARNING : "";
         event.async(() -> 
         {
             // check permissions
             if(!Constants.canSendGiveaway(event.getTextChannel()))
             {
-                event.replyError("I cannot start a giveaway here; please make sure I have the following permissions:\n\n" + Constants.PERMS + (bot.isWarningMode() ? WARNING : ""));
+                event.replyError("I cannot start a giveaway here; please make sure I have the following permissions:\n\n" + Constants.PERMS + warning);
                 return;
             }
 
@@ -68,7 +76,7 @@ public class StartCommand extends GiveawayCommand
             // check for arguments
             if(event.getArgs().isEmpty())
             {
-                event.replyError("Please include a length of time, and optionally a number of winners and a prize!" + EXAMPLE + (bot.isWarningMode() ? WARNING : ""));
+                event.replyError("Please include a length of time, and optionally a number of winners and a prize!" + EXAMPLE + warning);
                 return;
             }
 
@@ -77,14 +85,14 @@ public class StartCommand extends GiveawayCommand
             int seconds = OtherUtil.parseShortTime(parts[0]);
             if(seconds==-1)
             {
-                event.replyWarning("Failed to parse time from `" + parts[0] + "`" + EXAMPLE + (bot.isWarningMode() ? WARNING : ""));
+                event.replyWarning("Failed to parse time from `" + parts[0] + "`" + EXAMPLE + warning);
                 return;
             }
             PremiumLevel level = bot.getDatabase().premium.getPremiumLevel(event.getGuild());
             if(!level.isValidTime(seconds))
             {
                 event.replyError("Giveaway time must not be shorter than " + FormatUtil.secondsToTime(Constants.MIN_TIME) 
-                        + " and no longer than " + FormatUtil.secondsToTime(level.maxTime) + (bot.isWarningMode() ? WARNING : ""));
+                        + " and no longer than " + FormatUtil.secondsToTime(level.maxTime) + warning);
                 return;
             }
 
@@ -107,13 +115,13 @@ public class StartCommand extends GiveawayCommand
             }
             if(!level.isValidWinners(winners))
             {
-                event.replyError("Number of winners must be at least 1 and no larger than " + level.maxWinners + (bot.isWarningMode() ? WARNING : ""));
+                event.replyError("Number of winners must be at least 1 and no larger than " + level.maxWinners + warning);
                 return;
             }
 
             if(item != null && item.length()>250)
             {
-                event.replyWarning("Ack! That prize is too long. Can you shorten it a bit?" + (bot.isWarningMode() ? WARNING : ""));
+                event.replyWarning("Ack! That prize is too long. Can you shorten it a bit?" + warning);
                 return;
             }
 
@@ -123,13 +131,13 @@ public class StartCommand extends GiveawayCommand
                     : bot.getDatabase().giveaways.getGiveaways(event.getGuild());
             if(list == null)
             {
-                event.replyError("An error occurred when trying to start giveaway." + (bot.isWarningMode() ? WARNING : ""));
+                event.replyError("An error occurred when trying to start giveaway." + warning);
                 return;
             }
             else if(list.size() >= level.maxGiveaways)
             {
                 event.replyError("There are already " + level.maxGiveaways + " giveaways running in this " 
-                        + (level.perChannelMaxGiveaways ? "channel" : "server") + "!" + (bot.isWarningMode() ? WARNING : ""));
+                        + (level.perChannelMaxGiveaways ? "channel" : "server") + "!" + warning);
                 return;
             }
 

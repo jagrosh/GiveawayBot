@@ -43,8 +43,9 @@ public class CreateCommand extends GiveawayCommand
     private final static String WINNERS = "\n\n`Please enter a number of winners between 1 and %d.`";
     private final static String PRIZE = "\n\n`Please enter the giveaway prize. This will also begin the giveaway.`";
     private final static String PROMO = "\nNeed to host more giveaways, giveaways with longer durations, or giveaways with more winners? Check out <" + Constants.DONATE + ">!";
-    private final static String WARNING = "\nWarning: `!gstart` (and `g!start`) is deprecated. Please switch to using `/gstart` as soon as possible."
+    private final static String WARNING = "\n\n" + Constants.WARNING + " Warning: `!gstart` (and `g!start`) is deprecated. Please switch to using `/gstart` as soon as possible."
             + " Note that the `!g` commands and `/g` commands are separate systems; if you start a giveaway with the `!g` commands, you must also use the `!g` commands for rerolling.";
+    private final static String ENDED = "Giveaway creation via `!gcreate` is no longer available. Please use `/gcreate` to create giveaways. If you encounter issues, please join the support server: " + Constants.SUPPORT;
     
     private final static List<String> CANCEL_WORDS = Arrays.asList("cancel", "!gcancel", "g!cancel");
     
@@ -61,6 +62,12 @@ public class CreateCommand extends GiveawayCommand
     @Override
     protected void execute(CommandEvent event) 
     {
+        if(bot.getCurrentMode() == Bot.Mode.LIMITED)
+        {
+            event.replyError(ENDED);
+            return;
+        }
+        
         // ignore if there's already creation running here
         if(current.contains(event.getChannel().getIdLong()))
             return;
@@ -75,8 +82,13 @@ public class CreateCommand extends GiveawayCommand
         // get started
         current.add(event.getChannel().getIdLong());
         event.replySuccess("Alright! Let's set up your giveaway! First, what channel do you want the giveaway in?\n"
-                + "You can type `cancel` at any time to cancel creation." + CHANNEL + (bot.isWarningMode() ? WARNING : ""));
+                + "You can type `cancel` at any time to cancel creation." + CHANNEL + warning());
         waitForChannel(event, level, event.getMessage().getIdLong());
+    }
+    
+    private String warning()
+    {
+        return bot.getCurrentMode() == Bot.Mode.WARNING ? WARNING : "";
     }
     
     private boolean tooManyGiveaways(CommandEvent event, TextChannel tchannel, PremiumLevel level)
@@ -86,7 +98,7 @@ public class CreateCommand extends GiveawayCommand
                 : bot.getDatabase().giveaways.getGiveaways(event.getGuild());
         if(list == null)
         {
-            event.replyError("An error occurred when trying to start giveaway." + CANCEL + (bot.isWarningMode() ? WARNING : ""));
+            event.replyError("An error occurred when trying to start giveaway." + CANCEL + warning());
             current.remove(event.getChannel().getIdLong());
             return true;
         }
@@ -94,7 +106,7 @@ public class CreateCommand extends GiveawayCommand
         {
             event.replyError("There are already " + level.maxGiveaways + " giveaways running in " 
                     + (tchannel == null ? "this server" : tchannel.getAsMention()) + "!"
-                    + (level == PremiumLevel.NONE ? PROMO : "") + CANCEL + (bot.isWarningMode() ? WARNING : ""));
+                    + (level == PremiumLevel.NONE ? PROMO : "") + CANCEL + warning());
             current.remove(event.getChannel().getIdLong());
             return true;
         }
@@ -236,7 +248,7 @@ public class CreateCommand extends GiveawayCommand
             {
                 event.replySuccess("Done! The giveaway for the `" + e.getMessage().getContentRaw() + "` is starting in " + tchan.getAsMention() + "!" 
                         + (level == PremiumLevel.NONE && Math.random() < .01 ? "\nIf you want to help keep this bot online, please check out <" + Constants.DONATE + ">!" : "") 
-                        + (bot.isWarningMode() ? WARNING : ""));
+                        + warning());
             }
             else
             {

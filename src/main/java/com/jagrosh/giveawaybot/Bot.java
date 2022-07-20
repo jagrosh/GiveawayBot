@@ -60,16 +60,14 @@ public class Bot extends ListenerAdapter
     private final ScheduledExecutorService threadpool; // threadpool to use for timings
     private final Database database; // database
     private final Logger LOG = LoggerFactory.getLogger("Bot");
-    private final boolean warningMode;
-    private boolean safeMode;
+    private Mode mode;
     
-    private Bot(Database database, String webhookUrl, boolean safeMode, boolean warningMode)
+    private Bot(Database database, String webhookUrl, Mode mode)
     {
         this.database = database;
         this.threadpool = Executors.newScheduledThreadPool(20);
         this.webhook = new WebhookLog(webhookUrl, System.getProperty("logname"));
-        this.safeMode = safeMode;
-        this.warningMode = warningMode;
+        this.mode = mode;
         
         new Uptimer.DatabaseUptimer(this).start(this.threadpool);
         new Uptimer.StatusUptimer(this).start(this.threadpool);
@@ -96,19 +94,14 @@ public class Bot extends ListenerAdapter
         return database;
     }
     
-    public boolean isSafeMode()
+    public Mode getCurrentMode()
     {
-        return safeMode;
+        return mode;
     }
     
-    public void setSafeMode(boolean safe)
+    public void setMode(Mode mode)
     {
-        this.safeMode = safe;
-    }
-    
-    public boolean isWarningMode()
-    {
-        return warningMode;
+        this.mode = mode;
     }
     
     // public methods
@@ -183,6 +176,11 @@ public class Bot extends ListenerAdapter
         if(event.getMember().equals(event.getGuild().getSelfMember()))
             database.settings.updateColor(event.getGuild());
     }
+    
+    public enum Mode
+    {
+        NORMAL, WARNING, LIMITED, SAFE
+    }
 
     /*@Override
     public void onReady(ReadyEvent event)
@@ -207,9 +205,8 @@ public class Bot extends ListenerAdapter
         Bot bot = new Bot(new Database(config.getString("database.host"), 
                                        config.getString("database.username"), 
                                        config.getString("database.password")), 
-                          config.getString("webhook"), 
-                          config.hasPath("safemode") && config.getBoolean("safemode"),
-                          config.hasPath("warnmode") && config.getBoolean("warnmode"));
+                          config.getString("webhook"),
+                          config.hasPath("mode") ? Mode.valueOf(config.getString("mode").toUpperCase()) : Mode.NORMAL);
         
         // build the client to deal with commands
         CommandClient client = new CommandClientBuilder()
