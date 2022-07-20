@@ -60,7 +60,8 @@ public class Bot extends ListenerAdapter
     private final ScheduledExecutorService threadpool; // threadpool to use for timings
     private final Database database; // database
     private final Logger LOG = LoggerFactory.getLogger("Bot");
-    private boolean safeMode, warningMode;
+    private final boolean warningMode;
+    private boolean safeMode;
     
     private Bot(Database database, String webhookUrl, boolean safeMode, boolean warningMode)
     {
@@ -68,6 +69,7 @@ public class Bot extends ListenerAdapter
         this.threadpool = Executors.newScheduledThreadPool(20);
         this.webhook = new WebhookLog(webhookUrl, System.getProperty("logname"));
         this.safeMode = safeMode;
+        this.warningMode = warningMode;
         
         new Uptimer.DatabaseUptimer(this).start(this.threadpool);
         new Uptimer.StatusUptimer(this).start(this.threadpool);
