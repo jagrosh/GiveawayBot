@@ -43,7 +43,7 @@ public class CreateCommand extends GiveawayCommand
     private final static String WINNERS = "\n\n`Please enter a number of winners between 1 and %d.`";
     private final static String PRIZE = "\n\n`Please enter the giveaway prize. This will also begin the giveaway.`";
     private final static String PROMO = "\nNeed to host more giveaways, giveaways with longer durations, or giveaways with more winners? Check out <" + Constants.DONATE + ">!";
-    private final static String WARNING = "\n\n" + Constants.WARNING + " Warning: `!gstart` (and `g!start`) is deprecated. Please switch to using `/gstart` as soon as possible."
+    private final static String WARNING = "\n\n" + Constants.WARNING + " Warning: `!gcreate` (and `g!create`) is deprecated. Please switch to using `/gcreate` as soon as possible."
             + " Note that the `!g` commands and `/g` commands are separate systems; if you start a giveaway with the `!g` commands, you must also use the `!g` commands for rerolling.";
     private final static String ENDED = "Giveaway creation via `!gcreate` is no longer available. Please use `/gcreate` to create giveaways. If you encounter issues, please join the support server: " + Constants.SUPPORT;
     
