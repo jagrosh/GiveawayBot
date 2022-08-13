@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="description" content="Hold giveaways on your Discord server quickly and easily! GiveawayBot is an open-source Discord Giveaway bot that assists with hosting automated giveaways. It is simple and free to use, and requires little-to-no setup to start hosting giveaways.">
+    <meta name="description" content="Hold giveaways on your Discord server quickly and easily! GiveawayBot is an open-source Discord Giveaway bot that assists with hosting automated giveaways.">
     <meta name="keywords" content="Discord, GiveawayBot, Giveaway, Giveaways, Discord Bot, Boat, Contest, Free, FOSS, OSS, Open Source">
     <meta name="author" content="jagrosh">
     <meta property="og:title" content="GiveawayBot - Discord Giveaway Bot">
@@ -75,7 +75,7 @@
                 <p>Hold giveaways on your <b>Discord</b> server quickly and easily!</p>
                 <p><img src="https://img.shields.io/badge/dynamic/json.svg?label=Servers&amp;style=for-the-badge&amp;url=https%3A%2F%2Fdiscord.bots.gg%2Fapi%2Fv1%2Fbots%2F294882584201003009&amp;query=%24.guildCount&amp;colorB=7289DA" alt="Server Count">
                    <img src="https://img.shields.io/badge/dynamic/json.svg?label=Status&amp;style=for-the-badge&amp;url=https%3A%2F%2Fdiscord.bots.gg%2Fapi%2Fv1%2Fbots%2F294882584201003009&amp;query=%24.status&amp;colorB=7289DA" alt="Bot Status"></p>
-                <a href="/invite" class="btn btn-primary btn-lg">Add to Discord</a>
+                <a href="/invite" class="btn btn-primary btn-lg">Add to Discord</a> 
 		<a href="/donate" class="btn btn-primary btn-lg">Get Premium</a>
             </div>
         </div>
@@ -88,21 +88,32 @@
                 <div class="col-lg-8 col-lg-offset-2">
                 	<span style="font-size: 60px"></span>
                     <h2 class="section-heading">Start Holding Giveaways!!</h2>
-                    <p class="text-light intro-body"><b>!ghelp</b> - shows the available commands</p>
+                    <p class="text-light intro-body"><b>/ghelp</b> - shows the available commands</p>
                     <br>
-                    <p class="text-light intro-body"><b>!gcreate</b> - creates a giveaway (interactive setup)</p>
+                    <p class="text-light intro-body"><b>/gabout</b> - shows information about the bot</p>
                     <br>
-                    <p class="text-light intro-body"><b>!gstart &lt;time&gt; [winners] [prize]</b> - starts a giveaway with the provided number of seconds.
-                                          For example, <b>!gstart 30s 2w Steam Code</b> would start a 30-second giveaway for a Steam Code with 2 winners!
-                                          To use minutes/hours/days instead of seconds, simply include an "m", "h", or "d" in the time ~ <b>!gstart 3m</b> would be a 3-minute giveaway.</p>
+                    <p class="text-light intro-body"><b>/ginvite</b> - shows a link to add the bot to your server</p>
+                    <br><br>
+                    <p class="text-light intro-body"><b>/gcreate</b> - creates a giveaway (interactive setup)</p>
                     <br>
-                    <p class="text-light intro-body"><b>!gend</b> - ends the most recent giveaway in the current channel. If you want to end an older/more specific giveaway, use <b>!gend [messageId]</b></p>
+                    <p class="text-light intro-body"><b>/gstart &lt;time&gt; &lt;winners&gt; &lt;prize&gt;</b> - starts a giveaway with the provided number of seconds.
+                                          For example, <b>/gstart 30s 2 Steam Code</b> would start a 30-second giveaway for a Steam Code with 2 winners!
+                                          To use minutes/hours/days instead of seconds, simply include an "m", "h", or "d" in the time ~ <b>/gstart 3m ...</b> would be a 3-minute giveaway.</p>
+                    <br><br>
+                    <p class="text-light intro-body"><b>/gend &lt;giveaway_id&gt;</b> - ends the specified currently-running giveaway and picks the appropriate number of winners immediately.</p>
                     <br>
-                    <p class="text-light intro-body"><b>!greroll</b> - picks a new winner from the latest giveaway. If you want to reroll an older giveaway, you can use <b>!greroll [messageId]</b></p>
+                    <p class="text-light intro-body"><b>/gdelete &lt;giveaway_id&gt;</b> - deletes the specified giveaway without picking winners.</p>
                     <br>
-                    <p class="text-light intro-body"><b>!glist</b> - lists all the currently-running giveaways on the server</p>
+                    <p class="text-light intro-body"><b>/glist</b> - lists all the currently-running giveaways on the server</p>
                     <br>
-                    <img style="border-radius: 15px; width: 100%;" src="./images/example_giveaway_2.gif" alt="Example Setup of GiveawayBot">
+                    <p class="text-light intro-body"><b>/greroll &lt;giveaway_id&gt;</b> - picks a new winner from the specified giveaway. You can also right-click (or long-press on mobile) on an ended giveaway and select <b>Apps</b> &gt; <b>Reroll Giveaway</b> to reroll.</p>
+                    <br><br>
+                    <p class="text-light intro-body"><b>/gsettings show</b> - shows GiveawayBot's settings on the server. Some settings are set automatically, such as locale.</p>
+                    <br>
+                    <p class="text-light intro-body"><b>/gsettings set color &lt;hex_code&gt;</b> - sets the color of the embed used for giveaways</p>
+                    <br>
+                    <p class="text-light intro-body"><b>/gsettings set emoji &lt;giveaway_id&gt;</b> - sets the emoji or text used on the button to enter giveaways</p>
+                    <!--img style="border-radius: 15px; width: 100%;" src="./images/example_giveaway_2.gif" alt="Example Setup of GiveawayBot-->
                 </div>
             </div>
         </div>
