@@ -25,6 +25,7 @@ import com.jagrosh.interactions.entities.Permission;
 import com.jagrosh.interactions.entities.ReceivedMessage;
 import com.jagrosh.interactions.receive.CommandInteractionDataOption;
 import com.jagrosh.interactions.receive.Interaction;
+import com.jagrosh.interactions.requests.RestClient.RestResponse;
 import com.jagrosh.interactions.requests.Route;
 import com.jagrosh.interactions.responses.InteractionResponse;
 import java.util.concurrent.ExecutionException;
@@ -63,7 +64,10 @@ public class RerollCmd extends RerollMessageCmd
             return respondError(LocalizedMessage.ERROR_BOT_PERMISSIONS.getLocalizedMessage(interaction.getEffectiveLocale(), bot.getGiveawayManager().getPermsLink(interaction.getGuildId())));
         try
         {
-            JSONObject json = bot.getRestClient().request(Route.GET_MESSAGE.format(interaction.getChannelId(), msgId)).get().getBody();
+            RestResponse res = bot.getRestClient().request(Route.GET_MESSAGE.format(interaction.getChannelId(), msgId)).get();
+            if(!res.isSuccess())
+                return respondError(LocalizedMessage.ERROR_MESSAGE_NOT_FOUND.getLocalizedMessage(interaction.getEffectiveLocale(), msgId) + tip);
+            JSONObject json = res.getBody();
             return rerollGiveaway(interaction, new ReceivedMessage(json), count);
         }
         catch(ExecutionException | InterruptedException ex)

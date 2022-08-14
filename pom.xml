@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.jagrosh</groupId>
     <artifactId>GiveawayBot</artifactId>
-    <version>3.0</version>
+    <version>4.0</version>
     <packaging>jar</packaging>
     
     <properties>

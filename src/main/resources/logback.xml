@@ -15,33 +15,44 @@
  -->
  
 <configuration>
+    <!-- author: Kaidan Gustave  -->
+    <property name="pattern" value="%nopex[%d{HH:mm:ss}] [%level] [%logger{0}]: %msg%n%ex" />
+    
+    <!-- appenders -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- daily rollover -->
             <fileNamePattern>logs/log.%d{yyyy-MM-dd}.txt</fileNamePattern>
-
-            <!-- keep 30 days' worth of history capped at 1GB total size -->
             <maxHistory>30</maxHistory>
             <totalSizeCap>1GB</totalSizeCap>
         </rollingPolicy>
-        <encoder>
-            <!-- author: Kaidan Gustave  -->
-            <pattern> 
-                %nopex[%d{HH:mm:ss}] [%level] [%logger{0}]: %msg%n%ex
-            </pattern>
-        </encoder>
+        <encoder><pattern>${pattern}</pattern></encoder>
     </appender>
+    
+    <appender name="DEBUG-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/log-debug.%d{yyyy-MM-dd}.txt</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder><pattern>${pattern}</pattern></encoder>
+    </appender>
+    
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <!-- author: Kaidan Gustave  -->
-            <pattern> 
-                %nopex[%d{HH:mm:ss}] [%level] [%logger{0}]: %msg%n%ex
-            </pattern>
-        </encoder>
+        <encoder><pattern>${pattern}</pattern></encoder>
     </appender>
+    
+    <!-- loggers -->
+    <logger name="com.jagrosh.giveawaybot.GiveawayManager" level="DEBUG" additivity="false">
+        <appender-ref ref="DEBUG-FILE"/>
+    </logger>
+    
+    <logger name="com.jagrosh.giveawaybot.GiveawayListener" level="DEBUG" additivity="false">
+        <appender-ref ref="DEBUG-FILE"/>
+    </logger>
     
     <root level="INFO">
         <appender-ref ref="FILE" />
         <!--appender-ref ref="FILE"/-->
     </root>
+    
 </configuration>

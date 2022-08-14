@@ -32,6 +32,8 @@ import com.jagrosh.interactions.responses.InteractionResponse;
 import com.jagrosh.interactions.responses.MessageCallback;
 import java.lang.management.ManagementFactory;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -39,6 +41,7 @@ import java.util.stream.Collectors;
  */
 public class GiveawayListener implements InteractionsListener
 {
+    private final Logger log = LoggerFactory.getLogger(GiveawayListener.class);
     private final GiveawayBot bot;
     
     public GiveawayListener(GiveawayBot bot)
@@ -92,7 +95,7 @@ public class GiveawayListener implements InteractionsListener
         CommandInteractionDataOption op = interaction.getCommandData().getOptionByName("giveaway_id");
         if(op != null && op.isFocused())
         {
-            return new AutocompleteCallback<String>(bot.getDatabase().getGiveawaysByChannel(interaction.getChannelId())
+            return new AutocompleteCallback<>(bot.getDatabase().getGiveawaysByChannel(interaction.getChannelId())
                     .stream().limit(25).map(g -> new Choice<>(g.getPrize(), g.getMessageId()+"")).collect(Collectors.toList()));
         }
         return new DeferredCallback(false);
@@ -107,6 +110,11 @@ public class GiveawayListener implements InteractionsListener
             Giveaway g = bot.getDatabase().getGiveaway(id);
             if(g == null)
                 return GBCommand.respondError(LocalizedMessage.ERROR_GIVEAWAY_ENDED.getLocalizedMessage(interaction.getEffectiveLocale()));
+            
+            // sanity check
+            if(g.getGuildId() != interaction.getGuildId() || g.getChannelId() != interaction.getChannelId())
+                log.debug(String.format("Giveaway guild/channel ids don't match for giveaway %d! Giveaway: %d/%d Interaction: %d/%d", g.getMessageId(), g.getGuildId(), g.getChannelId(), interaction.getGuildId(), interaction.getChannelId()));
+            
             int entered = bot.getDatabase().addEntry(id, interaction.getUser());
             if(entered >= 0)
                 return new MessageCallback(bot.getGiveawayManager().renderGiveaway(g, entered), true);

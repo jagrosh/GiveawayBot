@@ -220,6 +220,18 @@ public class GiveawayManager
             }
             ReceivedMessage rm = new ReceivedMessage(res.getBody());
             giveaway.setMessageId(rm.getIdLong());
+            
+            // sanity checks
+            if(/*rm.getGuildId() != guildId ||*/ rm.getChannelId() != channelId)
+            {
+                log.error(String.format("There's a mismatch in data! Interaction: %d/%d Message: %d/%d", guildId, channelId, rm.getGuildId(), rm.getChannelId()));
+                //throw new GiveawayException(LocalizedMessage.ERROR_GENERIC_CREATION);
+            }
+            if(guildId > channelId)
+            {
+                log.error(String.format("Odd data received; channel is older than guild! G: %d  C:%d", guildId, channelId));
+            }
+            
             database.createGiveaway(giveaway);
             return giveaway.getMessageId();
         }

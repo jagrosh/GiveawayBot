@@ -21,6 +21,7 @@ import com.jagrosh.giveawaybot.data.Giveaway;
 import com.jagrosh.giveawaybot.entities.LocalizedMessage;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.interactions.command.ApplicationCommand;
+import com.jagrosh.interactions.entities.AllowedMentions;
 import com.jagrosh.interactions.entities.Permission;
 import com.jagrosh.interactions.entities.SentMessage;
 import com.jagrosh.interactions.receive.Interaction;
@@ -62,28 +63,14 @@ public class ListCmd extends GBCommand
         {
             sb.append("\n[`").append(giv.getMessageId()).append("`](").append(giv.getJumpLink()).append(") | <#").append(giv.getChannelId()).append("> | **").append(giv.getWinners())
                 .append("** ").append(FormatUtil.pluralise(giv.getWinners(), "winner", "winners")).append(" | ")
-                .append(giv.getPrize() == null || giv.getPrize().isEmpty() ? "No prize specified" : "Prize: **" + giv.getPrize() + "**").append(" | ");
-            //switch(giv.status)
-            //{
-            //    case RUN:
-                    sb.append("Ends in ").append(FormatUtil.secondsToTime(Instant.now().until(giv.getEndInstant(), ChronoUnit.SECONDS)));
-            //        break;
-            //    case ENDING:
-            //        sb.append("Ending **soon**");
-            //        break;
-            //    case ENDNOW:
-            //        sb.append("Ending **now**");
-            //        break;
-            //    case SCHEDULED:
-            //        sb.append("Hasn't started");
-            //        break;
-            //    default:
-            //        sb.append("Unknown status");
-            //}
+                .append(giv.getPrize() == null || giv.getPrize().isEmpty() ? "No prize specified" : "Prize: **" + giv.getPrize() + "**").append(" | ")
+                .append("Host: <@").append(giv.getUserId()).append("> | ")
+                .append("Ends in ").append(FormatUtil.secondsToTime(Instant.now().until(giv.getEndInstant(), ChronoUnit.SECONDS)));
             
         });
         return new MessageCallback(new SentMessage.Builder()
                 .setContent(sb.toString())
+                .setAllowedMentions(new AllowedMentions(true))
                 //.addEmbed(new Embed.Builder().setTitle("Active Giveaways", null).setColor(c).setDescription(sb.toString()).build())
                 .build());
     }
