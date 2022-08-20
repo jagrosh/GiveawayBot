@@ -208,7 +208,7 @@ public class GiveawayManager
             giveaway.setGuildId(guildId);
             giveaway.setChannelId(channelId);
             SentMessage sm = renderGiveaway(giveaway, 0);
-            log.debug("Attempting to create giveaway, json: " + sm.toJson());
+            log.debug("Attempting giveaway creation in " + guildId + ", json: " + sm.toJson());
             RestResponse res = rest.request(Route.POST_MESSAGE.format(channelId), sm.toJson()).get();
             log.debug("Attempted to create giveaway, response: " + res.getStatus() + ", " + res.getBody());
             if(!res.isSuccess())

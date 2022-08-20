@@ -67,7 +67,7 @@ public abstract class GBCommand implements Command
         // update cached guild info
         GuildSettings gs = bot.getDatabase().getSettings(interaction.getGuildId());
         Instant now = Instant.now();
-        if(gs.getLatestRetrieval().plusSeconds(60*15).isBefore(now))
+        if(gs.getLatestRetrieval().plusSeconds(60*20).isBefore(now))
         {
             Guild g;
             try

@@ -17,10 +17,7 @@ package com.jagrosh.giveawaybot;
 
 import com.jagrosh.giveawaybot.commands.*;
 import com.jagrosh.giveawaybot.data.Database;
-import com.jagrosh.giveawaybot.entities.EmojiParser;
-import com.jagrosh.giveawaybot.entities.FileUploader;
-import com.jagrosh.giveawaybot.entities.PremiumChecker;
-import com.jagrosh.giveawaybot.entities.WebhookLog;
+import com.jagrosh.giveawaybot.entities.*;
 import com.jagrosh.interactions.InteractionsClient;
 import com.jagrosh.interactions.command.Command;
 import com.jagrosh.interactions.components.*;
@@ -51,6 +48,7 @@ public class GiveawayBot
     private final InteractionsClient interClient;
     private final GiveawayManager manager;
     private final PremiumChecker premium;
+    private final Uptimer uptimer;
     
     protected GiveawayBot(Config config)
     {
@@ -75,6 +73,7 @@ public class GiveawayBot
         restClient = new RestClient(config.getString("bot-token"));
         premium = new PremiumChecker(database, webhook, config.getString("checker-token"));
         manager = new GiveawayManager(database, restClient, uploader, emojis, botId);
+        uptimer = new Uptimer(this);
         
         // instantiate commands
         Command[] commands = 
@@ -125,6 +124,7 @@ public class GiveawayBot
         interClient.start();
         manager.start();
         premium.start();
+        uptimer.start();
     }
     
     public void shutdown()
@@ -139,6 +139,7 @@ public class GiveawayBot
             try
             {
                 Thread.sleep(500);
+                uptimer.shutdown();
                 interClient.shutdown();
                 premium.shutdown();
                 manager.shutdown();
@@ -193,5 +194,10 @@ public class GiveawayBot
     public GiveawayManager getGiveawayManager()
     {
         return manager;
+    }
+    
+    public InteractionsClient getInteractionsClient()
+    {
+        return interClient;
     }
 }

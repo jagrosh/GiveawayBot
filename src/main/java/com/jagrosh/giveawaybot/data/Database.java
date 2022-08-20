@@ -53,7 +53,7 @@ public class Database
         em.getMetamodel().managedType(Giveaway.class);
         em.getMetamodel().managedType(GiveawayEntries.class);
         em.getMetamodel().managedType(GuildSettings.class);
-        cacheCombiner.scheduleWithFixedDelay(() -> syncEntries(), 15, 15, TimeUnit.SECONDS);
+        cacheCombiner.scheduleWithFixedDelay(() -> syncEntries(), 30, 30, TimeUnit.SECONDS);
     }
     
     public void shutdown()
