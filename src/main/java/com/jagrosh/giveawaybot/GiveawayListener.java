@@ -139,7 +139,7 @@ public class GiveawayListener implements InteractionsListener
                                     : Constants.ERROR + " " + LocalizedMessage.ERROR_GIVEAWAY_NOT_ENTERED.getLocalizedMessage(interaction.getEffectiveLocale()))
                         .removeComponents().setEphemeral(true).build(), true);
             }
-            catch(ArrayIndexOutOfBoundsException | NumberFormatException ex){}
+            catch(ArrayIndexOutOfBoundsException | NumberFormatException ignore){}
         }
         else if(interaction.getChannelId() == bot.getControlChannel())
         {

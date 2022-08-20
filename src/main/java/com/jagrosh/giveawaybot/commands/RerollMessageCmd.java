@@ -99,7 +99,7 @@ public class RerollMessageCmd extends GBCommand
                     .setAllowedMentions(new AllowedMentions(AllowedMentions.ParseType.USERS))
                     .setReferenceMessage(msg.getIdLong())
                     .setContent(LocalizedMessage.SUCCESS_GIVEAWAY_REROLL.getLocalizedMessage(interaction.getEffectiveLocale(), "<@" + interaction.getUser().getIdLong() + ">", winStr.substring(2)) 
-                            + " [\u2197](" + String.format(JUMP_LINK, interaction.getGuildId(), interaction.getChannelId(), msg.getIdLong()) + ")")
+                            + " [\u2197](" + String.format(JUMP_LINK, interaction.getGuildId(), interaction.getChannelId(), msg.getIdLong()) + ")") // ↗
                     .build());
         } 
         catch(Exception ex)

@@ -55,7 +55,7 @@ public class EndCmd extends GBCommand
         {
             id = Long.parseLong(sid);
         }
-        catch(NumberFormatException ex) {}
+        catch(NumberFormatException ignore) {}
         if(id < 0)
             return respondError(LocalizedMessage.ERROR_INVALID_ID.getLocalizedMessage(interaction.getEffectiveLocale(), sid));
         

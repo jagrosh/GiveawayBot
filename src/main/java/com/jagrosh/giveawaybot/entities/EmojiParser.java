@@ -59,7 +59,7 @@ public class EmojiParser
         {
             return new ParsedEntryButton(m.group(2), Long.parseLong(m.group(3)), m.group(1).equals("a"), m.group(4).trim());
         }
-        catch(NumberFormatException | NullPointerException | ArrayIndexOutOfBoundsException ex) {}
+        catch(NumberFormatException | NullPointerException | ArrayIndexOutOfBoundsException ignore) {}
         return new ParsedEntryButton(null, 0L, false, text);
     }
     

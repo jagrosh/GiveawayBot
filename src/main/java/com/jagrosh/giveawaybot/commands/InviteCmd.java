@@ -28,7 +28,7 @@ import com.jagrosh.interactions.responses.InteractionResponse;
  */
 public class InviteCmd extends GBCommand
 {
-    private final static String LINK = "\uD83D\uDD17";
+    private final static String LINK = "\uD83D\uDD17"; // 🔗
     
     public InviteCmd(GiveawayBot bot)
     {
