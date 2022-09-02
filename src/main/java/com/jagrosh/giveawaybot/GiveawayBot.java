@@ -38,7 +38,8 @@ import java.util.concurrent.ExecutionException;
  */
 public class GiveawayBot 
 {
-    private final String cmdPrefix, serverCountOverride;
+    private final String cmdPrefix;
+    private final int serverCountOverride;
     private final long botId, controlChannel;
     
     private final WebhookLog webhook;
@@ -60,7 +61,7 @@ public class GiveawayBot
         cmdPrefix = config.getString("cmd-prefix");
         botId = config.hasPath("bot-id") ? config.getLong("bot-id") : config.getLong("app-id");
         controlChannel = config.hasPath("control-channel") ? config.getLong("control-channel") : 0L;
-        serverCountOverride = config.hasPath("server-count") ? config.getString("server-count") : "N/A";
+        serverCountOverride = config.hasPath("server-count") ? config.getInt("server-count") : 0;
         
         // connect to the database
         database = new Database(config.getString("database.host"), config.getString("database.user"), config.getString("database.pass"));
@@ -166,7 +167,7 @@ public class GiveawayBot
         return botId;
     }
     
-    public String getServerCountOverride()
+    public int getServerCountOverride()
     {
         return serverCountOverride;
     }

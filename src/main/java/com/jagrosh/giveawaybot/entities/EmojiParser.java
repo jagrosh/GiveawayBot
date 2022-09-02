@@ -89,7 +89,7 @@ public class EmojiParser
         
         public boolean isFree()
         {
-            return text == null && id == 0L && animated == false && freeEmoji.contains(name);
+            return text == null && id == 0L && !animated && freeEmoji.contains(name);
         }
         
         public String render()

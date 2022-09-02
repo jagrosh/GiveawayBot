@@ -23,6 +23,7 @@ import com.jagrosh.giveawaybot.entities.EmojiParser;
 import com.jagrosh.giveawaybot.entities.FileUploader;
 import com.jagrosh.giveawaybot.entities.LocalizedMessage;
 import com.jagrosh.giveawaybot.entities.PremiumLevel;
+import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.giveawaybot.util.GiveawayUtil;
 import com.jagrosh.giveawaybot.util.OtherUtil;
 import com.jagrosh.interactions.components.ActionRowComponent;
@@ -175,9 +176,9 @@ public class GiveawayManager
         if(seconds <= 0)
             throw new GiveawayException(LocalizedMessage.ERROR_INVALID_TIME_FORMAT, time);
         if(seconds < MINIMUM_SECONDS)
-            throw new GiveawayException(LocalizedMessage.ERROR_INVALID_TIME_MIN, seconds, MINIMUM_SECONDS);
+            throw new GiveawayException(LocalizedMessage.ERROR_INVALID_TIME_MIN, seconds, FormatUtil.secondsToTime(MINIMUM_SECONDS));
         if(seconds > level.maxTime)
-            throw new GiveawayException(LocalizedMessage.ERROR_INVALID_TIME_MAX, seconds, level.maxTime);
+            throw new GiveawayException(LocalizedMessage.ERROR_INVALID_TIME_MAX, seconds, FormatUtil.secondsToTime(level.maxTime));
         
         // validate number of winners
         int wins = 0;

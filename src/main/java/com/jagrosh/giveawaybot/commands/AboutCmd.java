@@ -53,7 +53,7 @@ public class AboutCmd extends GBCommand
     {
         WebLocale wl = interaction.getEffectiveLocale();
         return new MessageCallback(new SentMessage.Builder()
-                .setContent(YAY + " " + LocalizedMessage.INFO_ABOUT.getLocalizedMessage(wl) + " **GiveawayBot** " + YAY)
+                .setContent(YAY + " " + LocalizedMessage.INFO_ABOUT.getLocalizedMessage(wl, "**GiveawayBot**") + " " + YAY)
                 .addEmbed(new Embed.Builder()
                         .setTitle(LocalizedMessage.INFO_ABOUT_BRIEF.getLocalizedMessage(wl), null)
                         .setColor(new Color(0x5865F2))

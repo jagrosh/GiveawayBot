@@ -98,7 +98,7 @@ public class PremiumChecker
     {
         try
         {
-            log.info("Updating premium users...");
+            log.debug("Updating premium users...");
 
             // summary of changes
             StringBuilder sb = new StringBuilder();
