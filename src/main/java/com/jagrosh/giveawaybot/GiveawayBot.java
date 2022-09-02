@@ -26,6 +26,7 @@ import com.jagrosh.interactions.requests.RestClient;
 import com.jagrosh.interactions.requests.Route;
 import com.typesafe.config.Config;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 
 /**
@@ -39,7 +40,6 @@ import java.util.concurrent.ExecutionException;
 public class GiveawayBot 
 {
     private final String cmdPrefix;
-    private final int serverCountOverride;
     private final long botId, controlChannel;
     
     private final WebhookLog webhook;
@@ -50,6 +50,7 @@ public class GiveawayBot
     private final GiveawayManager manager;
     private final PremiumChecker premium;
     private final Uptimer uptimer;
+    private final ServerCountUpdater countUpdater;
     
     protected GiveawayBot(Config config)
     {
@@ -61,7 +62,6 @@ public class GiveawayBot
         cmdPrefix = config.getString("cmd-prefix");
         botId = config.hasPath("bot-id") ? config.getLong("bot-id") : config.getLong("app-id");
         controlChannel = config.hasPath("control-channel") ? config.getLong("control-channel") : 0L;
-        serverCountOverride = config.hasPath("server-count") ? config.getInt("server-count") : 0;
         
         // connect to the database
         database = new Database(config.getString("database.host"), config.getString("database.user"), config.getString("database.pass"));
@@ -75,6 +75,7 @@ public class GiveawayBot
         premium = new PremiumChecker(database, webhook, config.getString("checker-token"));
         manager = new GiveawayManager(database, restClient, uploader, emojis, botId);
         uptimer = new Uptimer(this);
+        countUpdater = new ServerCountUpdater(this, config.getConfig("bot-lists").entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().unwrapped().toString())));
         
         // instantiate commands
         Command[] commands = 
@@ -126,6 +127,7 @@ public class GiveawayBot
         manager.start();
         premium.start();
         uptimer.start();
+        countUpdater.start();
     }
     
     public void shutdown()
@@ -141,6 +143,7 @@ public class GiveawayBot
             {
                 Thread.sleep(500);
                 uptimer.shutdown();
+                countUpdater.shutdown();
                 interClient.shutdown();
                 premium.shutdown();
                 manager.shutdown();
@@ -167,9 +170,9 @@ public class GiveawayBot
         return botId;
     }
     
-    public int getServerCountOverride()
+    public int getServerCount()
     {
-        return serverCountOverride;
+        return countUpdater.getServerCount();
     }
     
     public long getControlChannel()

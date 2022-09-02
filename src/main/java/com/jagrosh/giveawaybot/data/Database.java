@@ -79,13 +79,16 @@ public class Database
         {
             gs = new GuildSettings();
             gs.setGuildId(guildId);
+            gs.setLocale(WebLocale.UNKNOWN);
             em.persist(gs);
         }
         gs.setLatestRetrieval(now);
         if(guild != null)
         {
             gs.setOwnerId(guild.getOwnerId());
-            if(gs.getLocale() == null || gs.getLocale() == WebLocale.UNKNOWN)
+            if(guild.getPreferredLocale() != null && guild.getPreferredLocale() != WebLocale.UNKNOWN)
+                gs.setLocale(guild.getPreferredLocale());
+            /*if(gs.getLocale() == null || gs.getLocale() == WebLocale.UNKNOWN)
             {
                 gs.setLocale(guild.getPreferredLocale());
             }

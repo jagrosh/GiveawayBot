@@ -29,6 +29,8 @@ import com.jagrosh.interactions.requests.Route;
 import com.jagrosh.interactions.responses.InteractionResponse;
 import com.jagrosh.interactions.responses.MessageCallback;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +42,7 @@ import org.slf4j.LoggerFactory;
 public abstract class GBCommand implements Command
 {
     private final Logger log = LoggerFactory.getLogger(GBCommand.class);
+    private final Set<Long> currentlyUpdating = new HashSet<>();
     protected final GiveawayBot bot;
     protected ApplicationCommand app;
     
@@ -67,21 +70,24 @@ public abstract class GBCommand implements Command
         // update cached guild info
         GuildSettings gs = bot.getDatabase().getSettings(interaction.getGuildId());
         Instant now = Instant.now();
-        if(gs.getLatestRetrieval().plusSeconds(60*20).isBefore(now))
+        long gid = interaction.getGuildId();
+        if(gs.getLatestRetrieval().plusSeconds(60*20).isBefore(now) && !currentlyUpdating.contains(gid))
         {
+            currentlyUpdating.add(gid);
             Guild g;
             try
             {
-                JSONObject gjson = bot.getRestClient().request(Route.GET_GUILD.format(interaction.getGuildId()), "").get().getBody();
+                JSONObject gjson = bot.getRestClient().request(Route.GET_GUILD.format(gid), "").get().getBody();
                 //log.info(String.format("Retrieved guild: " + gjson));
                 g = new Guild(gjson);
             }
             catch(Exception ex) 
             {
                 g = null;
-                log.error(String.format("Failed to retrieve guild: %s, %s", ex, ex.getMessage()));
+                log.error(String.format("Failed to retrieve guild: %s", ex));
             }
             bot.getDatabase().setAutomaticGuildSettings(interaction.getGuildId(), now, g);
+            currentlyUpdating.remove(gid);
         }
         
         // attempt to run command

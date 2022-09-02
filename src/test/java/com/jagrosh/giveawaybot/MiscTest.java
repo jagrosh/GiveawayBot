@@ -15,6 +15,11 @@
  */
 package com.jagrosh.giveawaybot;
 
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -33,5 +38,16 @@ public class MiscTest
             String f = text.substring(i).trim();
             System.out.println(i + ": " + e + " " + f);
         }
+    }
+    
+    @Test
+    public void mappingTest()
+    {
+        Config config = ConfigFactory.parseString("{ map: { a : a_value , b : b_value } }");
+        Assert.assertEquals("a_value", config.getConfig("map").getString("a"));
+        Map<String,String> map = config.getConfig("map").entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().unwrapped().toString()));
+        System.out.println(map);
+        Assert.assertEquals(2, map.entrySet().size());
+        Assert.assertEquals("b_value", map.get("b"));
     }
 }

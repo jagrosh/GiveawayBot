@@ -60,7 +60,7 @@ public class AboutCmd extends GBCommand
                         .setDescription(LocalizedMessage.INFO_ABOUT_LONG.getLocalizedMessage(wl))
                         .addField(STATS + LocalizedMessage.INFO_ABOUT_STATS.getLocalizedMessage(wl), 
                                       LocalizedMessage.INFO_ABOUT_STATS_GIVEAWAYS.getLocalizedMessage(wl, bot.getDatabase().countAllGiveaways()) 
-                                 + "\n" + LocalizedMessage.INFO_ABOUT_STATS_SERVERS.getLocalizedMessage(wl, bot.getServerCountOverride()), true)
+                                 + "\n" + LocalizedMessage.INFO_ABOUT_STATS_SERVERS.getLocalizedMessage(wl, bot.getServerCount()), true)
                         .addField(LINKS + LocalizedMessage.INFO_ABOUT_LINKS.getLocalizedMessage(wl), 
                                 "[" + LocalizedMessage.INFO_ABOUT_LINKS_WEBSITE.getLocalizedMessage(wl) + "](" + Constants.WEBSITE 
                                 + ")\n[" + LocalizedMessage.INFO_ABOUT_LINKS_INVITE.getLocalizedMessage(wl) + "](" + Constants.INVITE 
