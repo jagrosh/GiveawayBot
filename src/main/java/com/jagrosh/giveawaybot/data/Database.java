@@ -40,6 +40,7 @@ public class Database
     private final EntityManagerFactory emf;
     private final EntityManager em;
     private final Map<Long, GiveawayEntries> cachedEntries = new HashMap<>();
+    //private final Map<Long, Giveaway> cachedGiveaways = new HashMap<>();
     private final ScheduledExecutorService cacheCombiner = Executors.newSingleThreadScheduledExecutor();
     
     public Database(String host, String user, String pass)
@@ -53,7 +54,7 @@ public class Database
         em.getMetamodel().managedType(Giveaway.class);
         em.getMetamodel().managedType(GiveawayEntries.class);
         em.getMetamodel().managedType(GuildSettings.class);
-        cacheCombiner.scheduleWithFixedDelay(() -> syncEntries(), 30, 30, TimeUnit.SECONDS);
+        cacheCombiner.scheduleWithFixedDelay(() -> syncEntries(), 60, 60, TimeUnit.SECONDS);
     }
     
     public void shutdown()
@@ -135,6 +136,11 @@ public class Database
     // giveaways
     public Giveaway getGiveaway(long id)
     {
+        //if(cachedGiveaways.containsKey(id))
+        //    return cachedGiveaways.get(id);
+        //Giveaway g = em.find(Giveaway.class, id);
+        //cachedGiveaways.put(id, g);
+        //return g;
         return em.find(Giveaway.class, id);
     }
     

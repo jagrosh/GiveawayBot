@@ -31,6 +31,8 @@ import com.jagrosh.interactions.responses.DeferredCallback;
 import com.jagrosh.interactions.responses.InteractionResponse;
 import com.jagrosh.interactions.responses.MessageCallback;
 import java.lang.management.ManagementFactory;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +44,7 @@ import org.slf4j.LoggerFactory;
 public class GiveawayListener implements InteractionsListener
 {
     private final Logger log = LoggerFactory.getLogger(GiveawayListener.class);
+    private final Map<String,Long> metrics = new HashMap<>();
     private final GiveawayBot bot;
     
     public GiveawayListener(GiveawayBot bot)
@@ -106,8 +109,10 @@ public class GiveawayListener implements InteractionsListener
         String customId = interaction.getComponentData().getCustomId();
         if(customId.equalsIgnoreCase(GiveawayManager.ENTER_BUTTON_ID))
         {
+            long timeStart = System.nanoTime();
             long id = interaction.getMessage().getIdLong();
             Giveaway g = bot.getDatabase().getGiveaway(id);
+            long timeGive = System.nanoTime();
             if(g == null)
                 return GBCommand.respondError(LocalizedMessage.ERROR_GIVEAWAY_ENDED.getLocalizedMessage(interaction.getEffectiveLocale()));
             
@@ -116,16 +121,22 @@ public class GiveawayListener implements InteractionsListener
                 log.debug(String.format("Giveaway guild/channel ids don't match for giveaway %d! Giveaway: %d/%d Interaction: %d/%d", g.getMessageId(), g.getGuildId(), g.getChannelId(), interaction.getGuildId(), interaction.getChannelId()));
             
             int entered = bot.getDatabase().addEntry(id, interaction.getUser());
-            if(entered >= 0)
-                return new MessageCallback(bot.getGiveawayManager().renderGiveaway(g, entered), true);
-            else
-                return new MessageCallback(new SentMessage.Builder()
+            long timeEnter = System.nanoTime();
+            MessageCallback msg = entered >= 0 
+                    ? new MessageCallback(bot.getGiveawayManager().renderGiveaway(g, entered), true) 
+                    : new MessageCallback(new SentMessage.Builder()
                         .setReferenceMessage(id)
                         .setContent(LocalizedMessage.ERROR_GIVEAWAY_ALREADY_ENTERED.getLocalizedMessage(interaction.getEffectiveLocale()))
                         .addComponent(new ActionRowComponent(new ButtonComponent(ButtonComponent.Style.DANGER, 
                                 LocalizedMessage.GIVEAWAY_LEAVE.getLocalizedMessage(interaction.getEffectiveLocale()), 
                                 GiveawayManager.LEAVE_BUTTON_ID + ":" + id)))
                         .setEphemeral(true).build());
+            long timeRender = System.nanoTime();
+            increaseMetricValue("ButtonTotalTime", timeRender - timeStart);
+            increaseMetricValue("ButtonRenderTime", timeRender - timeEnter);
+            increaseMetricValue("ButtonEnterTime", timeEnter - timeGive);
+            increaseMetricValue("ButtonRetrieveTime", timeGive - timeStart);
+            return msg;
         }
         else if(customId.toLowerCase().startsWith(GiveawayManager.LEAVE_BUTTON_ID.toLowerCase()))
         {
@@ -148,13 +159,16 @@ public class GiveawayListener implements InteractionsListener
                 case "view-statistics":
                     long total = Runtime.getRuntime().totalMemory() / 1024 / 1024;
                     long used = total - (Runtime.getRuntime().freeMemory() / 1024 / 1024);
+                    long uptime = ManagementFactory.getRuntimeMXBean().getUptime() / 1000;
                     return new MessageCallback(new SentMessage.Builder()
                             .setContent("```css"
-                                    + "\nUptime: " + FormatUtil.secondsToTime(ManagementFactory.getRuntimeMXBean().getUptime() / 1000).replace("*", "")
-                                    + "\nMemory: " + used + "mb / " + total + "mb"
+                                    + "\nUptime   : " + FormatUtil.secondsToTime(uptime).replace("*", "")
+                                    + "\nMemory   : " + used + "mb / " + total + "mb"
                                     + "\nGiveaways: " + bot.getDatabase().countAllGiveaways()
-                                    + "\nAvg Req: " + (interaction.getClient().getMetrics().getOrDefault("TotalTime", 0L) / interaction.getClient().getMetrics().getOrDefault("TotalRequests", 1L) * 1e-9)
-                                    + "\nMetrics: " + interaction.getClient().getMetrics()
+                                    + "\nAvg Req  : " + (interaction.getClient().getMetrics().getOrDefault("TotalTime", 0L) / interaction.getClient().getMetrics().getOrDefault("TotalRequests", 1L) * 1e-9)
+                                    + "\nReq/Sec  : " + (interaction.getClient().getMetrics().getOrDefault("TotalRequests", 0L) / uptime)
+                                    + "\nMetrics  : " + interaction.getClient().getMetrics()
+                                    + "\nMetrics2 : " + metrics
                                     + "\n```")
                             .setEphemeral(true).build());
                 case "shutdown":
@@ -168,5 +182,13 @@ public class GiveawayListener implements InteractionsListener
             }
         }
         return GBCommand.respondError(LocalizedMessage.ERROR_GENERIC.getLocalizedMessage(interaction.getEffectiveLocale()));
+    }
+    
+    private synchronized long increaseMetricValue(String key, long count)
+    {
+        long val = metrics.getOrDefault(key, 0L);
+        val += count;
+        metrics.put(key, val);
+        return val;
     }
 }
