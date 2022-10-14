@@ -59,6 +59,7 @@ public class GiveawayManager
                              MAX_PRIZE_LENGTH = 250,
                              MAX_DESCR_LENGTH = 1000,
                              FAILURE_COOLDOWN_TIME = 30;
+    private final static Color ENDED_COLOR = new Color(0x2F3136);
     private final static Permission[] REQUIRED_PERMS = { Permission.SEND_MESSAGES, Permission.VIEW_CHANNEL, 
         Permission.READ_MESSAGE_HISTORY, Permission.EMBED_LINKS };
     
@@ -260,14 +261,11 @@ public class GiveawayManager
         SentMessage.Builder sb = new SentMessage.Builder()
                 .addEmbed(new Embed.Builder()
                         .setTitle(giveaway.getPrize(), null)
-                        .setColor(winners == null ? gs.getColor() : new Color(0x2F3136))
+                        .setColor(winners == null ? gs.getColor() : ENDED_COLOR)
                         .setTimestamp(giveaway.getEndInstant())
                         .setDescription(message).build());
         if(winners == null)
-        {
-            EmojiParser.ParsedEntryButton pe = emojis.parse(gs.getEmoji());
-            sb.addComponent(new ActionRowComponent(new ButtonComponent(ButtonComponent.Style.PRIMARY, pe.text, new PartialEmoji(pe.name, pe.id, pe.animated), ENTER_BUTTON_ID, null, false)));
-        }
+            sb.addComponent(new ActionRowComponent(createEntryButton(emojis.parse(gs.getEmoji()))));
         else if(summaryKey != null)
             sb.addComponent(new ActionRowComponent(new ButtonComponent(LocalizedMessage.GIVEAWAY_SUMMARY.getLocalizedMessage(gs.getLocale()), Constants.SUMMARY + "#giveaway=" + summaryKey)));
         else
@@ -307,5 +305,12 @@ public class GiveawayManager
                     .put("end", giveaway.getEndTime()))
                 .put("winners", JsonUtil.buildArray(winners))
                 .put("entries", JsonUtil.buildArray(entries));
+    }
+    
+    private ButtonComponent createEntryButton(EmojiParser.ParsedEntryButton pe)
+    {
+        return new ButtonComponent(ButtonComponent.Style.PRIMARY, pe.text, 
+                    pe.hasEmoji() ? new PartialEmoji(pe.name, pe.id, pe.animated) : null, 
+                    ENTER_BUTTON_ID, null, false);
     }
 }
