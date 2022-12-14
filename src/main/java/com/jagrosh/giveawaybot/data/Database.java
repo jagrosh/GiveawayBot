@@ -40,6 +40,7 @@ public class Database
     private final EntityManagerFactory emf;
     private final EntityManager em;
     private final Map<Long, GiveawayEntries> cachedEntries = new HashMap<>();
+    private final Map<Long, Giveaway> cachedGiveawaysReadonly = new HashMap<>();
     private final ScheduledExecutorService cacheCombiner = Executors.newSingleThreadScheduledExecutor();
     
     public Database(String host, String user, String pass)
@@ -53,7 +54,7 @@ public class Database
         em.getMetamodel().managedType(Giveaway.class);
         em.getMetamodel().managedType(GiveawayEntries.class);
         em.getMetamodel().managedType(GuildSettings.class);
-        cacheCombiner.scheduleWithFixedDelay(() -> syncEntries(), 30, 30, TimeUnit.SECONDS);
+        cacheCombiner.scheduleWithFixedDelay(() -> syncEntries(), 60, 60, TimeUnit.SECONDS);
     }
     
     public void shutdown()
@@ -135,7 +136,12 @@ public class Database
     // giveaways
     public Giveaway getGiveaway(long id)
     {
-        return em.find(Giveaway.class, id);
+        if(cachedGiveawaysReadonly.containsKey(id))
+            return cachedGiveawaysReadonly.get(id);
+        Giveaway g = em.find(Giveaway.class, id);
+        cachedGiveawaysReadonly.put(id, g);
+        return g;
+        //return em.find(Giveaway.class, id);
     }
     
     public List<Giveaway> getGiveawaysByGuild(long guildId)
@@ -177,6 +183,7 @@ public class Database
     
     public synchronized void removeGiveaway(long id)
     {
+        cachedGiveawaysReadonly.remove(id);
         Giveaway g = em.find(Giveaway.class, id);
         if(g != null)
         {
@@ -291,14 +298,6 @@ public class Database
     {
         return cachedEntries.containsKey(giveawayId) ? cachedEntries.get(giveawayId) : em.find(GiveawayEntries.class, giveawayId);
     }
-    
-    /*public int getEntryCount(long giveawayId)
-    {
-        GiveawayEntries ge = em.find(GiveawayEntries.class, giveawayId);
-        if(ge == null)
-            return 0;
-        return ge.getUsers().size();
-    }*/
     
     
     // premium

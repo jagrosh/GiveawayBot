@@ -92,6 +92,11 @@ public class EmojiParser
             return text == null && id == 0L && !animated && freeEmoji.contains(name);
         }
         
+        public boolean hasEmoji()
+        {
+            return id != 0L || name != null;
+        }
+        
         public String render()
         {
             return ((id == 0L 
