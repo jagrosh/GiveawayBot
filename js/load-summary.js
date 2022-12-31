@@ -68,7 +68,7 @@ $(document).ready(function() {
             method: 'GET',
             success: function(data) { parseAndShowDocument(data, url) },
             error: function( jqXHR, textStatus, errorThrown) {
-                $('#output').html('Failed to load <b>' + url + '</b> : ' + errorThrown);
+                $('#output').html('Failed to load <b>' + url + '</b> : ' + errorThrown + '<br><h3><a href="' + url + '">Click here to download Giveaway Summary JSON</a></h3>');
             }
         });
     } else {
