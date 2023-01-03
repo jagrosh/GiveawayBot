@@ -1,4 +1,4 @@
-const cors_url = 'https://api.allorigins.win/raw?url='
+const cors_url = 'https://api.allorigins.win/get?url='
 const valid_ids = ['415263528090337295', '415263552505643018', '415263570528567307', '415263592984870922', '415263623099973655', '415263645212213269', '415263667114737675', '958156545814822932']
 
 // Query string parsing
@@ -27,7 +27,7 @@ function userFormat(user) {
 // Document Parsing
 function parseAndShowDocument(data, url) {
     // filter html and parse json
-    var obj = JSON.parse(JSON.stringify(data).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;').split('\n').join('<br>'));
+    var obj = JSON.parse(data.contents.split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;').split('\n').join('<br>'));
     var ended = new Date(obj.giveaway.end * 1000);
     var text = "<h2>Giveaway Summary</h2>"
              + infoFormat("Prize", obj.giveaway.prize)
