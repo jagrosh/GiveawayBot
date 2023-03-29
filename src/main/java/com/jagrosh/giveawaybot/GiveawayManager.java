@@ -300,6 +300,7 @@ public class GiveawayManager
                 .put("giveaway", new JSONObject()
                     .put("id", Long.toString(giveaway.getMessageId()))
                     .put("prize", giveaway.getPrize())
+                    .put("desc", giveaway.getDescription())
                     .put("num_winners", giveaway.getWinners())
                     .put("host", host.toJson())
                     .put("end", giveaway.getEndTime()))
