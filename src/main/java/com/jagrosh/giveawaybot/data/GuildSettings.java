@@ -43,6 +43,8 @@ public class GuildSettings
     private String emoji;
     @Column(name = "OWNER")
     private long ownerId;
+    @Column(name = "LOG")
+    private long logChannelId;
     @Column(name = "LOCALE")
     private String locale;
     @Column(name = "LAST_FETCH")
@@ -62,6 +64,7 @@ public class GuildSettings
         this.ownerId = 0L;
         this.locale = null;
         this.latestRetrieval = 0L;
+        this.logChannelId = 0L;
     }
     
     public long getGuildId()
@@ -122,6 +125,14 @@ public class GuildSettings
     public void setOwnerId(long ownerId)
     {
         this.ownerId = ownerId;
+    }
+
+    public long getLogChannelId() {
+        return logChannelId;
+    }
+
+    public void setLogChannelId(long logChannelId) {
+        this.logChannelId = logChannelId;
     }
 
     public WebLocale getLocale()

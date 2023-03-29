@@ -50,11 +50,13 @@ public class SettingsCmd extends GBCommand
         ApplicationCommandOption group = new ApplicationCommandOption(ApplicationCommandOption.Type.SUB_COMMAND_GROUP, "set", "set settings", false);
         ApplicationCommandOption colorCmd = new ApplicationCommandOption(ApplicationCommandOption.Type.SUB_COMMAND, "color", "set giveaway embed color", false);
         colorCmd.addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.STRING, "hex", "hex code or standard color name", true));
+        ApplicationCommandOption logCmd = new ApplicationCommandOption(ApplicationCommandOption.Type.SUB_COMMAND, "logchannel", "sets the log channel", false);
+        logCmd.addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.CHANNEL, "channel", "channel to log to", true));
         ApplicationCommandOption buttonCmd = new ApplicationCommandOption(ApplicationCommandOption.Type.SUB_COMMAND, "emoji", "set giveaway button emoji and text", false);
         buttonCmd.addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.STRING, "emoji", "emoji or button text", true, 1, 64, false));
         //ApplicationCommandOption roleCmd = new ApplicationCommandOption(ApplicationCommandOption.Type.SUB_COMMAND, "role", "set giveaway manager role", false);
         //roleCmd.addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.ROLE, "role", "role that can create and manage giveaways", true));
-        group.addOptions(colorCmd, buttonCmd/*, roleCmd*/);
+        group.addOptions(colorCmd, buttonCmd/*, roleCmd*/, logCmd);
         this.app = new ApplicationCommand.Builder()
                 .setType(ApplicationCommand.Type.CHAT_INPUT)
                 .setName(bot.getCommandPrefix() + "settings")
@@ -104,6 +106,10 @@ public class SettingsCmd extends GBCommand
                             return respondSuccess(LocalizedMessage.SUCCESS_SETTINGS_EMOJI.getLocalizedMessage(wl, pe.render()));
                         }
                         else return respondError(LocalizedMessage.ERROR_INVALID_EMOJI_CHOICE.getLocalizedMessage(wl, bot.getGiveawayManager().getEmojiManager().getFreeEmoji()));
+                    case "logchannel":
+                        long channel = cmd.getOptionByName("channel").getIdValue();
+                        bot.getDatabase().setGuildLogChannel(interaction.getGuildId(), channel);
+                        return respondSuccess(LocalizedMessage.SUCCESS_SETTINGS_LOGCHANNEL.getLocalizedMessage(wl, "<#" + channel + ">"));
                     default:
                         return respondError("Unknown settings command.");
                 }
@@ -113,6 +119,7 @@ public class SettingsCmd extends GBCommand
                         + LocalizedMessage.INFO_SETTINGS_PREMIUM.getLocalizedMessage(wl) + ": **" + bot.getDatabase().getPremiumLevel(gs.getGuildId(), gs.getOwnerId()) + "**\n" 
                         //+ LocalizedMessage.INFO_SETTINGS_ROLE.getLocalizedMessage(wl) + ": " + (gs.getManagerRoleId() == 0L ? "N/A" : "<@&" + gs.getManagerRoleId() + ">") + "\n"
                         + LocalizedMessage.INFO_SETTINGS_EMOJI.getLocalizedMessage(wl) + ": " + gs.getEmoji() + "\n"
+                        + LocalizedMessage.INFO_SETTINGS_LOGCHANNEL.getLocalizedMessage(wl) + ": <#" + gs.getLogChannelId() + ">\n"
                         + LocalizedMessage.INFO_SETTINGS_LOCALE.getLocalizedMessage(wl) + ": " + gs.getLocale().getTextualName() + "\n\n"
                         + LocalizedMessage.INFO_SETTINGS_ETC.getLocalizedMessage(wl);
                 return new MessageCallback(new SentMessage.Builder()
