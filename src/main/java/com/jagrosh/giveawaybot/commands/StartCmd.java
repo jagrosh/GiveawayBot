@@ -63,7 +63,9 @@ public class StartCmd extends GBCommand
                 interaction.getCommandData().getOptionByName("duration").getStringValue(), 
                 interaction.getCommandData().getOptionByName("winners").getIntValue() + "", 
                 interaction.getCommandData().getOptionByName("prize").getStringValue(),
-                interaction.getCommandData().getOptionByName("description").getStringValue(), pl, interaction.getEffectiveLocale());
+                interaction.getCommandData().getOptionByName("description") == null ? null :
+                        interaction.getCommandData().getOptionByName("description").getStringValue(),
+                pl, interaction.getEffectiveLocale());
         
         // attempt giveaway creation
         long id = bot.getGiveawayManager().sendGiveaway(g, interaction.getGuildId(), interaction.getChannelId());
