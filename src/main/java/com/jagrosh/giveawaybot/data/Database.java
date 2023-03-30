@@ -125,8 +125,10 @@ public class Database
         if(gs == null) {
             gs = new GuildSettings();
             gs.setGuildId(guildId);
-            em.persist(guildId);
+            em.persist(gs);
         }
+        gs.setLogChannelId(logChannel);
+        em.getTransaction().commit();
 
     }
     
