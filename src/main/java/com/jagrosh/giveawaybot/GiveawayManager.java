@@ -36,6 +36,7 @@ import com.jagrosh.interactions.requests.RestClient.RestResponse;
 import com.jagrosh.interactions.requests.Route;
 import com.jagrosh.interactions.util.JsonUtil;
 import java.awt.Color;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -137,6 +138,7 @@ public class GiveawayManager
         List<CachedUser> all = new ArrayList<>(entries);
         List<CachedUser> winners = GiveawayUtil.selectWinners(all, giveaway.getWinners());
         CachedUser host = database.getUser(giveaway.getUserId());
+        giveaway.setEndInstant(Instant.now(Clock.systemDefaultZone()));
         try
         {
             JSONObject summary = createGiveawaySummary(giveaway, host, entries, winners);
