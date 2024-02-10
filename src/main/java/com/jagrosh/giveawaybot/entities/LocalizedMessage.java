@@ -112,7 +112,8 @@ public enum LocalizedMessage
     GIVEAWAY_HOSTED("giveaway.hosted"),
     GIVEAWAY_ENTRIES("giveaway.entries"),
     GIVEAWAY_WINNERS("giveaway.winners"),
-    GIVEAWAY_SUMMARY("giveaway.summary");
+    GIVEAWAY_SUMMARY("giveaway.summary"),
+    GIVEAWAY_LIST("giveaway.list");
 
     private final static String FILENAME = "localization/messages";
     private final String key;
