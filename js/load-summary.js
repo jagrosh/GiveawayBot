@@ -60,7 +60,8 @@ $(document).ready(function() {
         $('#output').html('Invalid giveaway summary provided.');
         return;
     }
-    var url = "https://cdn.discordapp.com/attachments/"+loc+"/giveaway_summary.json";
+    //var url = "https://cdn.discordapp.com/attachments/"+loc+"/giveaway_summary.json";
+    var url = "https://summary-api.giveawaybot.party/?giveaway=" + loc;
     if(loc) {
         $.ajax({
             url: cors_url + encodeURIComponent(url) ,
