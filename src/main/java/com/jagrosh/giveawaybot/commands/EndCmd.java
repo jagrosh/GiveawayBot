@@ -63,7 +63,7 @@ public class EndCmd extends GBCommand
         if(g == null || g.getGuildId() != interaction.getGuildId())
             return respondError(LocalizedMessage.ERROR_GIVEAWAY_NOT_FOUND.getLocalizedMessage(interaction.getEffectiveLocale(), id+""));
         
-        boolean success = bot.getGiveawayManager().endGiveaway(g);
+        boolean success = bot.getGiveawayManager().endGiveaway(g, true, interaction.getUser().getId());
         
         if(success)
             return respondSuccess(LocalizedMessage.SUCCESS_GIVEAWAY_ENDED.getLocalizedMessage(interaction.getEffectiveLocale(), id+""));

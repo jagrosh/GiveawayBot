@@ -118,6 +118,19 @@ public class Database
         gs.setColor(color);
         em.getTransaction().commit();
     }
+
+    public synchronized void setGuildLogChannel(long guildId, long logChannel) {
+        GuildSettings gs = em.find(GuildSettings.class, guildId);
+        em.getTransaction().begin();
+        if(gs == null) {
+            gs = new GuildSettings();
+            gs.setGuildId(guildId);
+            em.persist(gs);
+        }
+        gs.setLogChannelId(logChannel);
+        em.getTransaction().commit();
+
+    }
     
     public synchronized void setGuildEmoji(long guildId, String emoji)
     {

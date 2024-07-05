@@ -129,8 +129,12 @@ public class GiveawayManager
             return false;
         }
     }
-    
-    public boolean endGiveaway(Giveaway giveaway)
+
+    public boolean endGiveaway(Giveaway giveaway) {
+        return endGiveaway(giveaway, false, null);
+    }
+
+    public boolean endGiveaway(Giveaway giveaway, boolean manual, String endingUserId)
     {
         List<CachedUser> entries = database.getEntriesList(giveaway.getMessageId());
         database.removeGiveaway(giveaway.getMessageId());
@@ -142,8 +146,12 @@ public class GiveawayManager
             JSONObject summary = createGiveawaySummary(giveaway, host, entries, winners);
             String url = uploader.uploadFile(summary.toString(), "giveaway_summary.json");
             String summaryKey = url == null ? null : url.replaceAll(".*/(\\d+/\\d+)/.*", "$1");
-            rest.request(Route.PATCH_MESSAGE.format(giveaway.getChannelId(), giveaway.getMessageId()), renderGiveaway(giveaway, entries.size(), winners, summaryKey).toJson()).get();
+            GuildSettings gs = database.getSettings(giveaway.getGuildId());
+            rest.request(Route.PATCH_MESSAGE.format(giveaway.getChannelId(), giveaway.getMessageId()), renderGiveaway(giveaway, entries.size(), winners, summaryKey, gs).toJson()).get();
             rest.request(Route.POST_MESSAGE.format(giveaway.getChannelId()), renderWinnerMessage(giveaway, winners).toJson()).get();
+            if(manual) {
+                tryLog(gs, "Giveaway manually ended by <@" + endingUserId + ">");
+            }
         }
         catch(ExecutionException | InterruptedException ex)
         {
@@ -209,7 +217,8 @@ public class GiveawayManager
         {
             giveaway.setGuildId(guildId);
             giveaway.setChannelId(channelId);
-            SentMessage sm = renderGiveaway(giveaway, 0);
+            GuildSettings settings = database.getSettings(guildId);
+            SentMessage sm = renderGiveaway(giveaway, 0, settings);
             log.debug("Attempting giveaway creation in " + guildId + ", json: " + sm.toJson());
             RestResponse res = rest.request(Route.POST_MESSAGE.format(channelId), sm.toJson()).get();
             log.debug("Attempted to create giveaway, response: " + res.getStatus() + ", " + res.getBody());
@@ -222,7 +231,7 @@ public class GiveawayManager
             }
             ReceivedMessage rm = new ReceivedMessage(res.getBody());
             giveaway.setMessageId(rm.getIdLong());
-            
+            tryLog(settings, "Giveaway started by <@" + giveaway.getUserId() + "> in <#" + giveaway.getChannelId() + ">");
             // sanity checks
             if(/*rm.getGuildId() != guildId ||*/ rm.getChannelId() != channelId)
             {
@@ -246,15 +255,24 @@ public class GiveawayManager
     
     public SentMessage renderGiveaway(Giveaway giveaway, int numEntries)
     {
-        return renderGiveaway(giveaway, numEntries, null, null);
+        return renderGiveaway(giveaway, numEntries, null, null, database.getSettings(giveaway.getGuildId()));
+    }
+
+    public SentMessage renderGiveaway(Giveaway giveaway, int numEntries, GuildSettings settings)
+    {
+        return renderGiveaway(giveaway, numEntries, null, null, settings);
     }
     
     public SentMessage renderGiveaway(Giveaway giveaway, int numEntries, List<CachedUser> winners, String summaryKey)
     {
-        GuildSettings gs = database.getSettings(giveaway.getGuildId());
+        return renderGiveaway(giveaway, numEntries, winners, summaryKey, database.getSettings(giveaway.getGuildId()));
+    }
+
+    public SentMessage renderGiveaway(Giveaway giveaway, int numEntries, List<CachedUser> winners, String summaryKey, GuildSettings gs)
+    {
         String message = (giveaway.getDescription() == null || giveaway.getDescription().isEmpty() ? "" : giveaway.getDescription() + "\n\n")
-                + (winners == null ? LocalizedMessage.GIVEAWAY_ENDS.getLocalizedMessage(gs.getLocale()) : LocalizedMessage.GIVEAWAY_ENDED.getLocalizedMessage(gs.getLocale())) 
-                    + ": <t:" + giveaway.getEndInstant().getEpochSecond() + ":R> (<t:" + giveaway.getEndInstant().getEpochSecond() + ":f>)"
+                + (winners == null ? LocalizedMessage.GIVEAWAY_ENDS.getLocalizedMessage(gs.getLocale()) : LocalizedMessage.GIVEAWAY_ENDED.getLocalizedMessage(gs.getLocale()))
+                + ": <t:" + giveaway.getEndInstant().getEpochSecond() + ":R> (<t:" + giveaway.getEndInstant().getEpochSecond() + ":f>)"
                 + "\n" + LocalizedMessage.GIVEAWAY_HOSTED.getLocalizedMessage(gs.getLocale()) + ": <@" + giveaway.getUserId() + ">"
                 + "\n" + LocalizedMessage.GIVEAWAY_ENTRIES.getLocalizedMessage(gs.getLocale()) + ": **" + numEntries + "**"
                 + "\n" + LocalizedMessage.GIVEAWAY_WINNERS.getLocalizedMessage(gs.getLocale()) + ": " + (winners == null ? "**" + giveaway.getWinners() + "**" : renderWinners(winners));
@@ -313,5 +331,11 @@ public class GiveawayManager
         return new ButtonComponent(ButtonComponent.Style.PRIMARY, pe.text, 
                     pe.hasEmoji() ? new PartialEmoji(pe.name, pe.id, pe.animated) : null, 
                     ENTER_BUTTON_ID, null, false);
+    }
+
+    private void tryLog(GuildSettings settings, String msg) throws ExecutionException, InterruptedException {
+        if(settings.getLogChannelId() != 0L)
+            rest.request(Route.POST_MESSAGE.format(settings.getLogChannelId()), new SentMessage.Builder()
+                .setContent(msg).build().toJson()).get();
     }
 }
