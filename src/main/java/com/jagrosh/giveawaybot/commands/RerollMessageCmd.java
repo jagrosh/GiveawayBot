@@ -85,7 +85,8 @@ public class RerollMessageCmd extends GBCommand
         }
         
         // reroll
-        String url = "https://cdn.discordapp.com/attachments/" + summaryKey + "/giveaway_summary.json";
+        //String url = "https://cdn.discordapp.com/attachments/" + summaryKey + "/giveaway_summary.json";
+        String url = "https://summary-api.giveawaybot.party/?giveaway=" + summaryKey;
         try
         {
             RestClient.RestResponse res = bot.getRestClient().simpleRequest(url).get();
