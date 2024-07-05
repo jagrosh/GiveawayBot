@@ -30,6 +30,7 @@ function parseAndShowDocument(data, url) {
     var obj = JSON.parse(data.contents.split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;').split('\n').join('<br>'));
     var ended = new Date(obj.giveaway.end * 1000);
     var text = "<h2>Giveaway Summary</h2>"
+             + obj.giveaway.desc == null ? "" : infoFormat("Description", obj.giveaway.desc)
              + infoFormat("Prize", obj.giveaway.prize)
              + infoFormat("Host", userFormat(obj.giveaway.host))
              + infoFormat("Winners", obj.giveaway.num_winners)
