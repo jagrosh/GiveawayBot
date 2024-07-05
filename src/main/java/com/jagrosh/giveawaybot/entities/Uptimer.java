@@ -52,7 +52,7 @@ public class Uptimer
     private void check()
     {
         double req = bot.getInteractionsClient().getMetrics().getOrDefault("TotalTime", 0L) / bot.getInteractionsClient().getMetrics().getOrDefault("TotalRequests", 1L) * 1e-9;
-        if(req > 1)
+        if(req > .5)
             bot.shutdown("AUTOMATIC: avg req = " + req);
     }
 }

@@ -40,6 +40,7 @@ public class Database
     private final EntityManagerFactory emf;
     private final EntityManager em;
     private final Map<Long, GiveawayEntries> cachedEntries = new HashMap<>();
+    private final Map<Long, CachedUser> cachedUsers = new HashMap<>();
     private final Map<Long, Giveaway> cachedGiveawaysReadonly = new HashMap<>();
     private final ScheduledExecutorService cacheCombiner = Executors.newSingleThreadScheduledExecutor();
     
@@ -54,13 +55,13 @@ public class Database
         em.getMetamodel().managedType(Giveaway.class);
         em.getMetamodel().managedType(GiveawayEntries.class);
         em.getMetamodel().managedType(GuildSettings.class);
-        cacheCombiner.scheduleWithFixedDelay(() -> syncEntries(), 60, 60, TimeUnit.SECONDS);
+        cacheCombiner.scheduleWithFixedDelay(() -> syncCaches(), 60, 60, TimeUnit.SECONDS);
     }
     
     public void shutdown()
     {
         cacheCombiner.shutdown();
-        syncEntries();
+        syncCaches();
         em.close();
         emf.close();
     }
@@ -204,32 +205,19 @@ public class Database
     // entries
     public synchronized void updateUser(User user)
     {
-        // update cached user
-        CachedUser u = em.find(CachedUser.class, user.getIdLong());
-        
-        // short circuit if data is up to date
-        if(u != null
-            && OtherUtil.strEquals(user.getUsername(), u.getUsername()) 
-            && OtherUtil.strEquals(user.getDiscriminator(), u.getDiscriminator()) 
-            && OtherUtil.strEquals(user.getAvatar(), u.getAvatar()))
-            return;
-        
-        em.getTransaction().begin();
-        if(u == null)
-        {
-            u = new CachedUser();
-            u.setId(user.getIdLong());
-            em.persist(u);
-        }
+        // construct a cached user object and cache immediately
+        // this will reach the database when we sync
+        CachedUser u = new CachedUser();
+        u.setId(user.getIdLong());
         u.setUsername(user.getUsername());
         u.setDiscriminator(user.getDiscriminator());
         u.setAvatar(user.getAvatar());
-        em.getTransaction().commit();
+        cachedUsers.put(user.getIdLong(), u);
     }
     
     public CachedUser getUser(long userId)
     {
-        return em.find(CachedUser.class, userId);
+        return cachedUsers.containsKey(userId) ? cachedUsers.get(userId) : em.find(CachedUser.class, userId);
     }
     
     public synchronized int addEntry(long giveawayId, User user)
@@ -276,12 +264,34 @@ public class Database
         return true;
     }
     
-    public synchronized void syncEntries()
+    public synchronized void syncCaches()
     {
+        // open transaction
         em.getTransaction().begin();
+        
+        // update entries
         cachedEntries.values().forEach(e -> em.merge(e));
+        
+        // update users
+        cachedUsers.values().forEach(user -> 
+        {
+            CachedUser u = em.find(CachedUser.class, user.getId());
+            if(u == null)
+            {
+                em.persist(user);
+            }
+            else
+            {
+                u.setUsername(user.getUsername());
+                u.setDiscriminator(user.getDiscriminator());
+                u.setAvatar(user.getAvatar());
+            }
+        });
+        
+        // commit the transaction
         em.getTransaction().commit();
         cachedEntries.clear();
+        cachedUsers.clear();
     }
     
     public List<CachedUser> getEntriesList(long giveawayId)

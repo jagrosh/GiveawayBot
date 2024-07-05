@@ -21,9 +21,7 @@ import com.jagrosh.giveawaybot.data.Giveaway;
 import com.jagrosh.giveawaybot.entities.LocalizedMessage;
 import com.jagrosh.giveawaybot.util.FormatUtil;
 import com.jagrosh.interactions.command.ApplicationCommand;
-import com.jagrosh.interactions.entities.AllowedMentions;
-import com.jagrosh.interactions.entities.Permission;
-import com.jagrosh.interactions.entities.SentMessage;
+import com.jagrosh.interactions.entities.*;
 import com.jagrosh.interactions.receive.Interaction;
 import com.jagrosh.interactions.responses.InteractionResponse;
 import com.jagrosh.interactions.responses.MessageCallback;
@@ -37,6 +35,8 @@ import java.util.List;
  */
 public class ListCmd extends GBCommand
 {
+    private final static int MAX_LENGTH = 6000;
+    
     public ListCmd(GiveawayBot bot)
     {
         super(bot);
@@ -52,26 +52,45 @@ public class ListCmd extends GBCommand
     @Override
     protected InteractionResponse gbExecute(Interaction interaction) throws GiveawayException
     {
-        //bot.getGiveawayManager().checkPermission(interaction.getMember(), interaction.getGuildId());
-        
         List<Giveaway> list = bot.getDatabase().getGiveawaysByGuild(interaction.getGuildId());
         if(list.isEmpty())
             return respondError(LocalizedMessage.WARNING_NO_GIVEAWAYS.getLocalizedMessage(interaction.getEffectiveLocale()));
-        //Color c = bot.getDatabase().getSettings(interaction.getGuildId()).getColor();
-        StringBuilder sb = new StringBuilder("**Active Giveaways**\n");
-        list.forEach(giv -> 
+        
+        WebLocale loc = interaction.getEffectiveLocale();
+        String title = LocalizedMessage.GIVEAWAY_LIST.getLocalizedMessage(interaction.getEffectiveLocale());
+        int total = title.length();
+        
+        Embed.Builder eb = new Embed.Builder();
+        eb.setColor(bot.getDatabase().getSettings(interaction.getGuildId()).getColor());
+        eb.setTitle(title, null);
+        
+        for(Giveaway giv: list)
         {
-            sb.append("\n[`").append(giv.getMessageId()).append("`](").append(giv.getJumpLink()).append(") | <#").append(giv.getChannelId()).append("> | **").append(giv.getWinners())
-                .append("** ").append(FormatUtil.pluralise(giv.getWinners(), "winner", "winners")).append(" | ")
-                .append(giv.getPrize() == null || giv.getPrize().isEmpty() ? "No prize specified" : "Prize: **" + giv.getPrize() + "**").append(" | ")
-                .append("Host: <@").append(giv.getUserId()).append("> | ")
-                .append("Ends in ").append(FormatUtil.secondsToTime(Instant.now().until(giv.getEndInstant(), ChronoUnit.SECONDS)));
-            
-        });
+            String key = giv.getPrize().isEmpty() ? "Giveaway" : giv.getPrize();
+            String val = renderGiveawayString(giv, loc);
+            if(total + key.length() + val.length() >= MAX_LENGTH - 4)
+            {
+                eb.setFooter("...", null);
+                break;
+            }
+            eb.addField(key, val, true);
+            total += key.length() + val.length();
+        }
         return new MessageCallback(new SentMessage.Builder()
-                .setContent(sb.toString())
+                //.setContent(sb.toString())
                 .setAllowedMentions(new AllowedMentions(true))
-                //.addEmbed(new Embed.Builder().setTitle("Active Giveaways", null).setColor(c).setDescription(sb.toString()).build())
+                .addEmbed(eb.build())
                 .build());
+    }
+    
+    private String renderGiveawayString(Giveaway giv, WebLocale loc)
+    {
+        return new StringBuilder()
+                .append("[`").append(giv.getMessageId()).append("`](").append(giv.getJumpLink()).append(") | <#").append(giv.getChannelId()).append("> | ")
+                //.append(giv.getPrize().isEmpty() ? "" : "**" + giv.getPrize() + "** | ")
+                .append(LocalizedMessage.GIVEAWAY_WINNERS.getLocalizedMessage(loc)).append(": **").append(giv.getWinners()).append("**  | ")
+                .append(LocalizedMessage.GIVEAWAY_HOSTED.getLocalizedMessage(loc)).append(": <@").append(giv.getUserId()).append("> | ")
+                .append(LocalizedMessage.GIVEAWAY_ENDS.getLocalizedMessage(loc)).append(": ").append(FormatUtil.secondsToTime(Instant.now().until(giv.getEndInstant(), ChronoUnit.SECONDS)))
+                .toString();
     }
 }
