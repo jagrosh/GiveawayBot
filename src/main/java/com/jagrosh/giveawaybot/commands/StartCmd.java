@@ -43,7 +43,8 @@ public class StartCmd extends GBCommand
                 .setDescription("starts a giveaway")
                 .addOptions(new ApplicationCommandOption(ApplicationCommandOption.Type.STRING, "duration", "duration of the giveaway", true),
                             new ApplicationCommandOption(ApplicationCommandOption.Type.INTEGER, "winners", "number of winners", true, 1, 50, false),
-                            new ApplicationCommandOption(ApplicationCommandOption.Type.STRING, "prize", "the prize being given away", true))
+                            new ApplicationCommandOption(ApplicationCommandOption.Type.STRING, "prize", "the prize being given away", true),
+                            new ApplicationCommandOption(ApplicationCommandOption.Type.STRING, "description", "a description of your giveaway", false))
                 .setDmPermission(false)
                 .setDefaultPermissions(Permission.MANAGE_GUILD)
                 .build();
@@ -61,7 +62,10 @@ public class StartCmd extends GBCommand
         Giveaway g = bot.getGiveawayManager().constructGiveaway(interaction.getUser(), 
                 interaction.getCommandData().getOptionByName("duration").getStringValue(), 
                 interaction.getCommandData().getOptionByName("winners").getIntValue() + "", 
-                interaction.getCommandData().getOptionByName("prize").getStringValue(), null, pl, interaction.getEffectiveLocale());
+                interaction.getCommandData().getOptionByName("prize").getStringValue(),
+                interaction.getCommandData().getOptionByName("description") == null ? null :
+                        interaction.getCommandData().getOptionByName("description").getStringValue(),
+                pl, interaction.getEffectiveLocale());
         
         // attempt giveaway creation
         long id = bot.getGiveawayManager().sendGiveaway(g, interaction.getGuildId(), interaction.getChannelId());
